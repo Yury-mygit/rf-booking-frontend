@@ -1,0 +1,88 @@
+// Hash-router с поддержкой блочных вложенных маршрутов и query-params.
+// Поддерживает паттерны:
+//   "/"               — точное совпадение.
+//   "/client/*"       — wildcard, всё что после `/client/` уходит в params.rest.
+//   "/client/hotel/{id}" — именованный параметр.
+
+const routes = [];
+
+export function route(pattern, handler) {
+  let regex;
+  if (pattern.endsWith("/*")) {
+    const prefix = pattern.slice(0, -2);
+    regex = new RegExp("^" + escapeRe(prefix) + "(/.*)?$");
+    routes.push({ regex, handler, kind: "wildcard" });
+  } else {
+    const r = pattern
+      .split("/")
+      .map((seg) => seg.replace(/\{(\w+)\}/g, "(?<$1>[^/]+)"))
+      .join("/");
+    regex = new RegExp("^" + r + "$");
+    routes.push({ regex, handler, kind: "exact" });
+  }
+}
+
+function escapeRe(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+export function navigate(hash) {
+  const target = hash.startsWith("#") ? hash : "#" + hash;
+  if (location.hash === target) {
+    run();
+  } else {
+    location.hash = target;
+  }
+}
+
+function isTgInternalHash(raw) {
+  return raw.startsWith("tgWebApp");
+}
+
+export function getQuery() {
+  const raw = location.hash.replace(/^#/, "");
+  if (isTgInternalHash(raw)) return {};
+  const q = raw.split("?")[1] || "";
+  return Object.fromEntries(new URLSearchParams(q));
+}
+
+export function currentPath() {
+  const raw = location.hash.replace(/^#/, "");
+  if (!raw || isTgInternalHash(raw)) return "/";
+  return raw.split("?")[0];
+}
+
+export async function run() {
+  // Сброс per-view UI: back-кнопка скрыта по умолчанию; view сама её
+  // включит. Selection-handlers (если будут) тоже здесь сбрасывать.
+  const back = document.getElementById("topbar-back");
+  if (back) back.hidden = true;
+
+  const path = currentPath();
+  const query = getQuery();
+  for (const { regex, handler, kind } of routes) {
+    const m = path.match(regex);
+    if (!m) continue;
+    const params = { ...(m.groups || {}), _query: query };
+    if (kind === "wildcard") params.rest = m[1] || "";
+    try {
+      await handler(params);
+    } catch (e) {
+      console.error("Route handler error:", e);
+      document.getElementById("app").innerHTML =
+        `<div class="error">${escapeHtml(e.message || String(e))}</div>`;
+    }
+    return;
+  }
+  document.getElementById("app").textContent = "404: " + path;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]
+  );
+}
+
+export function initRouter() {
+  window.addEventListener("hashchange", run);
+}

@@ -1,0 +1,25 @@
+{
+  "common.loading": "Loading…",
+  "common.error": "Error: {msg}",
+  "common.cancel": "Cancel",
+  "common.back": "Back",
+  "common.save": "Save",
+  "common.delete": "Delete",
+
+  "app.title": "Mode",
+  "app.no_session": "Open via @{bot} to sign in.",
+
+  "entry.greeting": "Welcome",
+  "entry.greeting_named": "Hi, {name}",
+  "entry.pick_role": "Where to go?",
+  "entry.role_client_title": "Booking",
+  "entry.role_client_sub": "Find and book accommodation",
+  "entry.role_partner_title": "Partner",
+  "entry.role_partner_sub": "Manage hotels and bookings",
+  "entry.role_admin_title": "Admin",
+  "entry.role_admin_sub": "Moderation and overall stats",
+
+  "client.app_name": "Booking",
+  "client.no_hotel": "Open the hotel via the link from the hotelier or return to {bot}.",
+  "client.hotel_title": "Hotel “{name}”"
+}

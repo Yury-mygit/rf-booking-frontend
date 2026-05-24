@@ -1,0 +1,25 @@
+{
+  "common.loading": "Жүктөлүүдө…",
+  "common.error": "Ката: {msg}",
+  "common.cancel": "Жокко чыгаруу",
+  "common.back": "Артка",
+  "common.save": "Сактоо",
+  "common.delete": "Өчүрүү",
+
+  "app.title": "Режим",
+  "app.no_session": "Кирүү үчүн @{bot} ачыңыз.",
+
+  "entry.greeting": "Кош келиңиз",
+  "entry.greeting_named": "Салам, {name}",
+  "entry.pick_role": "Кайсы бөлүмгө кирүү?",
+  "entry.role_client_title": "Брондоо",
+  "entry.role_client_sub": "Жайды табуу жана брондоо",
+  "entry.role_partner_title": "Өнөктөш",
+  "entry.role_partner_sub": "Мейманканалар жана брондорду башкаруу",
+  "entry.role_admin_title": "Админ",
+  "entry.role_admin_sub": "Модерация жана жалпы статистика",
+
+  "client.app_name": "Брондоо",
+  "client.no_hotel": "Мейманкананы шилтеме аркылуу ачыңыз же {bot} ботуна кайтыңыз.",
+  "client.hotel_title": "«{name}» мейманканасы"
+}

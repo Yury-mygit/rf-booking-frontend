@@ -1,0 +1,25 @@
+{
+  "common.loading": "Загрузка…",
+  "common.error": "Ошибка: {msg}",
+  "common.cancel": "Отмена",
+  "common.back": "Назад",
+  "common.save": "Сохранить",
+  "common.delete": "Удалить",
+
+  "app.title": "Режим",
+  "app.no_session": "Откройте через @{bot}, чтобы войти.",
+
+  "entry.greeting": "Добро пожаловать",
+  "entry.greeting_named": "Привет, {name}",
+  "entry.pick_role": "Куда зайти?",
+  "entry.role_client_title": "Бронирование",
+  "entry.role_client_sub": "Найти и забронировать жильё",
+  "entry.role_partner_title": "Партнёр",
+  "entry.role_partner_sub": "Управление отелями и бронями",
+  "entry.role_admin_title": "Админ",
+  "entry.role_admin_sub": "Модерация и общая статистика",
+
+  "client.app_name": "Бронирование",
+  "client.no_hotel": "Откройте отель по ссылке от отельера или вернитесь в {bot}.",
+  "client.hotel_title": "Отель «{name}»"
+}

@@ -1,0 +1,22 @@
+/* Entry view (selector блоков). */
+
+.entry-greeting { font-size: 22px; font-weight: 700; margin: 8px 0 2px; }
+.entry-subtitle { font-size: 14px; margin: 0 0 16px; }
+.entry-blocks { display: flex; flex-direction: column; gap: 10px; }
+
+.entry-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: var(--text);
+}
+.entry-block:hover { border-color: var(--accent); }
+.eb-title { font-weight: 600; font-size: 16px; }
+.eb-sub { font-size: 13px; color: var(--muted); }
