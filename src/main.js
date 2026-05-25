@@ -8,10 +8,11 @@
 import { api } from "./api.js";
 import { applyTheme, watchTheme } from "./theme.js";
 import { initTg, inTelegram, tg } from "./tg.js";
-import { applyStaticI18n, cycleLang } from "./i18n.js";
+import { applyStaticI18n } from "./i18n.js";
 import { initRouter, route, run, navigate } from "./router.js";
 import { initTopbar } from "./topbar.js";
 import { renderEntry } from "./entry/index.js";
+import { openSettings, renderSettings } from "./settings.js";
 
 applyTheme();
 watchTheme();
@@ -19,15 +20,12 @@ initTg();
 initTopbar();
 applyStaticI18n();
 
-document.getElementById("lang-cycle").addEventListener("click", () => {
-  cycleLang();
-  applyStaticI18n();
-  run();
-});
+document.getElementById("settings-btn").addEventListener("click", openSettings);
 
 // Маршруты. Блоки регистрируются через dynamic import — код блока скачивается
 // только при первом входе. Bundle entry остаётся компактным.
 route("/", renderEntry);
+route("/settings", renderSettings);
 route("/client/*", async (params) => (await import("./client/index.js")).render(params));
 route("/partner/*", async (params) => (await import("./partner/index.js")).render(params));
 route("/admin/*", async (params) => (await import("./admin/index.js")).render(params));

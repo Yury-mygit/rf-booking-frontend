@@ -28,6 +28,9 @@
   "entry.role_admin_sub": "Модерация жана жалпы статистика",
   "entry.single_role_done": "Жалгыз гана блок жеткиликтүү. Чыгуу үчүн ботко кайтыңыз.",
 
+  "settings.title": "Жөндөөлөр",
+  "settings.language": "Тил",
+
   "client.app_name": "Брондоо",
   "client.no_hotel": "Мейманкананы шилтеме аркылуу ачыңыз же {bot} ботуна кайтыңыз.",
   "client.hotel_title": "«{name}» мейманканасы",

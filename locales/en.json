@@ -28,6 +28,9 @@
   "entry.role_admin_sub": "Moderation and overall stats",
   "entry.single_role_done": "Only one block available. Return to the bot to exit.",
 
+  "settings.title": "Settings",
+  "settings.language": "Language",
+
   "client.app_name": "Booking",
   "client.no_hotel": "Open the hotel via the link from the hotelier or return to {bot}.",
   "client.hotel_title": "Hotel “{name}”",

@@ -43,17 +43,40 @@ body { -webkit-font-smoothing: antialiased; }
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-#lang-cycle {
-  padding: 4px 10px;
-  font-size: 12px;
+#settings-btn {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  color: var(--text);
+  cursor: pointer;
+}
+#settings-btn:hover { background: rgba(127,127,127,0.18); }
+#settings-btn svg { display: block; }
+
+.topbar-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+/* Settings view */
+.settings-list { display: flex; flex-direction: column; gap: 12px; padding-top: 4px; }
+.settings-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+.settings-label { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.3px; }
+.settings-lang-row { display: flex; gap: 6px; }
+.settings-lang-btn {
+  flex: 1;
+  padding: 10px 0;
+  font-size: 14px;
   font-weight: 600;
-  min-width: 36px;
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text);
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
 }
+.settings-lang-btn.active { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
 
 #app { padding: 14px; max-width: 720px; margin: 0 auto; }
 
