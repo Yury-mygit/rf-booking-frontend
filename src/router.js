@@ -53,10 +53,14 @@ export function currentPath() {
 }
 
 export async function run() {
-  // Сброс per-view UI: back-кнопка скрыта по умолчанию; view сама её
-  // включит. Selection-handlers (если будут) тоже здесь сбрасывать.
+  // Сброс per-view UI: back-кнопка, bottom-nav, owner-selector скрыты по
+  // умолчанию; view/блок сам(а) их включит, если нужно.
   const back = document.getElementById("topbar-back");
   if (back) back.hidden = true;
+  const bn = document.getElementById("bottomnav");
+  if (bn) bn.hidden = true;
+  const os = document.getElementById("owner-selector");
+  if (os) os.hidden = true;
 
   const path = currentPath();
   const query = getQuery();

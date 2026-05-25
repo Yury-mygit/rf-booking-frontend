@@ -41,7 +41,7 @@ initRouter();
   if (inTelegram && tg && tg.initData) {
     try {
       const r = await api.authTg(tg.initData);
-      api.setSession(r.token, r.user);
+      api.setSession(r.token, r.user, r.accessible_owners);
     } catch (e) {
       // Не валим bootstrap — entry view покажет fallback (dev-login или
       // сообщение «откройте через бота»).
@@ -50,3 +50,9 @@ initRouter();
   }
   run();
 })();
+
+window.addEventListener("ownerchange", () => run());
+window.addEventListener("langchange", () => {
+  applyStaticI18n();
+  run();
+});
