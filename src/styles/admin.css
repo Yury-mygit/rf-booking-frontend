@@ -1,0 +1,50 @@
+/* Admin block styles. Подключается из src/admin/index.js. */
+
+:root {
+  --pill-client-bg: #e3f2fd; --pill-client-text: #1565c0;
+  --pill-partner-bg: #fff3e0; --pill-partner-text: #e65100;
+  --pill-admin-bg: #f3e5f5; --pill-admin-text: #6a1b9a;
+  --pill-verified-bg: #c8e6c9; --pill-verified-text: #2e7d32;
+  --pill-pending-bg: #fff9c4; --pill-pending-text: #827717;
+  --pill-superadmin-bg: #fff3c4; --pill-superadmin-text: #8a5d00;
+}
+
+:root[data-theme="dark"] {
+  --pill-client-bg: #1a3550; --pill-client-text: #82b1ff;
+  --pill-partner-bg: #4a3010; --pill-partner-text: #ffb74d;
+  --pill-admin-bg: #3b1f45; --pill-admin-text: #ce93d8;
+  --pill-verified-bg: #1e4a25; --pill-verified-text: #81c784;
+  --pill-pending-bg: #4a4220; --pill-pending-text: #fff59d;
+  --pill-superadmin-bg: #4a3a10; --pill-superadmin-text: #ffd95b;
+}
+
+/* Bottom-nav для admin-блока (повторяет partner-стили; держим
+   отдельные правила для возможности расхождения в будущем). */
+body[data-block="admin"] #bottomnav {
+  display: flex;
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+  justify-content: space-around; align-items: stretch;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+body[data-block="admin"] main#app {
+  padding-bottom: calc(72px + env(safe-area-inset-bottom));
+}
+
+.status-pill.client { background: var(--pill-client-bg); color: var(--pill-client-text); }
+.status-pill.partner { background: var(--pill-partner-bg); color: var(--pill-partner-text); }
+.status-pill.admin { background: var(--pill-admin-bg); color: var(--pill-admin-text); }
+.status-pill.verified { background: var(--pill-verified-bg); color: var(--pill-verified-text); }
+.status-pill.pending { background: var(--pill-pending-bg); color: var(--pill-pending-text); }
+.status-pill.superadmin { background: var(--pill-superadmin-bg); color: var(--pill-superadmin-text); font-weight: 600; }
+
+.metric-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
+.metric { background: var(--surface); border: 1px solid var(--border-soft); border-radius: 6px; padding: 14px; text-align: center; }
+.metric .v { font-size: 22px; font-weight: 600; color: var(--accent); }
+.metric .k { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+.filter-row { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+.filter-row > div { flex: 1; min-width: 140px; }
+.filter-row label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
+.filter-row select { width: 100%; padding: 8px 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 4px; font-size: 14px; }
