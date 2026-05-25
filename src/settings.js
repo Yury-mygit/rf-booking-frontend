@@ -6,12 +6,11 @@
 // QR хранится в localStorage как base64 — для прод нужен backend-endpoint
 // (см. follow-up). Достаточно для single-device теста.
 
+import { api } from "./api.js";
 import { t, LANG_ORDER, getLang, setLang } from "./i18n.js";
 import { navigate } from "./router.js";
 import { setTitle, showBack } from "./topbar.js";
 import { setBottomNav } from "./bottomnav.js";
-
-const QR_KEY = "rfbook_payment_qr";
 
 const SVG_ATTR = 'viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
 const TAB_ICONS = {
@@ -55,7 +54,7 @@ export function renderSettings() {
   render();
 }
 
-function render() {
+async function render() {
   const app = document.getElementById("app");
   if (_state.active === "general") return renderGeneralTab(app);
   if (_state.active === "payments") return renderPaymentsTab(app);
@@ -90,14 +89,20 @@ function renderLangButtons() {
   });
 }
 
-// ─── Таб «Платежи» — QR-код ─────────────────────────────────────────────────
+// ─── Таб «Платежи» — QR-код (серверное хранение) ────────────────────────────
+// Backend: GET/POST/DELETE /api/v1/me/qr; файлы /api/v1/qr/{user_id}/{name}.
+// Per-user, не per-hotel — настройка из «Настройки», у каждого юзера свой QR.
 
-function getQR() {
-  return localStorage.getItem(QR_KEY);
-}
-
-function renderPaymentsTab(app) {
-  const cur = getQR();
+async function renderPaymentsTab(app) {
+  app.innerHTML = `<p class="muted">${t("app.loading")}</p>`;
+  let cur = null;
+  try {
+    const r = await api.getMyQr();
+    cur = r && r.url ? r.url : null;
+  } catch (e) {
+    app.innerHTML = `<div class="error">${t("app.error", { msg: e.message })}</div>`;
+    return;
+  }
   app.innerHTML = `
     <div class="settings-list">
       <div class="settings-item">
@@ -115,69 +120,65 @@ function renderPaymentsTab(app) {
         ${cur ? `<button class="secondary" id="qr-clear" style="margin-top:8px;width:100%">${t("settings.qr.delete")}</button>` : ""}
         <div id="qr-err" class="error" style="display:none"></div>
         <div id="qr-ok" class="success" style="display:none"></div>
-        <p class="muted" style="margin-top:12px;font-size:11px">${t("settings.qr.hint")}</p>
       </div>
     </div>
   `;
 
   const fileInput = document.getElementById("qr-file");
   const saveBtn = document.getElementById("qr-save");
-  let pendingB64 = null;
+  let pendingFile = null;
 
-  fileInput.onchange = async () => {
+  fileInput.onchange = () => {
     const f = fileInput.files && fileInput.files[0];
-    pendingB64 = null;
+    pendingFile = null;
     document.getElementById("qr-err").style.display = "none";
     if (!f) {
       saveBtn.disabled = true;
       return;
     }
     if (f.size > 1024 * 1024 * 2) {
-      document.getElementById("qr-err").textContent = t("settings.qr.too_large");
-      document.getElementById("qr-err").style.display = "block";
+      const err = document.getElementById("qr-err");
+      err.textContent = t("settings.qr.too_large");
+      err.style.display = "block";
       saveBtn.disabled = true;
       return;
     }
-    try {
-      pendingB64 = await readAsDataURL(f);
-      saveBtn.disabled = false;
-    } catch (e) {
-      document.getElementById("qr-err").textContent = t("app.error", { msg: e.message });
-      document.getElementById("qr-err").style.display = "block";
-    }
+    pendingFile = f;
+    saveBtn.disabled = false;
   };
 
-  saveBtn.onclick = () => {
-    if (!pendingB64) return;
+  saveBtn.onclick = async () => {
+    if (!pendingFile) return;
+    saveBtn.disabled = true;
+    document.getElementById("qr-err").style.display = "none";
+    document.getElementById("qr-ok").style.display = "none";
     try {
-      localStorage.setItem(QR_KEY, pendingB64);
+      await api.uploadMyQr(pendingFile);
       const okBox = document.getElementById("qr-ok");
       okBox.textContent = t("settings.qr.saved");
       okBox.style.display = "block";
-      // Re-render для отображения preview с новой картинкой
+      // Re-render — подтянет URL нового файла и обновит preview/кнопки.
       setTimeout(() => renderPaymentsTab(app), 500);
     } catch (e) {
-      // localStorage quota / SecurityError
-      document.getElementById("qr-err").textContent = t("app.error", { msg: e.message });
-      document.getElementById("qr-err").style.display = "block";
+      const err = document.getElementById("qr-err");
+      err.textContent = t("app.error", { msg: e.message });
+      err.style.display = "block";
+      saveBtn.disabled = false;
     }
   };
 
   const clearBtn = document.getElementById("qr-clear");
   if (clearBtn) {
-    clearBtn.onclick = () => {
+    clearBtn.onclick = async () => {
       if (!confirm(t("settings.qr.delete_confirm"))) return;
-      localStorage.removeItem(QR_KEY);
-      renderPaymentsTab(app);
+      try {
+        await api.deleteMyQr();
+        renderPaymentsTab(app);
+      } catch (e) {
+        const err = document.getElementById("qr-err");
+        err.textContent = t("app.error", { msg: e.message });
+        err.style.display = "block";
+      }
     };
   }
-}
-
-function readAsDataURL(file) {
-  return new Promise((resolve, reject) => {
-    const r = new FileReader();
-    r.onload = () => resolve(r.result);
-    r.onerror = () => reject(new Error("read failed"));
-    r.readAsDataURL(file);
-  });
 }

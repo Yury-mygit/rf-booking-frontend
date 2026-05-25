@@ -41,7 +41,6 @@
   "settings.qr.delete_confirm": "Сакталган QR-кодду өчүрөсүзбү?",
   "settings.qr.saved": "QR-код сакталды",
   "settings.qr.too_large": "Файл өтө чоң (максимум 2 МБ)",
-  "settings.qr.hint": "Азыр QR ушул түзмөктө гана сакталат. Серверде сактоо — кийинки версияларда.",
 
   "staff.tab.list": "Кызматкерлер",
   "staff.tab.add": "Кошуу",

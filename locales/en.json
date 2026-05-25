@@ -41,7 +41,6 @@
   "settings.qr.delete_confirm": "Delete saved QR code?",
   "settings.qr.saved": "QR code saved",
   "settings.qr.too_large": "File too large (2 MB max)",
-  "settings.qr.hint": "QR is currently stored on this device only. Server storage — in future versions.",
 
   "staff.tab.list": "Staff",
   "staff.tab.add": "Add",

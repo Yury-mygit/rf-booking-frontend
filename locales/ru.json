@@ -41,7 +41,6 @@
   "settings.qr.delete_confirm": "Удалить сохранённый QR-код?",
   "settings.qr.saved": "QR-код сохранён",
   "settings.qr.too_large": "Файл слишком большой (максимум 2 МБ)",
-  "settings.qr.hint": "Сейчас QR хранится только на этом устройстве. Серверное сохранение — в следующих версиях.",
 
   "staff.tab.list": "Сотрудники",
   "staff.tab.add": "Добавить",
