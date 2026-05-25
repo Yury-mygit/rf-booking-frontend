@@ -30,6 +30,18 @@
 
   "settings.title": "Настройки",
   "settings.language": "Язык",
+  "settings.tab.general": "Общие",
+  "settings.tab.payments": "Платежи",
+  "settings.qr.title": "QR-код для оплаты",
+  "settings.qr.empty": "QR-код не задан",
+  "settings.qr.choose": "Выберите файл (PNG/JPG/WebP, до 2 МБ)",
+  "settings.qr.save": "Сохранить",
+  "settings.qr.replace": "Заменить",
+  "settings.qr.delete": "Удалить QR-код",
+  "settings.qr.delete_confirm": "Удалить сохранённый QR-код?",
+  "settings.qr.saved": "QR-код сохранён",
+  "settings.qr.too_large": "Файл слишком большой (максимум 2 МБ)",
+  "settings.qr.hint": "Сейчас QR хранится только на этом устройстве. Серверное сохранение — в следующих версиях.",
 
   "staff.tab.list": "Сотрудники",
   "staff.tab.add": "Добавить",

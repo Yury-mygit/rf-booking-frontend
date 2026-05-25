@@ -30,6 +30,18 @@
 
   "settings.title": "Settings",
   "settings.language": "Language",
+  "settings.tab.general": "General",
+  "settings.tab.payments": "Payments",
+  "settings.qr.title": "Payment QR code",
+  "settings.qr.empty": "No QR code set",
+  "settings.qr.choose": "Choose file (PNG/JPG/WebP, up to 2 MB)",
+  "settings.qr.save": "Save",
+  "settings.qr.replace": "Replace",
+  "settings.qr.delete": "Delete QR code",
+  "settings.qr.delete_confirm": "Delete saved QR code?",
+  "settings.qr.saved": "QR code saved",
+  "settings.qr.too_large": "File too large (2 MB max)",
+  "settings.qr.hint": "QR is currently stored on this device only. Server storage — in future versions.",
 
   "staff.tab.list": "Staff",
   "staff.tab.add": "Add",

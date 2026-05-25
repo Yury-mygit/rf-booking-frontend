@@ -1,8 +1,10 @@
-// Bottom-nav для partner-блока.
-// `setBottomNav(items)` принимает массив { key, label, icon, active?, href?, onClick? }.
-// Item с `href` рендерится как <a href="#<path>">, без `href` — как <button>.
+// Bottom-nav для partner-блока. setBottomNav вынесена в src/bottomnav.js
+// (используется ещё admin/settings).
 
 import { t } from "../i18n.js";
+import { setBottomNav } from "../bottomnav.js";
+
+export { setBottomNav };
 
 const SVG_ATTR = 'viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
 
@@ -21,24 +23,6 @@ const MAIN_ITEMS = [
   { key: "clients", labelKey: "nav.clients", icon: ICONS.clients, href: "/partner/clients" },
   { key: "staff", labelKey: "nav.staff", icon: ICONS.staff, href: "/partner/staff" },
 ];
-
-export function setBottomNav(items) {
-  const nav = document.getElementById("bottomnav");
-  if (!nav) return;
-  nav.hidden = false;
-  nav.innerHTML = items.map((it) => {
-    const cls = `bn-item${it.active ? " active" : ""}`;
-    const keyAttr = it.key ? ` data-nav-key="${it.key}"` : "";
-    const inner = `${it.icon}<span class="bn-label">${it.label}</span>`;
-    return it.href
-      ? `<a class="${cls}" href="#${it.href}"${keyAttr}>${inner}</a>`
-      : `<button class="${cls}" type="button"${keyAttr}>${inner}</button>`;
-  }).join("");
-  nav.querySelectorAll("button.bn-item").forEach((btn, i) => {
-    const handler = items.filter((x) => !x.href)[i]?.onClick;
-    if (handler) btn.addEventListener("click", handler);
-  });
-}
 
 export function renderMainNav(activeKey) {
   setBottomNav(

@@ -78,6 +78,31 @@ body { -webkit-font-smoothing: antialiased; }
 }
 .settings-lang-btn.active { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
 
+/* Settings — bottom-nav для табов */
+body[data-block="settings"] #bottomnav {
+  display: flex;
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+  justify-content: space-around; align-items: stretch;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+body[data-block="settings"] main#app {
+  padding-bottom: calc(72px + env(safe-area-inset-bottom));
+}
+
+/* QR preview */
+.qr-image {
+  display: block;
+  width: 100%;
+  max-width: 280px;
+  margin: 6px auto 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  padding: 8px;
+}
+
 #app { padding: 14px; max-width: 720px; margin: 0 auto; }
 
 h1 { font-size: 20px; margin: 0 0 6px; }

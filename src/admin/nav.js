@@ -1,6 +1,9 @@
-// Bottom-nav для admin-блока. Те же 4 раздела что в старом frontend-admin.
+// Bottom-nav для admin-блока. setBottomNav вынесена в src/bottomnav.js.
 
 import { t } from "../i18n.js";
+import { setBottomNav } from "../bottomnav.js";
+
+export { setBottomNav };
 
 const SVG_ATTR = 'viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
 
@@ -17,24 +20,6 @@ const MAIN_ITEMS = [
   { key: "hotels", labelKey: "nav.hotels", icon: ICONS.hotels, href: "/admin/hotels" },
   { key: "bookings", labelKey: "nav.bookings", icon: ICONS.bookings, href: "/admin/bookings" },
 ];
-
-export function setBottomNav(items) {
-  const nav = document.getElementById("bottomnav");
-  if (!nav) return;
-  nav.hidden = false;
-  nav.innerHTML = items.map((it) => {
-    const cls = `bn-item${it.active ? " active" : ""}`;
-    const keyAttr = it.key ? ` data-nav-key="${it.key}"` : "";
-    const inner = `${it.icon}<span class="bn-label">${it.label}</span>`;
-    return it.href
-      ? `<a class="${cls}" href="#${it.href}"${keyAttr}>${inner}</a>`
-      : `<button class="${cls}" type="button"${keyAttr}>${inner}</button>`;
-  }).join("");
-  nav.querySelectorAll("button.bn-item").forEach((btn, i) => {
-    const handler = items.filter((x) => !x.href)[i]?.onClick;
-    if (handler) btn.addEventListener("click", handler);
-  });
-}
 
 export function renderMainNav(activeKey) {
   setBottomNav(
