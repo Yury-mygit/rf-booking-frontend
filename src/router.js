@@ -4,6 +4,8 @@
 //   "/client/*"       — wildcard, всё что после `/client/` уходит в params.rest.
 //   "/client/hotel/{id}" — именованный параметр.
 
+import { hideBack } from "./topbar.js";
+
 const routes = [];
 
 export function route(pattern, handler) {
@@ -54,9 +56,9 @@ export function currentPath() {
 
 export async function run() {
   // Сброс per-view UI: back-кнопка, bottom-nav, owner-selector скрыты по
-  // умолчанию; view/блок сам(а) их включит, если нужно.
-  const back = document.getElementById("topbar-back");
-  if (back) back.hidden = true;
+  // умолчанию; view/блок сам(а) их включит, если нужно. hideBack снимает
+  // и в-app кнопку, и TG WebApp BackButton (offClick + hide).
+  hideBack();
   const bn = document.getElementById("bottomnav");
   if (bn) bn.hidden = true;
   const os = document.getElementById("owner-selector");
