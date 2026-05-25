@@ -1,6 +1,5 @@
 import { api } from "../../api.js";
 import { t } from "../../i18n.js";
-import { setTitle } from "../../topbar.js";
 import { escapeHtml, relativeTime } from "../../util.js";
 
 const PAGE_SIZE = 50;
@@ -24,7 +23,8 @@ export async function renderAudit() {
     return;
   }
 
-  setTitle(`${t("pageTitle.audit")} / ${t("audit.title")}`);
+  // Title set by parent (partner/index.js syncTopChrome via titleKey,
+  // или вызывающий staff-таб). Здесь только тело.
   app.innerHTML = `
     <div class="audit-filters">
       <label>${t("audit.q_filter")}
