@@ -7,7 +7,9 @@ import { inTelegram, tg } from "../../tg.js";
 export async function renderPay({ code }) {
   const app = document.getElementById("app");
   setTitle(t("pay.title", { code }));
-  showBack(() => history.length > 1 ? history.back() : navigate("#/"));
+  // Дефолтный back — в hub. После загрузки booking переопределим на hotel.
+  // history.back() в TG WebView ведёт себя нестабильно (закрывает WebApp).
+  showBack(() => navigate("#/"));
 
   if (!api.hasToken() && inTelegram) {
     try {
@@ -31,6 +33,8 @@ export async function renderPay({ code }) {
     app.innerHTML = `<div class="error">${t("common.error", { msg: e.message })}</div>`;
     return;
   }
+  // Booking загружен — back ведёт обратно на отель, не в hub.
+  showBack(() => navigate(`#/client/hotel/${booking.hotel_id}`));
 
   if (booking.status === "paid") {
     app.innerHTML = `
