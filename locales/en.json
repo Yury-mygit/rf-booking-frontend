@@ -31,6 +31,14 @@
   "settings.title": "Settings",
   "settings.language": "Language",
 
+  "staff.tab.list": "Staff",
+  "staff.tab.add": "Add",
+  "staff.tab.perms": "Permissions",
+  "staff.add_hint": "Staff member joins the team immediately after adding. Open the bot to your colleagues — they must be registered.",
+  "staff.add_no_perm": "You don't have permission to manage staff of this owner.",
+  "staff.add_ok": "Staff member added",
+  "staff.perms_no_perm": "You don't have permission to manage staff of this owner.",
+
   "client.app_name": "Booking",
   "client.no_hotel": "Open the hotel via the link from the hotelier or return to {bot}.",
   "client.hotel_title": "Hotel “{name}”",
