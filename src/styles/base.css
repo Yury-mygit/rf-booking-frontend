@@ -26,36 +26,23 @@ body { -webkit-font-smoothing: antialiased; }
 #topbar {
   display: flex;
   align-items: center;
-  padding: 10px 14px;
+  padding: 4px 14px;
   background: var(--surface);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--text);
   position: sticky;
   top: 0;
   z-index: 10;
   gap: 10px;
+  min-height: 32px;
 }
 #topbar-title {
   flex: 1;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 13px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-#topbar-back {
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  background: transparent;
-  border: 0;
-  border-radius: 6px;
-  color: var(--text);
-  cursor: pointer;
-}
-#topbar-back:hover { background: rgba(0,0,0,0.06); }
-#topbar-back[hidden] { display: none; }
 #lang-cycle {
   padding: 4px 10px;
   font-size: 12px;
