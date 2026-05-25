@@ -26,6 +26,7 @@
   "entry.role_partner_sub": "Manage hotels and bookings",
   "entry.role_admin_title": "Admin",
   "entry.role_admin_sub": "Moderation and overall stats",
+  "entry.single_role_done": "Only one block available. Return to the bot to exit.",
 
   "client.app_name": "Booking",
   "client.no_hotel": "Open the hotel via the link from the hotelier or return to {bot}.",

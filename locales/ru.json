@@ -26,6 +26,7 @@
   "entry.role_partner_sub": "Управление отелями и бронями",
   "entry.role_admin_title": "Админ",
   "entry.role_admin_sub": "Модерация и общая статистика",
+  "entry.single_role_done": "Доступен только один блок. Вернитесь в бот, чтобы выйти.",
 
   "client.app_name": "Бронирование",
   "client.no_hotel": "Откройте отель по ссылке от отельера или вернитесь в {bot}.",

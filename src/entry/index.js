@@ -44,6 +44,13 @@ function defaultRouteForRole(role, dl) {
   return "#/";
 }
 
+// Single-role: первый визит — auto-nav в единственный блок. Повторный
+// (юзер пришёл сюда back-кнопкой из блока) — нечего показывать как Режим,
+// выходим в бот. Multi-role всегда selector (back из блока вернёт сюда,
+// back из самого selector'а — закроет WebApp в TG штатно: hideBack снимает
+// наш handler, TG возвращает дефолтное поведение close).
+let _autoNavigatedFromEntry = false;
+
 export async function renderEntry() {
   setTitle(t("app.title"));
   hideBack();
@@ -68,14 +75,23 @@ export async function renderEntry() {
   const roles = me.available_roles || ["client"];
   const dl = parseStartParam(startParam());
 
-  // Single role — пускаем сразу.
   if (roles.length === 1) {
+    if (_autoNavigatedFromEntry) {
+      _autoNavigatedFromEntry = false;
+      if (tg && typeof tg.close === "function") {
+        tg.close();
+        return;
+      }
+      // Браузер: tg.close недоступен — показываем подсказку.
+      app.innerHTML = `<p class="muted">${t("entry.single_role_done")}</p>`;
+      return;
+    }
+    _autoNavigatedFromEntry = true;
     navigate(defaultRouteForRole(roles[0], dl));
     return;
   }
 
-  // Multi-role — selector. Если был deep-link — он применится автоматом
-  // при выборе подходящей роли.
+  _autoNavigatedFromEntry = false;
   renderSelector(me, roles, dl);
 }
 
