@@ -23,7 +23,7 @@ import { renderHotelEdit } from "./views/hotel_edit/index.js";
 import { renderRoomsList } from "./views/rooms_list.js";
 import { renderRoomEdit } from "./views/room_edit.js";
 import { renderAvailability } from "./views/availability.js";
-import { renderStaffList } from "./views/staff_list.js";
+import { renderStaffList } from "./views/staff_list/index.js";
 import { renderAudit } from "./views/audit.js";
 
 // rest paths: "/", "/rooms", "/bookings", "/clients", "/client/{id}",
