@@ -8,11 +8,16 @@
 export function setBottomNav(items) {
   const nav = document.getElementById("bottomnav");
   if (!nav) return;
+  if (!items || items.length === 0) {
+    nav.hidden = true;
+    nav.innerHTML = "";
+    return;
+  }
   nav.hidden = false;
   nav.innerHTML = items.map((it) => {
     const cls = `bn-item${it.active ? " active" : ""}`;
     const keyAttr = it.key ? ` data-nav-key="${it.key}"` : "";
-    const inner = `${it.icon}<span class="bn-label">${it.label}</span>`;
+    const inner = `${it.icon || ""}<span class="bn-label">${it.label}</span>`;
     return it.href
       ? `<a class="${cls}" href="#${it.href}"${keyAttr}>${inner}</a>`
       : `<button class="${cls}" type="button"${keyAttr}>${inner}</button>`;

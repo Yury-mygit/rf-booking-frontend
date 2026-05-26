@@ -1,9 +1,16 @@
+// Per-hotel вью клиента: Отель / Комнаты / Услуги / Забронировать / Карта.
+// Все 5 экранов работают с одним и тем же `_state.hotel` (кэш hotelDetails).
+// Bottom-nav рендерим в каждом экране (через clientNavItems с правильным active).
+
 import { api } from "../../api.js";
 import { getLang, t } from "../../i18n.js";
 import { navigate, getQuery } from "../../router.js";
 import { setTitle, showBack } from "../../topbar.js";
+import { setBottomNav } from "../../bottomnav.js";
 import { inTelegram, tg } from "../../tg.js";
 import { mountDateRange } from "../../widgets/daterange.js";
+import { clientNavItems } from "../nav.js";
+import { setLastHotel } from "../state.js";
 
 const PIN_SVG = `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>`;
 
@@ -28,10 +35,26 @@ const _state = {
   hotel: null,
   query: {},
   guestsFilter: 1,
-  activeTab: "rooms",
   eventSource: null,
   refreshTimer: null,
 };
+
+function matchesCached(slugOrId) {
+  if (!_state.hotel) return false;
+  return _state.hotel.slug === slugOrId || String(_state.hotel.id) === String(slugOrId);
+}
+
+// Загружает отель с учётом query (даты/гости). Кэширует в `_state.hotel`.
+// Передавай `q` для /rooms и /book (нужны даты для available_for_dates),
+// и `{}` для /hotel и /services (там даты не важны).
+async function ensureHotel(slugOrId, q = {}) {
+  if (matchesCached(slugOrId) && Object.keys(q).length === 0) {
+    return _state.hotel;
+  }
+  _state.hotel = await api.hotelDetails(slugOrId, q);
+  setLastHotel(_state.hotel);
+  return _state.hotel;
+}
 
 function closeEventSource() {
   if (_state.eventSource) {
@@ -44,7 +67,7 @@ function closeEventSource() {
   }
 }
 
-function ensureEventSource(hotelSlugOrId) {
+function ensureEventSource(hotelSlugOrId, onRefresh) {
   if (_state.eventSource && _state.eventSource.url.endsWith(`/${hotelSlugOrId}/events`)) {
     return;
   }
@@ -56,11 +79,10 @@ function ensureEventSource(hotelSlugOrId) {
     if (_state.refreshTimer) clearTimeout(_state.refreshTimer);
     _state.refreshTimer = setTimeout(async () => {
       _state.refreshTimer = null;
-      const body = document.getElementById("tab-body");
-      if (!body || _state.activeTab !== "rooms") return;
       try {
         _state.hotel = await api.hotelDetails(_state.hotel.id, _state.query);
-        renderRooms(body);
+        setLastHotel(_state.hotel);
+        onRefresh();
       } catch {
         // network blip — EventSource will reconnect; ignore.
       }
@@ -68,29 +90,31 @@ function ensureEventSource(hotelSlugOrId) {
   };
 }
 
-// При навигации вне /client/hotel/X — закрываем SSE.
+// SSE закрываем при уходе с любого /client/hotel/<slug>/rooms.
 window.addEventListener("hashchange", () => {
   const hash = location.hash.replace(/^#/, "").split("?")[0];
-  if (!hash.startsWith("/client/hotel/") || hash.endsWith("/map")) closeEventSource();
+  if (!/^\/client\/hotel\/[^/]+\/rooms$/.test(hash)) closeEventSource();
 });
 
-export async function renderHotel({ id }) {
+function hotelHash(h, tail = "") {
+  return `#/client/hotel/${encodeURIComponent(h.slug || h.id)}${tail}`;
+}
+
+// ─── Отель (фото + название + описание) ──────────────────────────────────
+export async function renderHotelDetail({ id }) {
   const app = document.getElementById("app");
   app.innerHTML = `<p>${t("common.loading")}</p>`;
-  const q = getQuery();
-  _state.query = q;
-  _state.guestsFilter = Number(q.guests) || 1;
+  let h;
   try {
-    _state.hotel = await api.hotelDetails(id, q);
+    h = await ensureHotel(id);
   } catch (e) {
     app.innerHTML = `<div class="error">${t("common.error", { msg: e.message })}</div>`;
     return;
   }
-  const h = _state.hotel;
-  const photo = (h.photos && h.photos[0]) || "";
-  const hotelName = h.name_ru;
-  setTitle(t("hotel.title_with_name", { name: hotelName }));
+  setTitle(h.name_ru);
   showBack(() => navigate("#/"));
+  setBottomNav(clientNavItems("hotel"));
+  const photo = (h.photos && h.photos[0]) || "";
   const addressText = [h.city, h.address].filter(Boolean).map(escapeHtml).join(" · ");
   const hasCoords = h.lat != null && h.lng != null;
   const pinBtn = hasCoords
@@ -105,38 +129,38 @@ export async function renderHotel({ id }) {
         ${h.description_ru ? `<p>${escapeHtml(h.description_ru)}</p>` : ""}
       </div>
     </div>
-    <div class="tabs">
-      <button class="tab" data-tab="rooms">${t("tabs.rooms")}</button>
-      <button class="tab" data-tab="my">${t("tabs.my")}</button>
-      <button class="tab" data-tab="services">${t("tabs.services")}</button>
-    </div>
-    <div id="tab-body"></div>
   `;
-  document.querySelectorAll(".tab").forEach((b) => {
-    b.onclick = () => switchTab(b.dataset.tab);
-  });
   const mapBtn = document.getElementById("hotel-map-btn");
-  if (mapBtn) mapBtn.onclick = () => navigate(`#/client/hotel/${h.slug || h.id}/map`);
-  switchTab(_state.activeTab);
+  if (mapBtn) mapBtn.onclick = () => navigate(hotelHash(h, "/map"));
 }
 
-function switchTab(name) {
-  _state.activeTab = name;
-  document.querySelectorAll(".tab").forEach((b) =>
-    b.classList.toggle("active", b.dataset.tab === name),
-  );
-  const body = document.getElementById("tab-body");
-  if (name === "rooms") return renderRooms(body);
-  if (name === "my") return renderMyBookings(body);
-  if (name === "services") return renderServices(body);
+// ─── Комнаты отеля ───────────────────────────────────────────────────────
+export async function renderHotelRooms({ id }) {
+  const app = document.getElementById("app");
+  app.innerHTML = `<p>${t("common.loading")}</p>`;
+  const q = getQuery();
+  _state.query = q;
+  _state.guestsFilter = Number(q.guests) || 1;
+  let h;
+  try {
+    h = await ensureHotel(id, q);
+  } catch (e) {
+    app.innerHTML = `<div class="error">${t("common.error", { msg: e.message })}</div>`;
+    return;
+  }
+  setTitle(t("client.nav.rooms"));
+  showBack(() => navigate(hotelHash(h)));
+  setBottomNav(clientNavItems("rooms"));
+  app.innerHTML = `<div id="rooms-section"></div>`;
+  renderRoomsList(document.getElementById("rooms-section"));
 }
 
-function renderRooms(body) {
+function renderRoomsList(body) {
   const h = _state.hotel;
   const q = _state.query;
   const g = _state.guestsFilter;
   const hasDates = q.check_in && q.check_out;
-  const rooms = h.rooms.filter((r) => r.capacity >= g);
+  const rooms = (h.rooms || []).filter((r) => r.capacity >= g);
   body.innerHTML = `
     <div class="rooms-controls">
       <div class="filters-row">
@@ -155,8 +179,6 @@ function renderRooms(body) {
         ? `<p class="muted">${t("rooms.empty_filter")}</p>`
         : rooms.map((r) => roomCardHtml(r, hasDates)).join("")}
     </div>
-    <div id="book-result"></div>
-    <div id="book-modal-mount"></div>
   `;
   mountDateRange(document.getElementById("f-dates"), {
     start: q.check_in || null,
@@ -171,12 +193,22 @@ function renderRooms(body) {
   document.getElementById("f-guests").onchange = (e) => {
     _state.guestsFilter = Number(e.target.value) || 1;
     _state.query.guests = String(_state.guestsFilter);
-    renderRooms(body);
+    renderRoomsList(body);
   };
   body.querySelectorAll("button[data-book-room]").forEach((b) => {
-    b.onclick = () => openBookModal(Number(b.dataset.bookRoom));
+    b.onclick = () => navigateToBook(h, Number(b.dataset.bookRoom));
   });
-  ensureEventSource(_state.hotel.slug || _state.hotel.id);
+  ensureEventSource(h.slug || h.id, () => renderRoomsList(body));
+}
+
+function navigateToBook(h, roomId) {
+  const q = _state.query;
+  const qs = new URLSearchParams();
+  if (q.check_in) qs.set("check_in", q.check_in);
+  if (q.check_out) qs.set("check_out", q.check_out);
+  qs.set("guests", String(_state.guestsFilter));
+  const tail = `/book/${roomId}?${qs.toString()}`;
+  navigate(hotelHash(h, tail));
 }
 
 async function updateRangeDates(body, ci, co) {
@@ -185,11 +217,12 @@ async function updateRangeDates(body, ci, co) {
   body.innerHTML = `<p>${t("common.loading")}</p>`;
   try {
     _state.hotel = await api.hotelDetails(_state.hotel.id, _state.query);
+    setLastHotel(_state.hotel);
   } catch (e) {
     body.innerHTML = `<div class="error">${t("common.error", { msg: e.message })}</div>`;
     return;
   }
-  renderRooms(body);
+  renderRoomsList(body);
 }
 
 function roomCardHtml(r, hasDates) {
@@ -207,31 +240,81 @@ function roomCardHtml(r, hasDates) {
   `;
 }
 
-function openBookModal(roomId) {
-  const r = _state.hotel.rooms.find((x) => x.id === roomId);
-  if (!r) return;
-  const q = _state.query;
-  const mount = document.getElementById("book-modal-mount");
-  const datesPicked = Boolean(q.check_in && q.check_out);
-  const datesBlock = datesPicked
-    ? `<div class="modal-summary">${t("rooms.modal_dates", { ci: q.check_in, co: q.check_out })}</div>`
-    : `<div class="form-row"><div id="m-dates"></div></div>`;
-  mount.innerHTML = `
-    <div class="modal-bg">
-      <div class="modal">
-        <h2>${t("rooms.modal_title", { room: escapeHtml(r.name_ru) })}</h2>
-        ${datesBlock}
-        <div class="form-row">
-          <label>${t("rooms.filter.guests")} (max ${r.capacity})</label>
-          <input id="m-g" type="number" min="1" max="${r.capacity}" value="${Math.min(_state.guestsFilter, r.capacity)}" />
-        </div>
-        <div style="display:flex;gap:8px;margin-top:12px">
-          <button class="secondary" id="m-cancel">${t("common.cancel")}</button>
-          <button class="primary" id="m-ok" style="margin:0;flex:1">${t("rooms.confirm")}</button>
-        </div>
-        <div id="m-err" class="error"></div>
-      </div>
+// ─── Услуги отеля ────────────────────────────────────────────────────────
+export async function renderHotelServices({ id }) {
+  const app = document.getElementById("app");
+  app.innerHTML = `<p>${t("common.loading")}</p>`;
+  let h;
+  try {
+    h = await ensureHotel(id);
+  } catch (e) {
+    app.innerHTML = `<div class="error">${t("common.error", { msg: e.message })}</div>`;
+    return;
+  }
+  setTitle(t("client.nav.services"));
+  showBack(() => navigate(hotelHash(h)));
+  setBottomNav(clientNavItems("services"));
+  if (!h.services || !h.services.length) {
+    app.innerHTML = `<p class="muted">${t("services.empty")}</p>`;
+    return;
+  }
+  app.innerHTML = h.services.map((s) => `
+    <div class="card">
+      <h3>${escapeHtml(s.name_ru)}</h3>
+      <div class="price">${servicePriceText(s)}</div>
     </div>
+  `).join("");
+}
+
+function servicePriceText(s) {
+  if (s.price_kgs == null) return t("services.free");
+  // hotel.price_per_night содержит /ночь — для услуги это не уместно.
+  return t("hotel.price_per_night", { price: s.price_kgs })
+    .replace("/ночь", "")
+    .replace("/night", "")
+    .replace("/түнгө", "");
+}
+
+// ─── Забронировать (форма подтверждения, замена openBookModal) ──────────
+export async function renderHotelBookConfirm({ id, roomId }) {
+  const app = document.getElementById("app");
+  app.innerHTML = `<p>${t("common.loading")}</p>`;
+  const q = getQuery();
+  let h;
+  try {
+    h = await ensureHotel(id, q);
+  } catch (e) {
+    app.innerHTML = `<div class="error">${t("common.error", { msg: e.message })}</div>`;
+    return;
+  }
+  setTitle(t("client.nav.book"));
+  showBack(() => navigate(hotelHash(h, "/rooms")));
+  setBottomNav(clientNavItems("book"));
+
+  const r = (h.rooms || []).find((x) => x.id === Number(roomId));
+  if (!r) {
+    app.innerHTML = `<p class="error">${t("book.room_not_found")}</p>`;
+    return;
+  }
+  const datesPicked = Boolean(q.check_in && q.check_out);
+  const initialGuests = Math.min(Number(q.guests) || 1, r.capacity);
+  app.innerHTML = `
+    <div class="card">
+      <h2>${escapeHtml(r.name_ru)}</h2>
+      <div class="meta">${t("hotel.capacity", { n: r.capacity })}${r.beds != null ? ` · ${t("hotel.beds", { n: r.beds })}` : ""}</div>
+      <div class="price">${t("hotel.price_per_night", { price: r.price_kgs })}</div>
+    </div>
+    <div class="form-row">
+      ${datesPicked
+        ? `<div class="modal-summary">${t("rooms.modal_dates", { ci: q.check_in, co: q.check_out })}</div>`
+        : `<div id="m-dates"></div>`}
+    </div>
+    <div class="form-row">
+      <label for="m-g">${t("rooms.filter.guests")} (max ${r.capacity})</label>
+      <input id="m-g" type="number" min="1" max="${r.capacity}" value="${initialGuests}" />
+    </div>
+    <button class="primary full" id="m-ok">${t("rooms.confirm")}</button>
+    <div id="m-err" class="error"></div>
   `;
   let modalRange = null;
   if (!datesPicked) {
@@ -243,14 +326,14 @@ function openBookModal(roomId) {
       placeholderOut: t("rooms.pick_date"),
     });
   }
-  document.getElementById("m-cancel").onclick = () => (mount.innerHTML = "");
-  document.getElementById("m-ok").onclick = () => submitBook(roomId, mount, datesPicked, modalRange);
+  document.getElementById("m-ok").onclick = () =>
+    submitBookConfirm(h, r, q, datesPicked, modalRange);
 }
 
-async function submitBook(roomId, mount, datesFromFilter, modalRange) {
-  const q = _state.query;
+async function submitBookConfirm(h, r, q, datesFromQuery, modalRange) {
+  const err = document.getElementById("m-err");
   let ci, co;
-  if (datesFromFilter) {
+  if (datesFromQuery) {
     ci = q.check_in;
     co = q.check_out;
   } else if (modalRange) {
@@ -259,105 +342,62 @@ async function submitBook(roomId, mount, datesFromFilter, modalRange) {
     co = v.end;
   }
   const g = Number(document.getElementById("m-g").value) || 1;
-  const err = document.getElementById("m-err");
   if (!ci || !co) {
     err.textContent = t("rooms.dates_required");
     return;
   }
-
   if (!inTelegram && !api.hasToken()) {
-    const link = buildTelegramDeepLink(_state.hotel.slug, ci, co, g);
-    mount.innerHTML = `
-      <div class="modal-bg"><div class="modal" style="text-align:center">
+    const link = buildTelegramDeepLink(h.slug, ci, co, g);
+    document.getElementById("app").innerHTML = `
+      <div class="card" style="text-align:center">
         <p>${t("book.need_telegram")}</p>
         <a class="primary" style="text-decoration:none;display:inline-block;padding:10px 16px;background:var(--accent);color:var(--accent-text);border-radius:4px"
            href="${link}">${t("book.open_in_telegram")}</a>
-      </div></div>`;
+      </div>`;
     return;
   }
   if (!api.hasToken() && inTelegram) {
     try {
-      const r = await api.authTg(tg.initData);
-      api.setSession(r.token, r.user);
+      const auth = await api.authTg(tg.initData);
+      api.setSession(auth.token, auth.user);
     } catch (e) {
       err.textContent = t("common.error", { msg: e.message });
       return;
     }
   }
-
   err.textContent = t("common.loading");
   try {
     const b = await api.createBooking({
-      room_id: Number(roomId),
+      room_id: r.id,
       check_in: ci,
       check_out: co,
       guests: g,
     });
-    mount.innerHTML = "";
     navigate(`#/client/pay/${b.code}`);
   } catch (e) {
     err.textContent = t("common.error", { msg: e.message });
   }
 }
 
-async function renderMyBookings(body) {
-  const h = _state.hotel;
-  if (!api.hasToken()) {
-    body.innerHTML = `<p class="muted">${t("my.need_auth")}<a href="#/client/login">${t("my.dev_login")}</a></p>`;
-    return;
-  }
-  body.innerHTML = `<p>${t("common.loading")}</p>`;
-  try {
-    const items = await api.myBookingsAtHotel(h.id);
-    if (!items.length) {
-      body.innerHTML = `<p class="muted">${t("my.empty_for_hotel")}</p>`;
-      return;
-    }
-    body.innerHTML = items.map((b) => {
-      const payBtn = b.status === "pending" && !b.postpay
-        ? `<div style="margin-top:8px"><a class="primary" href="#/client/pay/${b.code}">${t("my.pay")}</a></div>`
-        : "";
-      let statusText;
-      if (b.status === "pending") {
-        statusText = b.confirmed ? t("my.status.pending_confirmed") : t("my.status.pending_unconfirmed");
-      } else {
-        statusText = t("my.status." + b.status);
-      }
-      return `
-      <div class="card">
-        <div class="meta">${t("my.code", { code: b.code })}</div>
-        <div>${t("my.dates", { ci: b.check_in, co: b.check_out })} · ${t("my.guests", { n: b.guests })}</div>
-        <div class="price">${t("my.total", { total: b.total_kgs })}</div>
-        <div class="meta">${statusText}</div>
-        ${payBtn}
-      </div>`;
-    }).join("");
-  } catch (e) {
-    body.innerHTML = `<div class="error">${t("common.error", { msg: e.message })}</div>`;
-  }
-}
-
+// ─── Карта (как было) ────────────────────────────────────────────────────
 export async function renderHotelMap({ id }) {
   const app = document.getElementById("app");
   app.innerHTML = `<p>${t("common.loading")}</p>`;
-  let h = _state.hotel && (String(_state.hotel.id) === id || _state.hotel.slug === id)
-    ? _state.hotel
-    : null;
+  let h = matchesCached(id) ? _state.hotel : null;
   if (!h) {
     try {
       h = await api.hotelDetails(id, {});
       _state.hotel = h;
+      setLastHotel(h);
     } catch (e) {
       app.innerHTML = `<div class="error">${t("common.error", { msg: e.message })}</div>`;
       return;
     }
   }
-  const backHash = `#/client/hotel/${h.slug || h.id}`;
   setTitle(t("hotel.location_title"));
   showBack(() => {
-    // Prefer history.back so query params (dates/guests) are preserved.
     if (history.length > 1) history.back();
-    else navigate(backHash);
+    else navigate(hotelHash(h));
   });
 
   if (h.lat == null || h.lng == null) {
@@ -366,11 +406,10 @@ export async function renderHotelMap({ id }) {
   }
   const lat = Number(h.lat);
   const lng = Number(h.lng);
-  const d = 0.005; // ≈ 500m around the marker for default zoom
+  const d = 0.005;
   const bbox = `${lng - d},${lat - d},${lng + d},${lat + d}`;
   const osmSrc = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}`;
   const dgisHref = `https://2gis.kg/?m=${lng}%2C${lat}%2F17&pt=${lng},${lat}`;
-
   const addressLine = [h.city, h.address].filter(Boolean).map(escapeHtml).join(" · ");
   app.innerHTML = `
     <div class="map-screen">
@@ -384,18 +423,4 @@ export async function renderHotelMap({ id }) {
       </div>
     </div>
   `;
-}
-
-function renderServices(body) {
-  const h = _state.hotel;
-  if (!h.services || !h.services.length) {
-    body.innerHTML = `<p class="muted">${t("services.empty")}</p>`;
-    return;
-  }
-  body.innerHTML = h.services.map((s) => `
-    <div class="card">
-      <h3>${escapeHtml(s.name_ru)}</h3>
-      <div class="price">${s.price_kgs != null ? t("hotel.price_per_night", { price: s.price_kgs }).replace("/ночь", "").replace("/night", "").replace("/түнгө", "") : t("services.free")}</div>
-    </div>
-  `).join("");
 }

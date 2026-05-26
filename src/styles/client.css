@@ -32,6 +32,58 @@
 .hotel-head-body { padding: 14px; }
 .hotel-head-body p { margin: 8px 0 0; font-size: 14px; color: var(--text); }
 
+/* Карточка отеля в списке /client/hotels: 15vh высотой, слева квадратное
+   фото (width = height = 15vh), справа — название сверху + описание. */
+.hotel-card-row {
+  display: flex;
+  height: 15vh;
+  margin-bottom: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+}
+.hotel-card-row .hcr-photo {
+  flex: 0 0 15vh;
+  width: 15vh;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-color: var(--surface-soft);
+}
+.hotel-card-row .hcr-body {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 4px;
+  overflow: hidden;
+}
+.hotel-card-row .hcr-body h3 {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.2;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.hotel-card-row .hcr-desc {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.3;
+  color: var(--text-muted);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
 .tabs {
   display: flex;
   gap: 4px;

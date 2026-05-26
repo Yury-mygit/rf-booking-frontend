@@ -34,18 +34,6 @@ body[data-block="partner"] #bottomnav {
 body[data-block="partner"] main#app {
   padding-bottom: calc(72px + env(safe-area-inset-bottom));
 }
-.bn-item {
-  flex: 1;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 2px; padding: 6px 4px 8px; min-height: 56px;
-  background: transparent; border: 0; font: inherit; cursor: pointer;
-  color: var(--text-faint); text-decoration: none;
-  font-size: 11px; line-height: 1.2;
-  -webkit-tap-highlight-color: transparent;
-}
-.bn-item svg { display: block; }
-.bn-item.active { color: var(--accent); }
-.bn-label { white-space: nowrap; }
 .topbar-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 #owner-selector { padding: 4px 8px; font-size: 12px; border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 4px; max-width: 180px; }
 

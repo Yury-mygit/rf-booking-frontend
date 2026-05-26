@@ -91,6 +91,33 @@ body[data-block="settings"] main#app {
   padding-bottom: calc(72px + env(safe-area-inset-bottom));
 }
 
+/* Client — bottom-nav */
+body[data-block="client"] #bottomnav {
+  display: flex;
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+  justify-content: space-around; align-items: stretch;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+body[data-block="client"] main#app {
+  padding-bottom: calc(72px + env(safe-area-inset-bottom));
+}
+
+/* Общие стили элементов bottom-nav (partner/admin/client/settings) */
+.bn-item {
+  flex: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 2px; padding: 6px 4px 8px; min-height: 56px;
+  background: transparent; border: 0; font: inherit; cursor: pointer;
+  color: var(--text-faint); text-decoration: none;
+  font-size: 11px; line-height: 1.2;
+  -webkit-tap-highlight-color: transparent;
+}
+.bn-item svg { display: block; }
+.bn-item.active { color: var(--accent); }
+.bn-label { white-space: nowrap; }
+
 /* QR preview */
 .qr-image {
   display: block;
