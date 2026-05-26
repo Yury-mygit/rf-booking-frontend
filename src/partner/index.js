@@ -19,7 +19,7 @@ import { renderAllRooms } from "./views/all_rooms.js";
 import { renderBookings } from "./views/bookings.js";
 import { renderClientsList } from "./views/clients_list.js";
 import { renderClientEdit } from "./views/client_edit.js";
-import { renderHotelEdit } from "./views/hotel_edit.js";
+import { renderHotelEdit } from "./views/hotel_edit/index.js";
 import { renderRoomsList } from "./views/rooms_list.js";
 import { renderRoomEdit } from "./views/room_edit.js";
 import { renderAvailability } from "./views/availability.js";
