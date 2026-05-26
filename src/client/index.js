@@ -17,7 +17,7 @@ import {
   renderHotelServices,
   renderHotelBookConfirm,
   renderHotelMap,
-} from "./views/hotel.js";
+} from "./views/hotel/index.js";
 import { renderHotels } from "./views/hotels.js";
 import { renderBookings } from "./views/bookings.js";
 import { renderPay } from "./views/pay.js";
