@@ -7,7 +7,6 @@ export default defineConfig({
     allowedHosts: [
       "book.dev.raftforge.art",
       "book-edit.raftforge.art",
-      "book-new.dev.raftforge.art",
       "localhost",
       "127.0.0.1",
     ],
