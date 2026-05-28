@@ -37,7 +37,7 @@ export async function renderHotelBookConfirm({ id, roomId }) {
   }
   setTitle(t("client.nav.book"));
   showBack(() => navigate(hotelHash(h, "/rooms")));
-  setBottomNav(clientNavItems("book"));
+  setBottomNav(clientNavItems("rooms"));
 
   const r = (h.rooms || []).find((x) => x.id === Number(roomId));
   if (!r) {

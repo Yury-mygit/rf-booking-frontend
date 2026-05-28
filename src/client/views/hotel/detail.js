@@ -19,7 +19,8 @@ export async function renderHotelDetail({ id }) {
     app.innerHTML = `<div class="error">${t("common.error", { msg: e.message })}</div>`;
     return;
   }
-  setTitle(h.name_ru);
+  const titled = t("hotel.title_prefix") + h.name_ru;
+  setTitle(titled);
   showBack(() => navigate("#/"));
   setBottomNav(clientNavItems("hotel"));
   const photo = (h.photos && h.photos[0]) || "";
@@ -32,7 +33,7 @@ export async function renderHotelDetail({ id }) {
     <div class="hotel-head-card">
       ${photo ? `<div class="hotel-head-photo" style="background-image:url('${escapeHtml(photo)}')"></div>` : ""}
       <div class="hotel-head-body">
-        <h1>${escapeHtml(h.name_ru)}</h1>
+        <h1>${escapeHtml(titled)}</h1>
         <div class="meta address-line">${addressText}${pinBtn}</div>
         ${h.description_ru ? `<p>${escapeHtml(h.description_ru)}</p>` : ""}
       </div>
