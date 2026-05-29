@@ -77,8 +77,18 @@ function renderRoomsList(body) {
     b.onclick = () => navigateToBook(h, Number(b.dataset.bookRoom));
   });
   body.querySelectorAll("button[data-chat-room]").forEach((b) => {
-    b.onclick = () =>
-      openChatWithHotel(h.id, { type: "room", id: Number(b.dataset.chatRoom) });
+    b.onclick = () => {
+      const roomId = Number(b.dataset.chatRoom);
+      const r = (h.rooms || []).find((x) => x.id === roomId);
+      openChatWithHotel(h.id, {
+        type: "room",
+        id: roomId,
+        name: r?.name_ru,
+        photo: r?.photos?.[0],
+        extra: r ? t("hotel.price_per_night", { price: r.price_kgs }) : undefined,
+        hotel_slug: h.slug,
+      });
+    };
   });
   ensureEventSource(h.slug || h.id, () => renderRoomsList(body));
 }

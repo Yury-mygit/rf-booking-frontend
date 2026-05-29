@@ -1,6 +1,15 @@
 // Общий helper для всех клиентских точек входа в чат (view отеля,
 // карточка комнаты, карточка брони). Делает get-or-create thread,
 // сохраняет subject в локальном state, переходит на /chat/thread/<id>.
+//
+// Формат `subject` (используется SubjectCard в thread view):
+//   { type: "booking"|"room"|"hotel", id,
+//     name?: string,        // отображаемое название
+//     photo?: string,       // URL миниатюры (опционально)
+//     extra?: string,       // вторая строка (даты брони, цена комнаты, …)
+//     hotel_slug?: string } // для тапа SubjectCard → entity view
+// На backend (api.chatOpenThread / send_message) уходят только `type`+`id`;
+// display-поля остаются на фронте.
 
 import { api } from "../../../api.js";
 import { t } from "../../../i18n.js";

@@ -75,9 +75,15 @@ export async function renderBookings() {
 
   app.querySelectorAll("button[data-chat-booking-id]").forEach((btn) => {
     btn.addEventListener("click", () => {
-      const hotelId = Number(btn.dataset.chatBookingHotel);
       const bookingId = Number(btn.dataset.chatBookingId);
-      openChatWithHotel(hotelId, { type: "booking", id: bookingId });
+      const b = items.find((x) => x.id === bookingId);
+      if (!b) return;
+      openChatWithHotel(b.hotel_id, {
+        type: "booking",
+        id: bookingId,
+        name: t("my.code", { code: b.code }),
+        extra: t("my.dates", { ci: b.check_in, co: b.check_out }),
+      });
     });
   });
 }

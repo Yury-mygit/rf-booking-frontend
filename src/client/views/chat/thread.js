@@ -24,6 +24,42 @@ function escapeHtml(s) {
   );
 }
 
+// Sticky-карточка сверху диалога: показывается только если на entry-point
+// был subject (room/booking). Тап → переход на entity-view (Этап 5.6).
+// Для type=hotel карточку не показываем — отель уже в заголовке экрана.
+function subjectCardHtml(subj) {
+  if (!subj || subj.type === "hotel") return "";
+  const photo = subj.photo
+    ? `<img class="chat-subject-photo" src="${escapeHtml(subj.photo)}" alt="">`
+    : `<div class="chat-subject-photo chat-subject-photo--placeholder"></div>`;
+  const name = escapeHtml(subj.name || (subj.type === "booking" ? t("chat.subject_booking_default") : t("chat.subject_room_default")));
+  const extra = subj.extra ? `<div class="chat-subject-extra">${escapeHtml(subj.extra)}</div>` : "";
+  return `
+    <button type="button" class="chat-subject-card" id="chat-subject-card">
+      ${photo}
+      <div class="chat-subject-text">
+        <div class="chat-subject-name">${name}</div>
+        ${extra}
+      </div>
+    </button>
+  `;
+}
+
+function subjectNavTarget(subj) {
+  if (!subj) return null;
+  if (subj.type === "booking") return "#/client/bookings";
+  if (subj.type === "room" && subj.hotel_slug)
+    return `#/client/hotel/${encodeURIComponent(subj.hotel_slug)}/rooms`;
+  if (subj.type === "hotel" && subj.hotel_slug)
+    return `#/client/hotel/${encodeURIComponent(subj.hotel_slug)}`;
+  return null;
+}
+
+function botBlockedBannerHtml(me) {
+  if (!me || !me.bot_blocked_or_unreachable) return "";
+  return `<div class="chat-banner chat-banner--warn">${escapeHtml(t("chat.bot_blocked_banner"))}</div>`;
+}
+
 function formatTime(iso) {
   try {
     const d = new Date(iso);
@@ -81,8 +117,12 @@ export async function renderChatThread({ threadId }) {
   let pendingSubject = takePendingSubject();
   let allThreads = null;
   let thread = null;
+  let me = null;
   try {
-    allThreads = await api.chatListThreads();
+    [allThreads, me] = await Promise.all([
+      api.chatListThreads(),
+      api.whoami().catch(() => null),
+    ]);
     thread = allThreads.find((t) => t.id === tid);
     if (!thread) throw new Error("Thread not found");
   } catch (e) {
@@ -96,6 +136,8 @@ export async function renderChatThread({ threadId }) {
 
   app.innerHTML = `
     <div class="chat-screen">
+      ${botBlockedBannerHtml(me)}
+      ${subjectCardHtml(pendingSubject)}
       <div class="chat-list" id="chat-list">
         <p class="muted">${t("common.loading")}</p>
       </div>
@@ -106,6 +148,16 @@ export async function renderChatThread({ threadId }) {
       </form>
     </div>
   `;
+
+  const subjectCard = document.getElementById("chat-subject-card");
+  if (subjectCard) {
+    const target = subjectNavTarget(pendingSubject);
+    if (target) {
+      subjectCard.addEventListener("click", () => navigate(target));
+    } else {
+      subjectCard.disabled = true;
+    }
+  }
 
   const list = document.getElementById("chat-list");
   const form = document.getElementById("chat-form");
