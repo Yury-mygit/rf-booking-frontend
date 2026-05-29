@@ -2,8 +2,11 @@ import { api } from "../../api.js";
 import { t } from "../../i18n.js";
 import { setTitle } from "../../topbar.js";
 import { escapeHtml } from "../../util.js";
+import { mountClientChat } from "./client_edit_chat.js";
 
 const DOC_KINDS = ["passport", "id_card", "driving_license", "other"];
+
+let _chatUnmount = null;
 
 export async function renderClientEdit({ clientId }) {
   const app = document.getElementById("app");
@@ -56,7 +59,24 @@ export async function renderClientEdit({ clientId }) {
 
     <h2 style="margin-top:24px">${t("client.history")}</h2>
     <div id="history">${historyHtml(history)}</div>
+
+    <h2 style="margin-top:24px">${t("chat.title")}</h2>
+    <div id="client-chat"></div>
   `;
+
+  if (_chatUnmount) {
+    try { _chatUnmount(); } catch {}
+    _chatUnmount = null;
+  }
+  _chatUnmount = mountClientChat(
+    document.getElementById("client-chat"),
+    client,
+    history,
+  );
+  window.addEventListener("hashchange", function once() {
+    if (_chatUnmount) { try { _chatUnmount(); } catch {} _chatUnmount = null; }
+    window.removeEventListener("hashchange", once);
+  });
 
   if (!canEdit) return;
 

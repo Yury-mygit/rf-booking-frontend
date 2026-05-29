@@ -11,6 +11,7 @@ import { setLastHotel } from "../../state.js";
 import { clientNavItems } from "../../nav.js";
 
 import { _state, ensureHotel, ensureEventSource, escapeHtml, hotelHash } from "./_shared.js";
+import { CHAT_ICON_SVG, openChatWithHotel } from "../chat/open.js";
 
 export async function renderHotelRooms({ id }) {
   const app = document.getElementById("app");
@@ -75,6 +76,10 @@ function renderRoomsList(body) {
   body.querySelectorAll("button[data-book-room]").forEach((b) => {
     b.onclick = () => navigateToBook(h, Number(b.dataset.bookRoom));
   });
+  body.querySelectorAll("button[data-chat-room]").forEach((b) => {
+    b.onclick = () =>
+      openChatWithHotel(h.id, { type: "room", id: Number(b.dataset.chatRoom) });
+  });
   ensureEventSource(h.slug || h.id, () => renderRoomsList(body));
 }
 
@@ -104,9 +109,13 @@ async function updateRangeDates(body, ci, co) {
 
 function roomCardHtml(r, hasDates) {
   const unavail = hasDates && r.available_for_dates === false;
+  const chatBtn = `<button class="chat-icon-btn" type="button" data-chat-room="${r.id}" aria-label="${escapeHtml(t("chat.write_about_room"))}" title="${escapeHtml(t("chat.write_about_room"))}">${CHAT_ICON_SVG}</button>`;
   return `
     <div class="room ${unavail ? "unavailable" : ""}">
-      <h3>${escapeHtml(r.name_ru)}</h3>
+      <div class="room-titlerow">
+        <h3>${escapeHtml(r.name_ru)}</h3>
+        ${chatBtn}
+      </div>
       <div class="meta">${t("hotel.capacity", { n: r.capacity })}${r.beds != null ? ` · ${t("hotel.beds", { n: r.beds })}` : ""}${r.floor != null ? ` · ${t("hotel.floor", { n: r.floor })}` : ""}</div>
       <div class="price">${t("hotel.price_per_night", { price: r.price_kgs })}</div>
       ${hasDates && r.total_kgs_for_dates != null ? `<div class="meta">${t("hotel.total", { total: r.total_kgs_for_dates })}</div>` : ""}

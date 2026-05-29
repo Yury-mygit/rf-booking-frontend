@@ -6,6 +6,7 @@ import { navigate } from "../../../router.js";
 import { setTitle, showBack } from "../../../topbar.js";
 import { setBottomNav } from "../../../bottomnav.js";
 import { clientNavItems } from "../../nav.js";
+import { CHAT_ICON_SVG, openChatWithHotel } from "../chat/open.js";
 
 import { ensureHotel, escapeHtml, hotelHash, PIN_SVG } from "./_shared.js";
 
@@ -33,7 +34,12 @@ export async function renderHotelDetail({ id }) {
     <div class="hotel-head-card">
       ${photo ? `<div class="hotel-head-photo" style="background-image:url('${escapeHtml(photo)}')"></div>` : ""}
       <div class="hotel-head-body">
-        <h1>${escapeHtml(titled)}</h1>
+        <div class="hotel-head-titlerow">
+          <h1>${escapeHtml(titled)}</h1>
+          <button class="chat-icon-btn" id="hotel-chat-btn" type="button"
+            aria-label="${escapeHtml(t("chat.write_to_hotel"))}"
+            title="${escapeHtml(t("chat.write_to_hotel"))}">${CHAT_ICON_SVG}</button>
+        </div>
         <div class="meta address-line">${addressText}${pinBtn}</div>
         ${h.description_ru ? `<p>${escapeHtml(h.description_ru)}</p>` : ""}
       </div>
@@ -41,4 +47,6 @@ export async function renderHotelDetail({ id }) {
   `;
   const mapBtn = document.getElementById("hotel-map-btn");
   if (mapBtn) mapBtn.onclick = () => navigate(hotelHash(h, "/map"));
+  const chatBtn = document.getElementById("hotel-chat-btn");
+  if (chatBtn) chatBtn.onclick = () => openChatWithHotel(h.id, null);
 }

@@ -4,8 +4,7 @@ import { navigate } from "../../router.js";
 import { setTitle, showBack } from "../../topbar.js";
 import { setBottomNav } from "../../bottomnav.js";
 import { clientNavItems } from "../nav.js";
-
-const ICON_WRITE_SM = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-3px;margin-right:6px"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>`;
+import { CHAT_ICON_SVG, openChatWithHotel } from "./chat/open.js";
 
 function escapeHtml(s) {
   if (s == null) return "";
@@ -60,7 +59,7 @@ export async function renderBookings() {
         b.status === "pending" && !b.postpay
           ? `<a class="primary" href="#/client/pay/${b.code}">${t("my.pay")}</a>`
           : "";
-      const writeBtn = `<button class="secondary" type="button" data-write-bk="${b.code}">${ICON_WRITE_SM}${t("my.write")}</button>`;
+      const writeBtn = `<button class="chat-icon-btn" type="button" data-chat-booking-hotel="${b.hotel_id}" data-chat-booking-id="${b.id}" aria-label="${escapeHtml(t("chat.write_about_booking"))}" title="${escapeHtml(t("chat.write_about_booking"))}">${CHAT_ICON_SVG}</button>`;
       const actions = `<div class="bk-actions" style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">${payBtn}${writeBtn}</div>`;
       return `
         <div class="card">
@@ -74,7 +73,11 @@ export async function renderBookings() {
     })
     .join("");
 
-  app.querySelectorAll("button[data-write-bk]").forEach((btn) => {
-    btn.addEventListener("click", () => alert(t("chat.coming_soon")));
+  app.querySelectorAll("button[data-chat-booking-id]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const hotelId = Number(btn.dataset.chatBookingHotel);
+      const bookingId = Number(btn.dataset.chatBookingId);
+      openChatWithHotel(hotelId, { type: "booking", id: bookingId });
+    });
   });
 }

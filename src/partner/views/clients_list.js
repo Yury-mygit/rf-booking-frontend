@@ -2,9 +2,13 @@ import { api } from "../../api.js";
 import { t } from "../../i18n.js";
 import { escapeHtml } from "../../util.js";
 
+let _es = null;
+
 export async function renderClientsList() {
   const app = document.getElementById("app");
   app.innerHTML = `<div id="list">${t("app.loading")}</div>`;
+  // Индекс client.user_id → client.id для live-обновления badge через SSE.
+  let userIdToClientId = new Map();
   try {
     const clients = await api.listClients();
     const list = document.getElementById("list");
@@ -14,10 +18,39 @@ export async function renderClientsList() {
     }
     list.innerHTML = clients.map(cardHtml).join("");
     attachCardHandlers(list);
+    for (const c of clients) {
+      if (c.user_id) userIdToClientId.set(c.user_id, c.id);
+    }
   } catch (e) {
     document.getElementById("list").innerHTML =
       `<div class="error">${t("app.error", { msg: e.message })}</div>`;
+    return;
   }
+
+  if (_es) { try { _es.close(); } catch {} _es = null; }
+  _es = api.partnerChatEventSource();
+  _es.onmessage = (e) => {
+    let p;
+    try { p = JSON.parse(e.data); } catch { return; }
+    if (p.type !== "message") return;
+    // Бейдж нужен только если новое сообщение пришло от клиента (нашему отелю).
+    if (p.msg.sender_kind !== "client") return;
+    const cid = userIdToClientId.get(p.client_user_id);
+    if (!cid) return;
+    const card = document.querySelector(`.clickable-card[data-href="#/partner/client/${cid}"]`);
+    if (!card) return;
+    if (!card.querySelector(".chat-unread-badge")) {
+      card.querySelector(".hotel-row-body h3")?.insertAdjacentHTML(
+        "beforeend",
+        ` <span class="chat-unread-badge" aria-label="${escapeHtml(t("chat.unread_badge"))}" title="${escapeHtml(t("chat.unread_badge"))}"></span>`,
+      );
+    }
+  };
+
+  window.addEventListener("hashchange", function once() {
+    if (_es) { try { _es.close(); } catch {} _es = null; }
+    window.removeEventListener("hashchange", once);
+  });
 }
 
 function cardHtml(c) {
@@ -26,11 +59,14 @@ function cardHtml(c) {
     : `<div class="hotel-thumb hotel-thumb-empty"></div>`;
   const name = [c.first_name, c.last_name].filter(Boolean).map(escapeHtml).join(" ");
   const contact = c.phone || c.email || t("clients.no_phone");
+  const badge = c.has_unread_chat
+    ? ` <span class="chat-unread-badge" aria-label="${escapeHtml(t("chat.unread_badge"))}" title="${escapeHtml(t("chat.unread_badge"))}"></span>`
+    : "";
   return `
     <div class="card hotel-row clickable-card" data-href="#/partner/client/${c.id}" role="link" tabindex="0">
       ${photo}
       <div class="hotel-row-body">
-        <h3>${name}</h3>
+        <h3>${name}${badge}</h3>
         <div class="meta">${escapeHtml(contact)}</div>
         <div class="meta small">${t("clients.bookings_count", { n: c.bookings_count })}${c.last_booking_date ? " · " + t("clients.last_booking", { date: c.last_booking_date }) : ""}</div>
       </div>

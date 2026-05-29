@@ -227,3 +227,101 @@ button.link:disabled { opacity: 0.5; cursor: not-allowed; }
 .walkin-cal .wd.blocked, .walkin-cal .wd.booked { background: var(--cal-blocked); cursor: not-allowed; color: var(--text-faint); }
 .walkin-cal .wd.in-range { background: var(--accent); color: var(--accent-text); }
 .walkin-cal .wd.endpoint { outline: 2px solid var(--accent); }
+
+/* ─── Chat в карточке клиента ───────────────────────────────────────── */
+
+.chat-unread-badge {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  vertical-align: middle;
+  margin-left: 6px;
+}
+
+.chat-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.chat-tab {
+  background: var(--surface-soft);
+  border: 1px solid var(--border-soft);
+  border-radius: 14px;
+  padding: 4px 10px;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--text);
+}
+.chat-tab.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+/* Inline-вариант chat-screen для embed внутри карточки клиента */
+.chat-screen--inline {
+  height: 420px;
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  padding: 6px;
+  background: var(--surface);
+}
+.chat-screen--inline .chat-list { padding: 4px; }
+.chat-screen--inline .chat-composer { padding: 6px 0 0; }
+
+/* Сообщения внутри партнёрского чата — те же стили что в client.css. */
+.chat-screen--inline .chat-msg {
+  max-width: 80%;
+  background: var(--surface-soft);
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+.chat-screen--inline .chat-msg--me {
+  align-self: flex-end;
+  background: var(--accent);
+  color: var(--accent-text);
+  border-color: var(--accent);
+}
+.chat-screen--inline .chat-msg--them { align-self: flex-start; }
+.chat-screen--inline .chat-msg-meta {
+  display: flex; gap: 8px; align-items: center;
+  font-size: 11px; opacity: 0.75; margin-bottom: 4px;
+}
+.chat-screen--inline .chat-msg-body { white-space: pre-wrap; word-wrap: break-word; }
+.chat-screen--inline .chat-chip {
+  background: rgba(0,0,0,0.08); border-radius: 10px;
+  padding: 1px 6px; font-size: 10px;
+}
+.chat-screen--inline .chat-msg--me .chat-chip {
+  background: rgba(255,255,255,0.2);
+}
+.chat-screen--inline .chat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+.chat-screen--inline .chat-composer {
+  display: flex;
+  gap: 8px;
+  border-top: 1px solid var(--border-soft);
+  align-items: flex-end;
+}
+.chat-screen--inline .chat-composer textarea {
+  flex: 1;
+  resize: none;
+  min-height: 38px;
+  max-height: 120px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
