@@ -85,6 +85,7 @@
   "chat.subject_booking_default": "Брондоо",
   "chat.subject_room_default": "Бөлмө",
   "chat.bot_blocked_banner": "Жаңы билдирүүлөр жөнүндө кабарландыруу алуу үчүн @rforge_stay_bot ботунда Start баскычын басыңыз.",
+  "chat.readonly_no_perm": "Окуу гана. Билдирүү жөнөтүүгө укугуңуз жок (chat_with_clients).",
   "my.write": "Жазуу",
   "bookings.empty": "Брондоолор жок",
   "hotels.empty": "Жеткиликтүү мейманканалар жок",

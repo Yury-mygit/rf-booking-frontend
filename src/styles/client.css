@@ -304,6 +304,12 @@
   color: #6a4a00;
   border: 1px solid #f0c060;
 }
+.chat-banner--readonly {
+  background: var(--surface-soft);
+  color: var(--muted);
+  border: 1px solid var(--border);
+  font-size: 0.88em;
+}
 .chat-subject-card {
   display: flex;
   align-items: center;

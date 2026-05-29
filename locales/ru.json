@@ -85,6 +85,7 @@
   "chat.subject_booking_default": "Бронирование",
   "chat.subject_room_default": "Комната",
   "chat.bot_blocked_banner": "Нажмите Start у @rforge_stay_bot, чтобы получать уведомления о новых сообщениях.",
+  "chat.readonly_no_perm": "Только просмотр. У вас нет прав на отправку сообщений (chat_with_clients).",
   "my.write": "Написать",
   "bookings.empty": "Пока нет бронирований",
   "hotels.empty": "Нет доступных отелей",

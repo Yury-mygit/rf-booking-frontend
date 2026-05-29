@@ -85,6 +85,7 @@
   "chat.subject_booking_default": "Booking",
   "chat.subject_room_default": "Room",
   "chat.bot_blocked_banner": "Tap Start in @rforge_stay_bot to receive notifications about new messages.",
+  "chat.readonly_no_perm": "Read-only. You don't have permission to send messages (chat_with_clients).",
   "my.write": "Message",
   "bookings.empty": "No bookings yet",
   "hotels.empty": "No hotels available",

@@ -81,7 +81,21 @@ export function mountClientChat(container, client, bookings) {
   for (const b of bookings) {
     if (seen.has(b.hotel_id)) continue;
     seen.add(b.hotel_id);
-    hotels.push({ id: b.hotel_id, name_ru: b.hotel_name_ru });
+    hotels.push({
+      id: b.hotel_id,
+      name_ru: b.hotel_name_ru,
+      owner_user_id: b.hotel_owner_user_id,
+    });
+  }
+
+  // 6.4 read-only режим для staff без `chat_with_clients`.
+  // Чтение/mark_read доступны (backend GET-ы не требуют write-perm),
+  // только textarea + send блокируются с подсказкой.
+  function canWrite(hotelId) {
+    const h = hotels.find((x) => x.id === hotelId);
+    if (!h) return false;
+    const owner = api.owners().find((o) => o.owner_user_id === h.owner_user_id);
+    return !!owner?.chat_with_clients;
   }
   if (!hotels.length) {
     container.innerHTML = `<p class="muted">${escapeHtml(t("chat.no_hotels"))}</p>`;
@@ -95,16 +109,22 @@ export function mountClientChat(container, client, bookings) {
   let aborted = false;
 
   function renderShell() {
+    const writable = canWrite(activeHotelId);
+    const readonlyBanner = writable
+      ? ""
+      : `<div class="chat-banner chat-banner--readonly">${escapeHtml(t("chat.readonly_no_perm"))}</div>`;
+    const disabledAttr = writable ? "" : "disabled";
     container.innerHTML = `
       ${tabsHtml(hotels, activeHotelId)}
       <div class="chat-screen chat-screen--inline">
+        ${readonlyBanner}
         <div class="chat-list" id="cli-chat-list">
           <p class="muted">${t("app.loading")}</p>
         </div>
         <form class="chat-composer" id="cli-chat-form" autocomplete="off">
-          <textarea id="cli-chat-input" rows="1" maxlength="2000"
+          <textarea id="cli-chat-input" rows="1" maxlength="2000" ${disabledAttr}
             placeholder="${escapeHtml(t("chat.placeholder"))}"></textarea>
-          <button type="submit" class="primary" id="cli-chat-send">${escapeHtml(t("chat.send"))}</button>
+          <button type="submit" class="primary" id="cli-chat-send" ${disabledAttr}>${escapeHtml(t("chat.send"))}</button>
         </form>
       </div>
     `;
@@ -208,6 +228,7 @@ export function mountClientChat(container, client, bookings) {
   }
 
   async function sendMessage(input) {
+    if (!canWrite(activeHotelId)) return;
     const body = input.value.trim();
     if (!body) return;
     input.disabled = true;
