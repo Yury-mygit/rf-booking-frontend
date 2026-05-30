@@ -95,7 +95,7 @@ export function mountClientChat(container, client, bookings) {
     const h = hotels.find((x) => x.id === hotelId);
     if (!h) return false;
     const owner = api.owners().find((o) => o.owner_user_id === h.owner_user_id);
-    return !!owner?.chat_with_clients;
+    return !!owner?.perms?.chat_with_clients;
   }
   if (!hotels.length) {
     container.innerHTML = `<p class="muted">${escapeHtml(t("chat.no_hotels"))}</p>`;
