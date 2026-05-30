@@ -385,7 +385,15 @@
   color: var(--accent-text);
   border-color: var(--accent);
 }
-.chat-msg--them { align-self: flex-start; }
+.chat-msg--them {
+  align-self: flex-start;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.chat-msg-body, .chat-msg-meta { color: inherit; }
+.chat-msg-body::selection,
+.chat-msg-meta::selection { background: var(--accent); color: var(--accent-text); }
 .chat-msg-meta {
   display: flex;
   gap: 8px;
@@ -424,3 +432,9 @@
   font: inherit;
 }
 .chat-composer button { flex-shrink: 0; }
+/* Override глобального button.primary { width: 100%; margin-top: 8px }
+   из base.css — в flex-row composer'е full-width сжимает textarea до нуля. */
+.chat-composer button.primary {
+  width: auto;
+  margin-top: 0;
+}

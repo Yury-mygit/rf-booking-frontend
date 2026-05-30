@@ -264,6 +264,9 @@ button.link:disabled { opacity: 0.5; cursor: not-allowed; }
 /* Inline-вариант chat-screen для embed внутри карточки клиента */
 .chat-screen--inline {
   height: 420px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
   border: 1px solid var(--border-soft);
   border-radius: 8px;
   padding: 6px;
@@ -286,12 +289,25 @@ button.link:disabled { opacity: 0.5; cursor: not-allowed; }
   color: var(--accent-text);
   border-color: var(--accent);
 }
-.chat-screen--inline .chat-msg--them { align-self: flex-start; }
+.chat-screen--inline .chat-msg--them {
+  align-self: flex-start;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
 .chat-screen--inline .chat-msg-meta {
   display: flex; gap: 8px; align-items: center;
   font-size: 11px; opacity: 0.75; margin-bottom: 4px;
+  color: inherit;
 }
-.chat-screen--inline .chat-msg-body { white-space: pre-wrap; word-wrap: break-word; }
+.chat-screen--inline .chat-msg-body {
+  white-space: pre-wrap; word-wrap: break-word;
+  color: inherit;
+}
+.chat-screen--inline .chat-msg-body::selection,
+.chat-screen--inline .chat-msg-meta::selection {
+  background: var(--accent); color: var(--accent-text);
+}
 .chat-screen--inline .chat-chip {
   background: rgba(0,0,0,0.08); border-radius: 10px;
   padding: 1px 6px; font-size: 10px;
@@ -324,4 +340,11 @@ button.link:disabled { opacity: 0.5; cursor: not-allowed; }
   background: var(--surface);
   color: var(--text);
   font: inherit;
+}
+/* Override base.css `button.primary { width: 100% }` — иначе кнопка
+   «Отправить» забирает всю ширину composer'а и textarea схлопывается. */
+.chat-screen--inline .chat-composer button { flex-shrink: 0; }
+.chat-screen--inline .chat-composer button.primary {
+  width: auto;
+  margin-top: 0;
 }
