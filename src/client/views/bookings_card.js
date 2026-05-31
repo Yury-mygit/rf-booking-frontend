@@ -36,6 +36,7 @@ export function bookingCardHtml(b, opts = {}) {
   const photoStyle = photo
     ? ` style="background-image:url('${escapeHtml(photo)}')"`
     : "";
+  const mediaHref = `#/client/bookings/${b.code}/media`;
   const paid = b.status === "paid";
   const payFrom = opts.payFrom || "bookings";
   const payPill = `<a class="bk-pay-pill ${paid ? "paid" : "unpaid"}" href="#/client/pay/${b.code}?from=${payFrom}" title="${escapeHtml(statusText(b))}" aria-label="${escapeHtml(statusText(b))}">${DOLLAR_ICON_SVG}</a>`;
@@ -45,7 +46,7 @@ export function bookingCardHtml(b, opts = {}) {
   const chatBtn = `<button class="bk-icon-btn" type="button" data-chat-booking-hotel="${b.hotel_id}" data-chat-booking-id="${b.id}" aria-label="${escapeHtml(t("chat.write_about_booking"))}" title="${escapeHtml(t("chat.write_about_booking"))}">${CHAT_ICON_SVG}</button>`;
   return `
     <div class="booking-card">
-      <div class="booking-card-photo"${photoStyle}></div>
+      <a class="booking-card-photo" href="${mediaHref}" aria-label="${escapeHtml(t("media.title"))}"${photoStyle}></a>
       <div class="booking-card-body">
         <div class="bk-codeline">
           <span class="meta">${t("my.code", { code: b.code })}</span>

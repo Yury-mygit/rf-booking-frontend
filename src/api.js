@@ -140,6 +140,8 @@ export const api = {
     return call("GET", "/public/hotels" + (qs.toString() ? "?" + qs : ""));
   },
   getBooking: (code) => call("GET", `/c/bookings/${code}`),
+  getBookingMedia: (code) => call("GET", `/c/bookings/${code}/media`),
+  cancelMyBooking: (code) => call("POST", `/c/bookings/${code}/cancel`),
   payInit: (code) => call("POST", `/c/bookings/${code}/pay/init`),
   payConfirm: (paymentId) => call("POST", `/c/payments/${paymentId}/mock-confirm`),
 
