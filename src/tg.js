@@ -6,7 +6,19 @@ export const tg = window.Telegram?.WebApp || null;
 export const inTelegram = !!tg;
 
 export function initTg() {
-  if (!tg) return;
+  if (!tg) {
+    // Браузер вне TG: уважать prefers-color-scheme.
+    const mq = window.matchMedia?.("(prefers-color-scheme: dark)");
+    applyTheme(mq?.matches ? "dark" : "light");
+    mq?.addEventListener?.("change", (e) => applyTheme(e.matches ? "dark" : "light"));
+    return;
+  }
   tg.ready();
   tg.expand();
+  applyTheme(tg.colorScheme);
+  tg.onEvent?.("themeChanged", () => applyTheme(tg.colorScheme));
+}
+
+function applyTheme(scheme) {
+  document.documentElement.dataset.theme = scheme === "dark" ? "dark" : "light";
 }

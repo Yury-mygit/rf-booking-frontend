@@ -120,18 +120,23 @@ async function updateRangeDates(body, ci, co) {
 function roomCardHtml(r, hasDates) {
   const unavail = hasDates && r.available_for_dates === false;
   const chatBtn = `<button class="chat-icon-btn" type="button" data-chat-room="${r.id}" aria-label="${escapeHtml(t("chat.write_about_room"))}" title="${escapeHtml(t("chat.write_about_room"))}">${CHAT_ICON_SVG}</button>`;
+  const photo = (r.photos && r.photos[0]) || "";
+  const photoStyle = photo ? ` style="background-image:url('${escapeHtml(photo)}')"` : "";
   return `
     <div class="room ${unavail ? "unavailable" : ""}">
-      <div class="room-titlerow">
-        <h3>${escapeHtml(r.name_ru)}</h3>
-        ${chatBtn}
+      <div class="room-photo"${photoStyle}></div>
+      <div class="room-body">
+        <div class="room-titlerow">
+          <h3>${escapeHtml(r.name_ru)}</h3>
+          ${chatBtn}
+        </div>
+        <div class="meta">${t("hotel.capacity", { n: r.capacity })}${r.beds != null ? ` · ${t("hotel.beds", { n: r.beds })}` : ""}${r.floor != null ? ` · ${t("hotel.floor", { n: r.floor })}` : ""}</div>
+        <div class="price">${t("hotel.price_per_night", { price: r.price_kgs })}</div>
+        ${hasDates && r.total_kgs_for_dates != null ? `<div class="meta">${t("hotel.total", { total: r.total_kgs_for_dates })}</div>` : ""}
+        ${unavail
+          ? `<button class="primary" disabled>${t("hotel.unavailable")}</button>`
+          : `<button class="primary" data-book-room="${r.id}">${t("hotel.book")}</button>`}
       </div>
-      <div class="meta">${t("hotel.capacity", { n: r.capacity })}${r.beds != null ? ` · ${t("hotel.beds", { n: r.beds })}` : ""}${r.floor != null ? ` · ${t("hotel.floor", { n: r.floor })}` : ""}</div>
-      <div class="price">${t("hotel.price_per_night", { price: r.price_kgs })}</div>
-      ${hasDates && r.total_kgs_for_dates != null ? `<div class="meta">${t("hotel.total", { total: r.total_kgs_for_dates })}</div>` : ""}
-      ${unavail
-        ? `<button class="primary" disabled>${t("hotel.unavailable")}</button>`
-        : `<button class="primary" data-book-room="${r.id}">${t("hotel.book")}</button>`}
     </div>
   `;
 }
