@@ -4,25 +4,8 @@ import { navigate } from "../../router.js";
 import { setTitle, showBack } from "../../topbar.js";
 import { setBottomNav } from "../../bottomnav.js";
 import { clientNavItems } from "../nav.js";
-import { CHAT_ICON_SVG, openChatWithHotel } from "./chat/open.js";
-
-function escapeHtml(s) {
-  if (s == null) return "";
-  return String(s).replace(
-    /[&<>"']/g,
-    (c) =>
-      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c],
-  );
-}
-
-function statusText(b) {
-  if (b.status === "pending") {
-    return b.confirmed
-      ? t("my.status.pending_confirmed")
-      : t("my.status.pending_unconfirmed");
-  }
-  return t("my.status." + b.status);
-}
+import { openChatWithHotel } from "./chat/open.js";
+import { bookingCardHtml } from "./bookings_card.js";
 
 export async function renderBookings() {
   setTitle(t("client.nav.bookings"));
@@ -50,28 +33,7 @@ export async function renderBookings() {
     return;
   }
 
-  app.innerHTML = items
-    .map((b) => {
-      const hotelLine = b.hotel_name_ru
-        ? `<div>${escapeHtml(b.hotel_name_ru)}</div>`
-        : "";
-      const payBtn =
-        b.status === "pending" && !b.postpay
-          ? `<a class="primary" href="#/client/pay/${b.code}">${t("my.pay")}</a>`
-          : "";
-      const writeBtn = `<button class="chat-icon-btn" type="button" data-chat-booking-hotel="${b.hotel_id}" data-chat-booking-id="${b.id}" aria-label="${escapeHtml(t("chat.write_about_booking"))}" title="${escapeHtml(t("chat.write_about_booking"))}">${CHAT_ICON_SVG}</button>`;
-      const actions = `<div class="bk-actions" style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">${payBtn}${writeBtn}</div>`;
-      return `
-        <div class="card">
-          <div class="meta">${t("my.code", { code: b.code })}</div>
-          ${hotelLine}
-          <div>${t("my.dates", { ci: b.check_in, co: b.check_out })} · ${t("my.guests", { n: b.guests })}</div>
-          <div class="price">${t("my.total", { total: b.total_kgs })}</div>
-          <div class="meta">${statusText(b)}</div>
-          ${actions}
-        </div>`;
-    })
-    .join("");
+  app.innerHTML = items.map((b) => bookingCardHtml(b)).join("");
 
   app.querySelectorAll("button[data-chat-booking-id]").forEach((btn) => {
     btn.addEventListener("click", () => {

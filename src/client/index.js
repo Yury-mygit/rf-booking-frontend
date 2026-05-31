@@ -20,6 +20,7 @@ import {
 } from "./views/hotel/index.js";
 import { renderHotels } from "./views/hotels.js";
 import { renderBookings } from "./views/bookings.js";
+import { renderBookingDetails } from "./views/booking_details.js";
 import { renderChatThread } from "./views/chat/thread.js";
 import { renderPay } from "./views/pay.js";
 import { renderClientLogin } from "./views/login.js";
@@ -42,6 +43,7 @@ const ROUTES = [
   { re: /^\/hotel\/([^/]+)\/book\/([^/]+)$/, handler: (m) => renderHotelBookConfirm({ id: decodeURIComponent(m[1]), roomId: decodeURIComponent(m[2]) }) },
   { re: /^\/hotel\/([^/]+)$/, handler: (m) => renderHotelDetail({ id: decodeURIComponent(m[1]) }) },
   { re: /^\/bookings$/, handler: () => renderBookings() },
+  { re: /^\/bookings\/([^/]+)\/details$/, handler: (m) => renderBookingDetails({ code: decodeURIComponent(m[1]) }) },
   { re: /^\/hotels$/, handler: () => renderHotels() },
   { re: /^\/chat\/thread\/(\d+)$/, handler: (m) => renderChatThread({ threadId: m[1] }) },
   { re: /^\/pay\/([^/]+)$/, handler: (m) => renderPay({ code: decodeURIComponent(m[1]) }) },
@@ -53,6 +55,7 @@ function parentPath(rest) {
   let m;
   if ((m = rest.match(/^\/hotel\/([^/]+)\/(map|rooms|services)$/))) return `/client/hotel/${m[1]}`;
   if ((m = rest.match(/^\/hotel\/([^/]+)\/dates$/))) return `/client/hotel/${m[1]}/rooms`;
+  if (rest.match(/^\/bookings\/[^/]+\/details$/)) return `/client/bookings`;
   if ((m = rest.match(/^\/hotel\/([^/]+)\/book\/[^/]+$/))) return `/client/hotel/${m[1]}/rooms`;
   if (rest.match(/^\/chat\/thread\/\d+$/)) return null; // back через history
   return null;

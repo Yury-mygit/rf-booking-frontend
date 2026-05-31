@@ -1,12 +1,14 @@
 import { api } from "../../api.js";
-import { t } from "../../i18n.js";
+import { t, tn } from "../../i18n.js";
 import { navigate } from "../../router.js";
 import { setTitle, showBack } from "../../topbar.js";
+import { setBottomNav } from "../../bottomnav.js";
 import { inTelegram, tg } from "../../tg.js";
 
 export async function renderPay({ code }) {
   const app = document.getElementById("app");
   setTitle(t("pay.title", { code }));
+  setBottomNav([]);
   // Дефолтный back — в hub. После загрузки booking переопределим на hotel.
   // history.back() в TG WebView ведёт себя нестабильно (закрывает WebApp).
   showBack(() => navigate("#/"));
@@ -41,10 +43,28 @@ export async function renderPay({ code }) {
       <div class="card">
         <div class="success">${t("pay.already_paid")}</div>
         <div class="meta">${t("my.code", { code })}</div>
-        <div class="meta">${t("my.dates", { ci: booking.check_in, co: booking.check_out })} · ${t("my.guests", { n: booking.guests })}</div>
+        <div class="meta">${t("my.dates", { ci: booking.check_in, co: booking.check_out })} · ${tn("my.guests", booking.guests)}</div>
         <div class="price">${t("my.total", { total: booking.total_kgs })}</div>
-        <div style="margin-top:12px"><a class="primary" href="#/client/hotel/${booking.hotel_id}">${t("pay.back_to_hotel")}</a></div>
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+          <a class="primary" href="#/client/hotel/${booking.hotel_id}">${t("pay.back_to_hotel")}</a>
+          <button class="danger" id="cancel-booking-btn" type="button">${t("my.cancel_booking")}</button>
+        </div>
+        <div id="cancel-err" class="error"></div>
       </div>`;
+    document.getElementById("cancel-booking-btn").onclick = async () => {
+      if (!confirm(t("my.cancel_confirm"))) return;
+      const btn = document.getElementById("cancel-booking-btn");
+      const err = document.getElementById("cancel-err");
+      btn.disabled = true;
+      err.textContent = "";
+      try {
+        await api.cancelMyBooking(code);
+        navigate("#/client/bookings");
+      } catch (e) {
+        err.textContent = t("common.error", { msg: e.message });
+        btn.disabled = false;
+      }
+    };
     return;
   }
   if (booking.status !== "pending") {
@@ -55,7 +75,7 @@ export async function renderPay({ code }) {
     app.innerHTML = `
       <div class="card pay-card">
         <div class="meta">${t("pay.for_booking", { code: booking.code })}</div>
-        <div class="meta">${t("my.dates", { ci: booking.check_in, co: booking.check_out })} · ${t("my.guests", { n: booking.guests })}</div>
+        <div class="meta">${t("my.dates", { ci: booking.check_in, co: booking.check_out })} · ${tn("my.guests", booking.guests)}</div>
         <div class="price pay-amount">${t("pay.amount", { total: booking.total_kgs })}</div>
         <div class="success">${t("pay.postpay_note")}</div>
         <div style="margin-top:12px"><a class="primary" href="#/client/hotel/${booking.hotel_id}">${t("pay.back_to_hotel")}</a></div>
@@ -81,7 +101,7 @@ export async function renderPay({ code }) {
   app.innerHTML = `
     <div class="card pay-card">
       <div class="meta">${t("pay.for_booking", { code: booking.code })}</div>
-      <div class="meta">${t("my.dates", { ci: booking.check_in, co: booking.check_out })} · ${t("my.guests", { n: booking.guests })}</div>
+      <div class="meta">${t("my.dates", { ci: booking.check_in, co: booking.check_out })} · ${tn("my.guests", booking.guests)}</div>
       <div class="price pay-amount">${t("pay.amount", { total: initData.amount_kgs })}</div>
       <div class="pay-methods">${methodsHtml}</div>
       <button id="pay-submit" class="primary pay-submit">${t("pay.submit")}</button>
