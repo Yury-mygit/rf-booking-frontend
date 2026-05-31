@@ -7,6 +7,7 @@
 // просто переписка.
 let _lastHotel = null;
 let _pendingSubject = null;
+let _chatReturnHash = null;
 
 export function setLastHotel(h) {
   _lastHotel = h;
@@ -24,4 +25,12 @@ export function takePendingSubject() {
   const s = _pendingSubject;
   _pendingSubject = null;
   return s;
+}
+
+export function setChatReturnHash(h) {
+  _chatReturnHash = h;
+}
+
+export function getChatReturnHash() {
+  return _chatReturnHash;
 }

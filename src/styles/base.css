@@ -46,10 +46,18 @@ body { -webkit-font-smoothing: antialiased; }
    overlay-кнопками ✕/⋮/Back. Высота max(56px, 8vh) + safe-area —
    надёжно покрывает touch-target overlay (44-50px) + notch.
    На desktop/web/старом TG скрыта (display:none). */
+/* Совокупная высота шапок (topnav + topbar) — используется внутри
+   chat-screen и других full-height view, чтобы корректно подставить
+   `calc(100dvh - var(--top-h))`. В fullscreen + #topnav обновляем. */
+:root { --top-h: 41px; --topnav-h: 0px; }
 #topnav {
   display: none;
-  height: calc(max(56px, 8vh) + env(safe-area-inset-top));
+  height: var(--topnav-h);
   background: var(--surface);
+}
+body.tg-fullscreen {
+  --topnav-h: calc(max(56px, 8vh) + env(safe-area-inset-top));
+  --top-h: calc(41px + var(--topnav-h));
 }
 body.tg-fullscreen #topnav { display: block; }
 

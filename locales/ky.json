@@ -67,7 +67,7 @@
   "client.nav.hotels": "Мейманканалар",
   "hotel.title_prefix": "Мейманкана ",
   "chat.title": "Мейманкана менен чат",
-  "chat.title_with_hotel": "Мейманкана {hotel}",
+  "chat.title_with_hotel": "{hotel} мейманкана менен чат",
   "chat.send": "Жөнөтүү",
   "chat.placeholder": "Билдирүү…",
   "chat.empty": "Билдирүү жок. Биринчи болуп жазыңыз.",

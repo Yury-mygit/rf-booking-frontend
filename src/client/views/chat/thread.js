@@ -13,7 +13,8 @@ import { api } from "../../../api.js";
 import { t } from "../../../i18n.js";
 import { navigate } from "../../../router.js";
 import { setTitle, showBack } from "../../../topbar.js";
-import { takePendingSubject } from "../../state.js";
+import { setBottomNav } from "../../../bottomnav.js";
+import { getChatReturnHash, takePendingSubject } from "../../state.js";
 
 function escapeHtml(s) {
   if (s == null) return "";
@@ -131,8 +132,9 @@ export async function renderChatThread({ threadId }) {
   }
 
   setTitle(t("chat.title_with_hotel", { hotel: thread.hotel.name_ru }));
-  showBack(() => history.back());
-  document.getElementById("bottomnav").hidden = true;
+  const returnHash = getChatReturnHash() || "#/client/bookings";
+  showBack(() => navigate(returnHash));
+  setBottomNav([]);
 
   app.innerHTML = `
     <div class="chat-screen">

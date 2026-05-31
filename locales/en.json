@@ -67,7 +67,7 @@
   "client.nav.hotels": "Hotels",
   "hotel.title_prefix": "Hotel ",
   "chat.title": "Chat with hotel",
-  "chat.title_with_hotel": "Hotel {hotel}",
+  "chat.title_with_hotel": "Chat with {hotel}",
   "chat.send": "Send",
   "chat.placeholder": "Message…",
   "chat.empty": "No messages yet. Be the first to write.",

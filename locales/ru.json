@@ -67,7 +67,7 @@
   "client.nav.hotels": "Отели",
   "hotel.title_prefix": "Отель ",
   "chat.title": "Чат с отелем",
-  "chat.title_with_hotel": "Отель {hotel}",
+  "chat.title_with_hotel": "Чат с отелем {hotel}",
   "chat.send": "Отправить",
   "chat.placeholder": "Сообщение…",
   "chat.empty": "Пока нет сообщений. Напишите первым.",

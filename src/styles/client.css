@@ -427,10 +427,15 @@
 .chat-icon-btn:hover,
 .chat-icon-btn:focus-visible { background: var(--surface-soft); }
 
+/* Chat — full-height view. 100dvh (dynamic viewport height) учитывает
+   меняющийся UI клиента (TG overlay, address bar). var(--top-h)
+   включает topbar и #topnav (если активирован в fullscreen mode).
+   var(--bn-h) + safe-area-inset-bottom — нижняя пустая bn-полоска.
+   Доп. 3vh — gap между composer'ом и bn-полоской (чтобы не слипались). */
 .chat-screen {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 56px);  /* экран минус topbar */
+  height: calc(100dvh - var(--top-h) - var(--bn-h) - env(safe-area-inset-bottom) - 3vh);
   min-height: 0;
 }
 .chat-list {

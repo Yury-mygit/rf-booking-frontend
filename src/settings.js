@@ -8,9 +8,16 @@
 
 import { api } from "./api.js";
 import { t, LANG_ORDER, getLang, setLang } from "./i18n.js";
-import { navigate } from "./router.js";
+import { run } from "./router.js";
 import { setTitle, showBack } from "./topbar.js";
 import { setBottomNav } from "./bottomnav.js";
+
+// Settings — не появляются в history (replaceState вместо push), чтобы
+// TG-Back не зацикливался между settings и предыдущим view.
+function jumpReplace(hash) {
+  history.replaceState(null, "", hash);
+  run();
+}
 
 const SVG_ATTR = 'viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
 const TAB_ICONS = {
@@ -23,9 +30,12 @@ let _state = { active: "general" };
 let _returnHash = "#/";
 
 export function openSettings() {
-  const cur = location.hash || "#/";
-  _returnHash = cur.split("?")[0] === "#/settings" ? "#/" : cur;
-  navigate("#/settings");
+  const cur = (location.hash || "#/").split("?")[0];
+  // Уже на settings — игнорируем (защита от двойного клика, иначе
+  // _returnHash затрётся на "#/" и back уведёт в hub вместо source view).
+  if (cur === "#/settings") return;
+  _returnHash = location.hash || "#/";
+  jumpReplace("#/settings");
 }
 
 function setSettingsNav() {
@@ -49,7 +59,7 @@ function switchTab(name) {
 export function renderSettings() {
   document.body.dataset.block = "settings";
   setTitle(t("settings.title"));
-  showBack(() => navigate(_returnHash));
+  showBack(() => jumpReplace(_returnHash));
   setSettingsNav();
   render();
 }
