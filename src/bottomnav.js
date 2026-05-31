@@ -8,12 +8,11 @@
 export function setBottomNav(items) {
   const nav = document.getElementById("bottomnav");
   if (!nav) return;
+  nav.hidden = false;
   if (!items || items.length === 0) {
-    nav.hidden = true;
     nav.innerHTML = "";
     return;
   }
-  nav.hidden = false;
   nav.innerHTML = items.map((it) => {
     const cls = `bn-item${it.active ? " active" : ""}`;
     const keyAttr = it.key ? ` data-nav-key="${it.key}"` : "";
@@ -26,4 +25,11 @@ export function setBottomNav(items) {
     const handler = items.filter((x) => !x.href)[i]?.onClick;
     if (handler) btn.addEventListener("click", handler);
   });
+}
+
+export function hideBottomNav() {
+  const nav = document.getElementById("bottomnav");
+  if (!nav) return;
+  nav.hidden = true;
+  nav.innerHTML = "";
 }

@@ -29,7 +29,7 @@ body[data-block="admin"] #bottomnav {
   padding-bottom: env(safe-area-inset-bottom);
 }
 body[data-block="admin"] main#app {
-  padding-bottom: calc(72px + env(safe-area-inset-bottom));
+  padding-bottom: calc(58px + env(safe-area-inset-bottom));
 }
 
 .status-pill.client { background: var(--pill-client-bg); color: var(--pill-client-text); }

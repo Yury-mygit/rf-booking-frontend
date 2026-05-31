@@ -8,7 +8,6 @@ import { setTitle, showBack } from "../../../topbar.js";
 import { setBottomNav } from "../../../bottomnav.js";
 import { mountDateRange } from "../../../widgets/daterange.js";
 import { setLastHotel } from "../../state.js";
-import { clientNavItems } from "../../nav.js";
 
 import { _state, ensureHotel, ensureEventSource, escapeHtml, hotelHash } from "./_shared.js";
 import { CHAT_ICON_SVG, openChatWithHotel } from "../chat/open.js";
@@ -28,7 +27,7 @@ export async function renderHotelRooms({ id }) {
   }
   setTitle(t("client.nav.rooms"));
   showBack(() => navigate(hotelHash(h)));
-  setBottomNav(clientNavItems("hotel"));
+  setBottomNav([]);
   app.innerHTML = `<div id="rooms-section"></div>`;
   renderRoomsList(document.getElementById("rooms-section"));
 }

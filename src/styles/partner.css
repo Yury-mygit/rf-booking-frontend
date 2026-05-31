@@ -32,7 +32,7 @@ body[data-block="partner"] #bottomnav {
   padding-bottom: env(safe-area-inset-bottom);
 }
 body[data-block="partner"] main#app {
-  padding-bottom: calc(72px + env(safe-area-inset-bottom));
+  padding-bottom: calc(58px + env(safe-area-inset-bottom));
 }
 .topbar-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 #owner-selector { padding: 4px 8px; font-size: 12px; border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 4px; max-width: 180px; }
