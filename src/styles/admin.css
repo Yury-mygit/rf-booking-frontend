@@ -18,19 +18,7 @@
   --pill-superadmin-bg: #4a3a10; --pill-superadmin-text: #ffd95b;
 }
 
-/* Bottom-nav для admin-блока (повторяет partner-стили; держим
-   отдельные правила для возможности расхождения в будущем). */
-body[data-block="admin"] #bottomnav {
-  display: flex;
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
-  justify-content: space-around; align-items: stretch;
-  background: var(--surface);
-  border-top: 1px solid var(--border);
-  padding-bottom: env(safe-area-inset-bottom);
-}
-body[data-block="admin"] main#app {
-  padding-bottom: calc(58px + env(safe-area-inset-bottom));
-}
+/* Bottom-nav styles — универсальный блок в base.css. */
 
 .status-pill.client { background: var(--pill-client-bg); color: var(--pill-client-text); }
 .status-pill.partner { background: var(--pill-partner-bg); color: var(--pill-partner-text); }

@@ -22,18 +22,8 @@
   --cal-booked: #1e4a25;
 }
 
-/* Bottom-nav + topbar-right (показывается только в partner-блоке) */
-body[data-block="partner"] #bottomnav {
-  display: flex;
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
-  justify-content: space-around; align-items: stretch;
-  background: var(--surface);
-  border-top: 1px solid var(--border);
-  padding-bottom: env(safe-area-inset-bottom);
-}
-body[data-block="partner"] main#app {
-  padding-bottom: calc(58px + env(safe-area-inset-bottom));
-}
+/* Topbar-right (показывается только в partner-блоке) — bottom-nav
+   styles вынесены в base.css как универсальный блок. */
 .topbar-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 #owner-selector { padding: 4px 8px; font-size: 12px; border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 4px; max-width: 180px; }
 

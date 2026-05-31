@@ -96,37 +96,34 @@ body { -webkit-font-smoothing: antialiased; }
 }
 .settings-lang-btn.active { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
 
-/* Settings — bottom-nav для табов */
-body[data-block="settings"] #bottomnav {
+/* Bottom-nav — единый блок для всех view (client/partner/admin/settings/
+   entry). Высота фиксирована через --bn-h; main#app получает
+   соответствующий padding-bottom. `:not([hidden])` — потому что
+   HTML-атрибут hidden (display:none) перебивался этим правилом из-за
+   specificity (chat thread скрывает через #bottomnav.hidden = true). */
+:root { --bn-h: 42px; }
+#bottomnav:not([hidden]) {
   display: flex;
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
   justify-content: space-around; align-items: stretch;
+  height: calc(var(--bn-h) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
   background: var(--surface);
   border-top: 1px solid var(--border);
-  padding-bottom: env(safe-area-inset-bottom);
+  box-sizing: border-box;
 }
-body[data-block="settings"] main#app {
-  padding-bottom: calc(58px + env(safe-area-inset-bottom));
+main#app {
+  padding-bottom: calc(var(--bn-h) + env(safe-area-inset-bottom));
 }
 
-/* Client — bottom-nav. `:not([hidden])` нужен потому что
-   HTML-атрибут hidden (default display:none) перебивается этим
-   правилом из-за specificity — view, которая скрывает bottom-nav
-   через `#bottomnav.hidden = true` (chat thread), оставалась видимой. */
-body[data-block="client"] #bottomnav:not([hidden]) {
-  display: flex;
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
-  justify-content: space-around; align-items: stretch;
-  min-height: 45px;
-  background: var(--surface);
-  border-top: 1px solid var(--border);
-  padding-bottom: env(safe-area-inset-bottom);
+/* Centered mode: items занимают треть ширины, space-around на nav сам
+   располагает 1/2/3 кнопок симметрично (1 → центр; 2 → симметрично
+   от центра; 3 → равномерно). */
+#bottomnav[data-bn-mode="centered"] .bn-item {
+  flex: 0 0 33.333%;
 }
-body[data-block="client"] main#app {
-  padding-bottom: calc(58px + env(safe-area-inset-bottom));
-}
-body[data-block="client"].has-hotel-actions main#app {
-  padding-bottom: calc(58px + 64px + env(safe-area-inset-bottom));
+body.has-hotel-actions main#app {
+  padding-bottom: calc(var(--bn-h) + 64px + env(safe-area-inset-bottom));
 }
 
 /* Quick-actions панель над bottom-nav на view «Отель» (комнаты / услуги). */
@@ -143,11 +140,14 @@ body[data-block="client"].has-hotel-actions main#app {
 }
 .hotel-quick-actions .qa-btn { flex: 1; margin: 0; }
 
-/* Общие стили элементов bottom-nav (partner/admin/client/settings) */
+/* Общие стили элементов bottom-nav (partner/admin/client/settings/entry).
+   height 100% растягивает item на всю фиксированную высоту контейнера —
+   высота nav одинакова независимо от label/icon-only контента. */
 .bn-item {
   flex: 1;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 2px; padding: 5px 4px 6px; min-height: 45px;
+  gap: 2px; padding: 4px 4px 4px;
+  height: 100%;
   background: transparent; border: 0; font: inherit; cursor: pointer;
   color: var(--text-faint); text-decoration: none;
   font-size: 11px; line-height: 1.2;

@@ -5,10 +5,12 @@
 // Item: { key, label, icon, active?, href?, onClick? }
 //   href → <a href="#<path>">; без href → <button type="button">.
 
-export function setBottomNav(items) {
+export function setBottomNav(items, opts = {}) {
   const nav = document.getElementById("bottomnav");
   if (!nav) return;
   nav.hidden = false;
+  if (opts.mode) nav.dataset.bnMode = opts.mode;
+  else delete nav.dataset.bnMode;
   if (!items || items.length === 0) {
     nav.innerHTML = "";
     return;
@@ -16,7 +18,7 @@ export function setBottomNav(items) {
   nav.innerHTML = items.map((it) => {
     const cls = `bn-item${it.active ? " active" : ""}`;
     const keyAttr = it.key ? ` data-nav-key="${it.key}"` : "";
-    const inner = `${it.icon || ""}<span class="bn-label">${it.label}</span>`;
+    const inner = it.icon || "";
     return it.href
       ? `<a class="${cls}" href="#${it.href}"${keyAttr}>${inner}</a>`
       : `<button class="${cls}" type="button"${keyAttr}>${inner}</button>`;
