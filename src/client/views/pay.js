@@ -1,16 +1,25 @@
 import { api } from "../../api.js";
 import { t, tn } from "../../i18n.js";
-import { navigate } from "../../router.js";
+import { navigate, getQuery } from "../../router.js";
 import { setTitle, showBack } from "../../topbar.js";
 import { setBottomNav } from "../../bottomnav.js";
 import { inTelegram, tg } from "../../tg.js";
 
+// Куда back из /pay. Источник передаётся через ?from в hash-query, потому что
+// history.back() в TG WebView нестабилен (закрывает WebApp).
+function backTargetFor(booking, from) {
+  if (from === "bookings") return "#/client/bookings";
+  if (from === "booking_details") return `#/client/bookings/${booking.code}/details`;
+  return `#/client/hotel/${booking.hotel_id}`;
+}
+
 export async function renderPay({ code }) {
   const app = document.getElementById("app");
+  const q = getQuery();
+  const from = q.from || null;
   setTitle(t("pay.title", { code }));
   setBottomNav([]);
-  // Дефолтный back — в hub. После загрузки booking переопределим на hotel.
-  // history.back() в TG WebView ведёт себя нестабильно (закрывает WebApp).
+  // Дефолтный back — в hub. После загрузки booking переопределим на источник.
   showBack(() => navigate("#/"));
 
   if (!api.hasToken() && inTelegram) {
@@ -35,8 +44,9 @@ export async function renderPay({ code }) {
     app.innerHTML = `<div class="error">${t("common.error", { msg: e.message })}</div>`;
     return;
   }
-  // Booking загружен — back ведёт обратно на отель, не в hub.
-  showBack(() => navigate(`#/client/hotel/${booking.hotel_id}`));
+  // Booking загружен — back ведёт на источник, переданный в ?from.
+  const backTarget = backTargetFor(booking, from);
+  showBack(() => navigate(backTarget));
 
   if (booking.status === "paid") {
     app.innerHTML = `

@@ -134,6 +134,8 @@
   "my.details_title": "Детали брони",
   "my.cancel_booking": "Отменить бронь",
   "my.cancel_confirm": "Точно отменить бронь?",
+  "bookings.filter.all": "Все",
+  "bookings.filter.actual": "Актуальные",
   "rooms.no_dates": "Укажите даты, чтобы увидеть доступность и итог",
   "rooms.dates_required": "Выберите даты заезда и выезда",
   "rooms.confirm": "Подтвердить бронь",

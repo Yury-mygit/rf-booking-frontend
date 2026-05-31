@@ -41,6 +41,18 @@
 html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
 body { -webkit-font-smoothing: antialiased; }
 
+/* Top-spacer — пустая полоса сверху, симметрична #bottomnav. Видна
+   только в TG fullscreen mode (Bot API 8.0+, mobile) — под TG
+   overlay-кнопками ✕/⋮/Back. Высота max(56px, 8vh) + safe-area —
+   надёжно покрывает touch-target overlay (44-50px) + notch.
+   На desktop/web/старом TG скрыта (display:none). */
+#topnav {
+  display: none;
+  height: calc(max(56px, 8vh) + env(safe-area-inset-top));
+  background: var(--surface);
+}
+body.tg-fullscreen #topnav { display: block; }
+
 #topbar {
   display: flex;
   align-items: center;
@@ -122,6 +134,31 @@ main#app {
 #bottomnav[data-bn-mode="centered"] .bn-item {
   flex: 0 0 33.333%;
 }
+
+/* Filterbar — sticky под topbar, виден только когда view вызвал
+   setFilterBar. Используется на «Брони» (фильтры все/актуальные + $). */
+#filterbar:not([hidden]) {
+  display: flex;
+  position: sticky;
+  top: 41px;
+  z-index: 9;
+  padding: 8px 12px;
+  gap: 8px;
+  align-items: center;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.fb-item {
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  padding: 6px 12px; border-radius: 16px;
+  border: 1px solid var(--border);
+  background: transparent; color: var(--text);
+  font: inherit; font-size: 13px; line-height: 1; cursor: pointer;
+}
+.fb-item.active {
+  background: var(--accent); color: var(--accent-text); border-color: var(--accent);
+}
+.fb-item svg { display: block; }
 body.has-hotel-actions main#app {
   padding-bottom: calc(var(--bn-h) + 64px + env(safe-area-inset-bottom));
 }

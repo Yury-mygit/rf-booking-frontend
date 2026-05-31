@@ -7,7 +7,7 @@ import { CHAT_ICON_SVG } from "./chat/open.js";
 
 const DETAILS_ICON_SVG = `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
 
-const DOLLAR_ICON_SVG = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>`;
+export const DOLLAR_ICON_SVG = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>`;
 
 export function escapeHtml(s) {
   if (s == null) return "";
@@ -37,7 +37,8 @@ export function bookingCardHtml(b, opts = {}) {
     ? ` style="background-image:url('${escapeHtml(photo)}')"`
     : "";
   const paid = b.status === "paid";
-  const payPill = `<a class="bk-pay-pill ${paid ? "paid" : "unpaid"}" href="#/client/pay/${b.code}" title="${escapeHtml(statusText(b))}" aria-label="${escapeHtml(statusText(b))}">${DOLLAR_ICON_SVG}</a>`;
+  const payFrom = opts.payFrom || "bookings";
+  const payPill = `<a class="bk-pay-pill ${paid ? "paid" : "unpaid"}" href="#/client/pay/${b.code}?from=${payFrom}" title="${escapeHtml(statusText(b))}" aria-label="${escapeHtml(statusText(b))}">${DOLLAR_ICON_SVG}</a>`;
   const detailsBtn = withDetailsBtn
     ? `<a class="bk-icon-btn" href="#/client/bookings/${b.code}/details" aria-label="${escapeHtml(t("my.details"))}" title="${escapeHtml(t("my.details"))}">${DETAILS_ICON_SVG}</a>`
     : "";

@@ -61,6 +61,8 @@ export async function run() {
   hideBack();
   const bn = document.getElementById("bottomnav");
   if (bn) bn.hidden = true;
+  const fb = document.getElementById("filterbar");
+  if (fb) { fb.hidden = true; fb.innerHTML = ""; }
   const os = document.getElementById("owner-selector");
   if (os) os.hidden = true;
 

@@ -41,6 +41,18 @@
 }
 .bk-pay-pill.paid { background: #2ecc71; }
 .bk-pay-pill.unpaid { background: #f1c40f; }
+
+/* Filterbar — pay-фильтр: круглая кнопка с $-иконкой. 3 варианта
+   цикла: all (серый), paid (зелёный), unpaid (жёлтый). Прямоугольная
+   pill-форма для скоупа (все/актуальные) — базовый стиль `.fb-item`. */
+.fb-item[data-fb-key="pay"] {
+  width: 32px; height: 32px; padding: 0; border-radius: 50%;
+  margin-left: auto;
+}
+.fb-item--pay-all { color: var(--text-muted); border-color: var(--border); }
+.fb-item--pay-paid { color: #2ecc71; border-color: #2ecc71; }
+.fb-item--pay-unpaid { color: #f1c40f; border-color: #f1c40f; }
+.fb-item[data-fb-key="pay"] svg { width: 16px; height: 16px; }
 .bk-icon-btn {
   display: inline-flex; align-items: center; justify-content: center;
   width: 36px; height: 36px; padding: 0; border-radius: 50%;

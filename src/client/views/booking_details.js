@@ -30,7 +30,7 @@ export async function renderBookingDetails({ code }) {
     return;
   }
 
-  app.innerHTML = bookingCardHtml(b, { withDetailsBtn: false });
+  app.innerHTML = bookingCardHtml(b, { withDetailsBtn: false, payFrom: "booking_details" });
 
   const chatBtn = app.querySelector("button[data-chat-booking-id]");
   if (chatBtn) chatBtn.addEventListener("click", () => {

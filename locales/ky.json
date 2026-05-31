@@ -134,6 +134,8 @@
   "my.details_title": "Брондун чоо-жайы",
   "my.cancel_booking": "Бронду жокко чыгаруу",
   "my.cancel_confirm": "Бронду жокко чыгаруу?",
+  "bookings.filter.all": "Баары",
+  "bookings.filter.actual": "Активдүү",
   "rooms.no_dates": "Жеткиликтүүлүктү жана баасын көрүү үчүн күндөрдү тандаңыз",
   "rooms.dates_required": "Келүү жана кетүү күндөрүн тандаңыз",
   "rooms.confirm": "Бронду ырастоо",

@@ -134,6 +134,8 @@
   "my.details_title": "Booking details",
   "my.cancel_booking": "Cancel booking",
   "my.cancel_confirm": "Cancel this booking?",
+  "bookings.filter.all": "All",
+  "bookings.filter.actual": "Current",
   "rooms.no_dates": "Pick dates to see availability and total",
   "rooms.dates_required": "Pick check-in and check-out dates",
   "rooms.confirm": "Confirm booking",
