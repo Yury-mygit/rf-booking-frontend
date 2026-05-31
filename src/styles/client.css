@@ -128,6 +128,72 @@
 }
 .filter-cell--guests { flex: 0 0 78px; }
 
+/* Поле «Даты» в фильтре комнат — одна кнопка, при клике переход на
+   /client/hotel/<slug>/dates. × очищает фильтр (stopPropagation чтобы
+   не открыть calendar view). */
+.dates-field {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  width: 100%; padding: 8px 10px;
+  border: 1px solid var(--border); border-radius: 4px;
+  background: var(--surface); color: var(--text-faint);
+  font-size: 14px; font-family: inherit; text-align: left; cursor: pointer;
+}
+.dates-field.filled { color: var(--text); font-weight: 500; }
+.dates-field:hover { border-color: var(--accent); }
+.dates-field-value { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dates-field-clear {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--border-soft); color: var(--text-muted);
+  font-size: 14px; line-height: 1; flex-shrink: 0;
+}
+
+/* View «Даты» — full-screen календарь. Внизу: bn-nav (пустой) +
+   actions-bar над ним с кнопкой «Подтвердить». «Отмена» = TG BackButton
+   (showBack callback тоже зовёт cancel). padding-bottom учитывает
+   actions (~64px) поверх bn-nav. */
+.dates-view { padding-bottom: calc(var(--bn-h) + 72px + env(safe-area-inset-bottom)); }
+.dates-month-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 4px 0 12px;
+}
+.dates-month-title { font-size: 16px; font-weight: 600; text-transform: capitalize; }
+.dates-nav {
+  width: 32px; height: 32px; padding: 0;
+  border: 0; background: transparent; color: var(--text); cursor: pointer;
+  font-size: 22px; line-height: 1; border-radius: 4px;
+}
+.dates-nav:hover { background: var(--border-soft); }
+.dates-weekdays, .dates-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;
+}
+.dates-wd {
+  text-align: center; font-size: 11px; color: var(--text-muted);
+  padding: 4px 0; text-transform: lowercase;
+}
+.dates-day {
+  aspect-ratio: 1;
+  border: 0; background: transparent; color: var(--text);
+  font: inherit; font-size: 14px; cursor: pointer; border-radius: 4px;
+}
+.dates-day:hover:not(:disabled) { background: var(--border-soft); }
+.dates-day.out-month { color: var(--text-faint); }
+.dates-day.disabled { color: var(--text-faint); cursor: not-allowed; opacity: 0.4; }
+.dates-day.today { outline: 1px solid var(--accent); outline-offset: -2px; }
+.dates-day.range-start, .dates-day.range-end {
+  background: var(--accent); color: var(--accent-text); font-weight: 600;
+}
+.dates-day.in-range { background: var(--border-soft); }
+
+.dates-actions {
+  position: fixed; left: 0; right: 0;
+  bottom: calc(var(--bn-h) + env(safe-area-inset-bottom));
+  padding: 10px 12px;
+  background: var(--surface); border-top: 1px solid var(--border);
+  z-index: 19;
+}
+.dates-confirm { width: 100%; padding: 10px 16px; margin: 0; }
+
 .address-line { display: inline-flex; align-items: center; gap: 6px; }
 .map-pin-btn {
   display: inline-flex; align-items: center; justify-content: center;

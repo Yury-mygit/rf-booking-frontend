@@ -1,13 +1,11 @@
 // Rooms screen — список комнат + filters (даты/гости) + SSE-refresh при
 // серверных push'ах. Кнопка «Забронировать» уводит на /book/<roomId>.
 
-import { api } from "../../../api.js";
 import { getLang, t, tn } from "../../../i18n.js";
 import { navigate, getQuery } from "../../../router.js";
 import { setTitle, showBack } from "../../../topbar.js";
 import { setBottomNav } from "../../../bottomnav.js";
-import { mountDateRange } from "../../../widgets/daterange.js";
-import { setLastHotel } from "../../state.js";
+import { fmtDatesField } from "../../../widgets/calendar_utils.js";
 
 import { _state, ensureHotel, ensureEventSource, escapeHtml, hotelHash } from "./_shared.js";
 import { CHAT_ICON_SVG, openChatWithHotel } from "../chat/open.js";
@@ -38,11 +36,16 @@ function renderRoomsList(body) {
   const g = _state.guestsFilter;
   const hasDates = q.check_in && q.check_out;
   const rooms = (h.rooms || []).filter((r) => r.capacity >= g);
+  const datesLabel = fmtDatesField(q.check_in, q.check_out, getLang()) || t("rooms.dates");
+  const hasDateValue = !!(q.check_in || q.check_out);
   body.innerHTML = `
     <div class="rooms-controls">
       <div class="filters-row">
         <div class="filter-cell filter-cell--dates">
-          <div id="f-dates"></div>
+          <button type="button" class="dates-field ${hasDateValue ? "filled" : ""}" id="f-dates-btn">
+            <span class="dates-field-value">${escapeHtml(datesLabel)}</span>
+            ${hasDateValue ? `<span class="dates-field-clear" id="f-dates-clear" role="button" aria-label="${escapeHtml(t("app.clear"))}">×</span>` : ""}
+          </button>
         </div>
         <div class="filter-cell filter-cell--guests">
           <label for="f-guests">${t("rooms.filter.guests")}</label>
@@ -57,16 +60,23 @@ function renderRoomsList(body) {
         : rooms.map((r) => roomCardHtml(r, hasDates)).join("")}
     </div>
   `;
-  mountDateRange(document.getElementById("f-dates"), {
-    start: q.check_in || null,
-    end: q.check_out || null,
-    lang: getLang(),
-    labelIn: t("rooms.check_in"),
-    labelOut: t("rooms.check_out"),
-    placeholderIn: t("rooms.pick_date"),
-    placeholderOut: t("rooms.pick_date"),
-    onChange: (start, end) => updateRangeDates(body, start, end),
-  });
+  document.getElementById("f-dates-btn").onclick = (e) => {
+    if (e.target.id === "f-dates-clear") return;
+    const qs = new URLSearchParams();
+    if (q.check_in) qs.set("check_in", q.check_in);
+    if (q.check_out) qs.set("check_out", q.check_out);
+    if (q.guests) qs.set("guests", q.guests);
+    const tail = qs.toString() ? `/dates?${qs.toString()}` : "/dates";
+    navigate(hotelHash(h, tail));
+  };
+  const clearBtn = document.getElementById("f-dates-clear");
+  if (clearBtn) clearBtn.onclick = (e) => {
+    e.stopPropagation();
+    const qs = new URLSearchParams();
+    if (q.guests) qs.set("guests", q.guests);
+    const tail = qs.toString() ? `/rooms?${qs.toString()}` : "/rooms";
+    navigate(hotelHash(h, tail));
+  };
   document.getElementById("f-guests").onchange = (e) => {
     _state.guestsFilter = Number(e.target.value) || 1;
     _state.query.guests = String(_state.guestsFilter);
@@ -100,20 +110,6 @@ function navigateToBook(h, roomId) {
   qs.set("guests", String(_state.guestsFilter));
   const tail = `/book/${roomId}?${qs.toString()}`;
   navigate(hotelHash(h, tail));
-}
-
-async function updateRangeDates(body, ci, co) {
-  _state.query.check_in = ci;
-  _state.query.check_out = co;
-  body.innerHTML = `<p>${t("common.loading")}</p>`;
-  try {
-    _state.hotel = await api.hotelDetails(_state.hotel.id, _state.query);
-    setLastHotel(_state.hotel);
-  } catch (e) {
-    body.innerHTML = `<div class="error">${t("common.error", { msg: e.message })}</div>`;
-    return;
-  }
-  renderRoomsList(body);
 }
 
 function roomCardHtml(r, hasDates) {
