@@ -8,7 +8,7 @@ import { setBottomNav } from "../../../bottomnav.js";
 import { clientNavItems } from "../../nav.js";
 import { CHAT_ICON_SVG, openChatWithHotel } from "../chat/open.js";
 
-import { ensureHotel, escapeHtml, hotelHash, PIN_SVG } from "./_shared.js";
+import { ensureHotel, escapeHtml, hotelAccentsHtml, hotelHash, PIN_SVG } from "./_shared.js";
 
 export async function renderHotelDetail({ id }) {
   const app = document.getElementById("app");
@@ -42,6 +42,7 @@ export async function renderHotelDetail({ id }) {
             title="${escapeHtml(t("chat.write_to_hotel"))}">${CHAT_ICON_SVG}</button>
         </div>
         <div class="meta address-line">${addressText}${pinBtn}</div>
+        ${hotelAccentsHtml(h)}
         ${h.description_ru ? `<p>${escapeHtml(h.description_ru)}</p>` : ""}
       </div>
     </div>

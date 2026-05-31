@@ -20,13 +20,29 @@ const FIELDS = [
   ["address", "hotel.address", "input"],
   ["lat", "hotel.lat", "input-number"],
   ["lng", "hotel.lng", "input-number"],
+  ["meals", "hotel.meals", "select", ["none", "breakfast", "full_board"]],
 ];
 
 function descriptionFormHtml(hotel, canEdit = true) {
   const ro = canEdit ? "" : "readonly";
   return `
     <form id="form">
-      ${FIELDS.map(([k, key, kind]) => {
+      ${FIELDS.map(([k, key, kind, opts]) => {
+        if (kind === "checkbox") {
+          const checked = hotel?.[k] ? "checked" : "";
+          const disabled = canEdit ? "" : "disabled";
+          return `<div class="form-row form-row--inline">
+            <label><input type="checkbox" name="${k}" ${checked} ${disabled} />
+              ${t(key)}</label></div>`;
+        }
+        if (kind === "select") {
+          const cur = hotel?.[k] ?? opts[0];
+          const disabled = canEdit ? "" : "disabled";
+          return `<div class="form-row"><label>${t(key)}</label>
+            <select name="${k}" ${disabled}>
+              ${opts.map((o) => `<option value="${o}" ${o === cur ? "selected" : ""}>${t(`${key}_${o}`)}</option>`).join("")}
+            </select></div>`;
+        }
         const v = hotel?.[k] ?? "";
         if (kind === "textarea") {
           return `<div class="form-row"><label>${t(key)}</label>
@@ -62,6 +78,14 @@ function wireSaveHandler(isNew, id) {
     const form = document.getElementById("form");
     const payload = {};
     for (const [k, , kind] of FIELDS) {
+      if (kind === "checkbox") {
+        payload[k] = form[k].checked;
+        continue;
+      }
+      if (kind === "select") {
+        payload[k] = form[k].value;
+        continue;
+      }
       const raw = form[k].value.trim();
       if (raw === "") {
         payload[k] = isNew ? undefined : null;

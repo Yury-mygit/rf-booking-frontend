@@ -31,6 +31,17 @@
 }
 .hotel-head-body { padding: 14px; }
 .hotel-head-body p { margin: 8px 0 0; font-size: 14px; color: var(--text); }
+.hotel-accents { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.chip {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1.6;
+  background: var(--border-soft);
+  color: var(--text-muted);
+}
+.chip--accent { background: var(--accent); color: var(--accent-text); }
 
 /* Карточка отеля в списке /client/hotels: 15vh высотой, слева квадратное
    фото (width = height = 15vh), справа — название сверху + описание. */

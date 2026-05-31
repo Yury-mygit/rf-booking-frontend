@@ -2,7 +2,7 @@
 // серверных push'ах. Кнопка «Забронировать» уводит на /book/<roomId>.
 
 import { api } from "../../../api.js";
-import { getLang, t } from "../../../i18n.js";
+import { getLang, t, tn } from "../../../i18n.js";
 import { navigate, getQuery } from "../../../router.js";
 import { setTitle, showBack } from "../../../topbar.js";
 import { setBottomNav } from "../../../bottomnav.js";
@@ -122,6 +122,10 @@ function roomCardHtml(r, hasDates) {
   const chatBtn = `<button class="chat-icon-btn" type="button" data-chat-room="${r.id}" aria-label="${escapeHtml(t("chat.write_about_room"))}" title="${escapeHtml(t("chat.write_about_room"))}">${CHAT_ICON_SVG}</button>`;
   const photo = (r.photos && r.photos[0]) || "";
   const photoStyle = photo ? ` style="background-image:url('${escapeHtml(photo)}')"` : "";
+  const metaParts = [tn("hotel.guests", r.capacity)];
+  if (r.single_beds > 0) metaParts.push(tn("hotel.single_beds", r.single_beds));
+  if (r.double_beds > 0) metaParts.push(tn("hotel.double_beds", r.double_beds));
+  if (r.floor != null) metaParts.push(t("hotel.floor", { n: r.floor }));
   return `
     <div class="room ${unavail ? "unavailable" : ""}">
       <div class="room-photo"${photoStyle}></div>
@@ -130,7 +134,7 @@ function roomCardHtml(r, hasDates) {
           <h3>${escapeHtml(r.name_ru)}</h3>
           ${chatBtn}
         </div>
-        <div class="meta">${t("hotel.capacity", { n: r.capacity })}${r.beds != null ? ` · ${t("hotel.beds", { n: r.beds })}` : ""}${r.floor != null ? ` · ${t("hotel.floor", { n: r.floor })}` : ""}</div>
+        <div class="meta">${metaParts.join(" · ")}</div>
         <div class="price">${t("hotel.price_per_night", { price: r.price_kgs })}</div>
         ${hasDates && r.total_kgs_for_dates != null ? `<div class="meta">${t("hotel.total", { total: r.total_kgs_for_dates })}</div>` : ""}
         ${unavail

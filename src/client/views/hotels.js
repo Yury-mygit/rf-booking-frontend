@@ -4,6 +4,7 @@ import { navigate } from "../../router.js";
 import { setTitle, showBack } from "../../topbar.js";
 import { setBottomNav } from "../../bottomnav.js";
 import { clientNavItems } from "../nav.js";
+import { hotelAccentsHtml } from "./hotel/_shared.js";
 
 function escapeHtml(s) {
   if (s == null) return "";
@@ -50,6 +51,7 @@ export async function renderHotels() {
           <div class="hcr-photo" ${photoStyle}></div>
           <div class="hcr-body">
             <h3>${escapeHtml(h.name_ru)}</h3>
+            ${hotelAccentsHtml(h)}
             ${descLine}
           </div>
         </a>`;

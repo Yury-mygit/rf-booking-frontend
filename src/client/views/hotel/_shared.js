@@ -9,6 +9,7 @@
 // /client/hotel/<slug>/rooms (hashchange listener ниже).
 
 import { api } from "../../../api.js";
+import { t } from "../../../i18n.js";
 import { setLastHotel } from "../../state.js";
 
 export const _state = {
@@ -90,3 +91,14 @@ export function hotelHash(h, tail = "") {
 }
 
 export const PIN_SVG = `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>`;
+
+// Список «акцентов» отеля — пока только meals (breakfast/full_board).
+// Расширяется добавлением новых веток (wifi, parking, …).
+// Возвращает HTML-строку готовых чипов в .hotel-accents, пусто если ничего.
+export function hotelAccentsHtml(h) {
+  const chips = [];
+  if (h.meals && h.meals !== "none") {
+    chips.push(`<span class="chip chip--accent">${escapeHtml(t(`hotel.meals_${h.meals}`))}</span>`);
+  }
+  return chips.length ? `<div class="hotel-accents">${chips.join("")}</div>` : "";
+}
