@@ -21,7 +21,7 @@ export async function renderHotelServices({ id }) {
   }
   setTitle(t("client.nav.services"));
   showBack(() => navigate(hotelHash(h)));
-  setBottomNav(clientNavItems("services"));
+  setBottomNav(clientNavItems("hotel"));
   if (!h.services || !h.services.length) {
     app.innerHTML = `<p class="muted">${t("services.empty")}</p>`;
     return;

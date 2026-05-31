@@ -7,9 +7,8 @@
 
 import "../styles/client.css";
 
-import { t } from "../i18n.js";
 import { navigate } from "../router.js";
-import { setTitle, showBack } from "../topbar.js";
+import { showBack } from "../topbar.js";
 
 import {
   renderHotelDetail,
@@ -64,6 +63,7 @@ function syncTopChrome(rest) {
 
 export async function render(params) {
   document.body.dataset.block = "client";
+  document.body.classList.remove("has-hotel-actions");
   const rest = params.rest || "/";
 
   for (const { re, handler } of ROUTES) {
@@ -75,9 +75,9 @@ export async function render(params) {
     }
   }
 
-  // Корень /client/ или неизвестный путь — заглушка с возвратом в hub.
-  setTitle(t("client.app_name"));
+  // Корень /client/ или неизвестный путь — список отелей.
+  // Deep-link отеля (?startapp=hotel_<slug>) обрабатывается на уровне entry/
+  // и попадает прямо в /hotel/<slug> через ROUTES выше.
   showBack(() => navigate("#/"));
-  document.getElementById("app").innerHTML =
-    `<p class="hint">${t("client.no_hotel", { bot: "@rforge_stay_bot" })}</p>`;
+  await renderHotels();
 }

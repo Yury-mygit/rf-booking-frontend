@@ -24,6 +24,7 @@ export async function renderHotelDetail({ id }) {
   setTitle(titled);
   showBack(() => navigate("#/"));
   setBottomNav(clientNavItems("hotel"));
+  document.body.classList.add("has-hotel-actions");
   const photo = (h.photos && h.photos[0]) || "";
   const addressText = [h.city, h.address].filter(Boolean).map(escapeHtml).join(" · ");
   const hasCoords = h.lat != null && h.lng != null;
@@ -44,9 +45,15 @@ export async function renderHotelDetail({ id }) {
         ${h.description_ru ? `<p>${escapeHtml(h.description_ru)}</p>` : ""}
       </div>
     </div>
+    <div class="hotel-quick-actions">
+      <button class="primary qa-btn" id="hotel-rooms-btn" type="button">${escapeHtml(t("client.nav.rooms"))}</button>
+      <button class="primary qa-btn" id="hotel-services-btn" type="button">${escapeHtml(t("client.nav.services"))}</button>
+    </div>
   `;
   const mapBtn = document.getElementById("hotel-map-btn");
   if (mapBtn) mapBtn.onclick = () => navigate(hotelHash(h, "/map"));
   const chatBtn = document.getElementById("hotel-chat-btn");
   if (chatBtn) chatBtn.onclick = () => openChatWithHotel(h.id, null);
+  document.getElementById("hotel-rooms-btn").onclick = () => navigate(hotelHash(h, "/rooms"));
+  document.getElementById("hotel-services-btn").onclick = () => navigate(hotelHash(h, "/services"));
 }

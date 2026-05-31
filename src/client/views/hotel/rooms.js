@@ -28,7 +28,7 @@ export async function renderHotelRooms({ id }) {
   }
   setTitle(t("client.nav.rooms"));
   showBack(() => navigate(hotelHash(h)));
-  setBottomNav(clientNavItems("rooms"));
+  setBottomNav(clientNavItems("hotel"));
   app.innerHTML = `<div id="rooms-section"></div>`;
   renderRoomsList(document.getElementById("rooms-section"));
 }

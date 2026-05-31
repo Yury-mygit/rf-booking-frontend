@@ -106,6 +106,23 @@ body[data-block="client"] #bottomnav:not([hidden]) {
 body[data-block="client"] main#app {
   padding-bottom: calc(72px + env(safe-area-inset-bottom));
 }
+body[data-block="client"].has-hotel-actions main#app {
+  padding-bottom: calc(72px + 64px + env(safe-area-inset-bottom));
+}
+
+/* Quick-actions панель над bottom-nav на view «Отель» (комнаты / услуги). */
+.hotel-quick-actions {
+  position: fixed;
+  left: 0; right: 0;
+  bottom: calc(72px + env(safe-area-inset-bottom));
+  z-index: 19;
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+.hotel-quick-actions .qa-btn { flex: 1; margin: 0; }
 
 /* Общие стили элементов bottom-nav (partner/admin/client/settings) */
 .bn-item {
