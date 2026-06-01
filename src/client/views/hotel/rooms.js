@@ -16,6 +16,7 @@ export async function renderHotelRooms({ id }) {
   const q = getQuery();
   _state.query = q;
   _state.guestsFilter = Number(q.guests) || 1;
+  _state.bedsFilter = q.beds === "single" || q.beds === "double" ? q.beds : null;
   let h;
   try {
     h = await ensureHotel(id, q);
@@ -34,8 +35,14 @@ function renderRoomsList(body) {
   const h = _state.hotel;
   const q = _state.query;
   const g = _state.guestsFilter;
+  const beds = _state.bedsFilter;
   const hasDates = q.check_in && q.check_out;
-  const rooms = (h.rooms || []).filter((r) => r.capacity >= g);
+  const selectValue = beds === "single" ? "single" : beds === "double" ? "double" : g >= 3 ? "family" : g === 1 ? "1" : "1";
+  const rooms = (h.rooms || []).filter((r) => {
+    if (beds === "single") return r.single_beds >= 2;
+    if (beds === "double") return r.double_beds >= 1;
+    return r.capacity >= g;
+  });
   const datesLabel = fmtDatesField(q.check_in, q.check_out, getLang()) || t("rooms.dates");
   const hasDateValue = !!(q.check_in || q.check_out);
   body.innerHTML = `
@@ -49,9 +56,10 @@ function renderRoomsList(body) {
         </div>
         <div class="filter-cell filter-cell--guests">
           <select id="f-guests" aria-label="${escapeHtml(t("rooms.filter.guests"))}">
-            <option value="1" ${g <= 1 ? "selected" : ""}>${escapeHtml(t("rooms.filter.guests_1"))}</option>
-            <option value="2" ${g === 2 ? "selected" : ""}>${escapeHtml(t("rooms.filter.guests_2"))}</option>
-            <option value="4" ${g >= 3 ? "selected" : ""}>${escapeHtml(t("rooms.filter.guests_family"))}</option>
+            <option value="1" ${selectValue === "1" ? "selected" : ""}>${escapeHtml(t("rooms.filter.guests_1"))}</option>
+            <option value="single" ${selectValue === "single" ? "selected" : ""}>${escapeHtml(t("rooms.filter.guests_1plus1"))}</option>
+            <option value="double" ${selectValue === "double" ? "selected" : ""}>${escapeHtml(t("rooms.filter.guests_2"))}</option>
+            <option value="family" ${selectValue === "family" ? "selected" : ""}>${escapeHtml(t("rooms.filter.guests_family"))}</option>
           </select>
         </div>
       </div>
@@ -69,6 +77,7 @@ function renderRoomsList(body) {
     if (q.check_in) qs.set("check_in", q.check_in);
     if (q.check_out) qs.set("check_out", q.check_out);
     if (q.guests) qs.set("guests", q.guests);
+    if (q.beds) qs.set("beds", q.beds);
     const tail = qs.toString() ? `/dates?${qs.toString()}` : "/dates";
     navigate(hotelHash(h, tail));
   };
@@ -77,12 +86,28 @@ function renderRoomsList(body) {
     e.stopPropagation();
     const qs = new URLSearchParams();
     if (q.guests) qs.set("guests", q.guests);
+    if (q.beds) qs.set("beds", q.beds);
     const tail = qs.toString() ? `/rooms?${qs.toString()}` : "/rooms";
     navigate(hotelHash(h, tail));
   };
   document.getElementById("f-guests").onchange = (e) => {
-    _state.guestsFilter = Number(e.target.value) || 1;
+    const v = e.target.value;
+    if (v === "single") {
+      _state.guestsFilter = 2;
+      _state.bedsFilter = "single";
+    } else if (v === "double") {
+      _state.guestsFilter = 2;
+      _state.bedsFilter = "double";
+    } else if (v === "family") {
+      _state.guestsFilter = 4;
+      _state.bedsFilter = null;
+    } else {
+      _state.guestsFilter = 1;
+      _state.bedsFilter = null;
+    }
     _state.query.guests = String(_state.guestsFilter);
+    if (_state.bedsFilter) _state.query.beds = _state.bedsFilter;
+    else delete _state.query.beds;
     renderRoomsList(body);
   };
   body.querySelectorAll("button[data-book-room]").forEach((b) => {

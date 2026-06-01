@@ -127,6 +127,7 @@
 
   "rooms.filter.guests": "Guests",
   "rooms.filter.guests_1": "1 guest",
+  "rooms.filter.guests_1plus1": "1+1",
   "rooms.filter.guests_2": "2 guests",
   "rooms.filter.guests_family": "Family",
   "rooms.empty_filter": "No rooms with this capacity",

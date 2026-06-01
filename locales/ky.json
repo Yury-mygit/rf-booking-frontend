@@ -127,6 +127,7 @@
 
   "rooms.filter.guests": "Конок саны",
   "rooms.filter.guests_1": "1 конок",
+  "rooms.filter.guests_1plus1": "1+1",
   "rooms.filter.guests_2": "2 конок",
   "rooms.filter.guests_family": "Үй-бүлө",
   "rooms.empty_filter": "Мындай сыйымдуулуктагы бөлмө жок",

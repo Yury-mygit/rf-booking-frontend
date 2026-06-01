@@ -53,6 +53,7 @@ export async function renderHotelDates({ id }) {
     if (q.check_in) qs.set("check_in", q.check_in);
     if (q.check_out) qs.set("check_out", q.check_out);
     if (q.guests) qs.set("guests", q.guests);
+    if (q.beds) qs.set("beds", q.beds);
     const tail = qs.toString() ? `/rooms?${qs.toString()}` : "/rooms";
     navigate(hotelHash(h, tail));
   }
@@ -60,6 +61,7 @@ export async function renderHotelDates({ id }) {
   function confirm() {
     const qs = new URLSearchParams();
     if (q.guests) qs.set("guests", q.guests);
+    if (q.beds) qs.set("beds", q.beds);
     if (selection.length === 1) {
       const ci = selection[0];
       qs.set("check_in", ci);

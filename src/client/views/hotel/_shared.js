@@ -16,6 +16,7 @@ export const _state = {
   hotel: null,
   query: {},
   guestsFilter: 1,
+  bedsFilter: null,
   eventSource: null,
   refreshTimer: null,
 };

@@ -127,6 +127,7 @@
 
   "rooms.filter.guests": "Гостей",
   "rooms.filter.guests_1": "1 гость",
+  "rooms.filter.guests_1plus1": "1+1",
   "rooms.filter.guests_2": "2 гостя",
   "rooms.filter.guests_family": "Семья",
   "rooms.empty_filter": "Нет комнат с такой вместимостью",
