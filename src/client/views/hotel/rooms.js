@@ -48,8 +48,11 @@ function renderRoomsList(body) {
           </button>
         </div>
         <div class="filter-cell filter-cell--guests">
-          <label for="f-guests">${t("rooms.filter.guests")}</label>
-          <input id="f-guests" type="number" min="1" max="20" value="${g}" />
+          <select id="f-guests" aria-label="${escapeHtml(t("rooms.filter.guests"))}">
+            <option value="1" ${g <= 1 ? "selected" : ""}>${escapeHtml(t("rooms.filter.guests_1"))}</option>
+            <option value="2" ${g === 2 ? "selected" : ""}>${escapeHtml(t("rooms.filter.guests_2"))}</option>
+            <option value="4" ${g >= 3 ? "selected" : ""}>${escapeHtml(t("rooms.filter.guests_family"))}</option>
+          </select>
         </div>
       </div>
     </div>

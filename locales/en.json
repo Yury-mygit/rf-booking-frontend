@@ -126,6 +126,9 @@
   "hotel.no_coords": "Hotel coordinates are not set",
 
   "rooms.filter.guests": "Guests",
+  "rooms.filter.guests_1": "1 guest",
+  "rooms.filter.guests_2": "2 guests",
+  "rooms.filter.guests_family": "Family",
   "rooms.empty_filter": "No rooms with this capacity",
   "rooms.check_in": "Check-in",
   "rooms.check_out": "Check-out",
