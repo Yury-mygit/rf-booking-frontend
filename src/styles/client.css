@@ -66,7 +66,7 @@
   position: fixed; inset: 0; z-index: 1000;
   background: rgba(0, 0, 0, 0.92);
   display: flex; align-items: center; justify-content: center;
-  padding: env(safe-area-inset-top) 16px env(safe-area-inset-bottom);
+  padding: env(safe-area-inset-top) 16px max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px));
   -webkit-tap-highlight-color: transparent;
 }
 .lightbox-img {
@@ -90,7 +90,7 @@
 .lightbox-nav--prev { left: 8px; }
 .lightbox-nav--next { right: 8px; }
 .lightbox-counter {
-  position: absolute; bottom: calc(12px + env(safe-area-inset-bottom));
+  position: absolute; bottom: calc(12px + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
   left: 50%; transform: translateX(-50%);
   color: #fff; font-size: 13px;
   background: rgba(0, 0, 0, 0.4); padding: 4px 10px; border-radius: 12px;
@@ -270,7 +270,7 @@
    actions-bar над ним с кнопкой «Подтвердить». «Отмена» = TG BackButton
    (showBack callback тоже зовёт cancel). padding-bottom учитывает
    actions (~64px) поверх bn-nav. */
-.dates-view { padding-bottom: calc(var(--bn-h) + 72px + env(safe-area-inset-bottom)); }
+.dates-view { padding-bottom: calc(var(--bn-h) + 72px + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px))); }
 .dates-month-head {
   display: flex; align-items: center; justify-content: space-between;
   padding: 4px 0 12px;
@@ -305,7 +305,7 @@
 
 .dates-actions {
   position: fixed; left: 0; right: 0;
-  bottom: calc(var(--bn-h) + env(safe-area-inset-bottom));
+  bottom: calc(var(--bn-h) + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
   padding: 10px 12px;
   background: var(--surface); border-top: 1px solid var(--border);
   z-index: 19;
@@ -499,7 +499,7 @@
 .chat-screen {
   display: flex;
   flex-direction: column;
-  height: calc(100dvh - var(--top-h) - var(--bn-h) - env(safe-area-inset-bottom) - 3vh);
+  height: calc(100dvh - var(--top-h) - var(--bn-h) - max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)) - 3vh);
   min-height: 0;
 }
 .chat-list {
