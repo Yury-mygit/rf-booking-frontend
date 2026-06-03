@@ -12,6 +12,7 @@ import { partner } from "./api/partner.js";
 import { qr } from "./api/qr.js";
 import { admin } from "./api/admin.js";
 import { chat } from "./api/chat.js";
+import { support } from "./api/support.js";
 
 export const api = {
   // ─── Session ───────────────────────────────────────────────────────────
@@ -35,4 +36,5 @@ export const api = {
   ...qr,
   ...admin,
   ...chat,
+  ...support,
 };

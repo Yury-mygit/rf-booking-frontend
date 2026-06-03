@@ -25,10 +25,16 @@ import { renderRoomEdit } from "./views/room_edit.js";
 import { renderAvailability } from "./views/availability.js";
 import { renderStaffList } from "./views/staff_list/index.js";
 import { renderAudit } from "./views/audit.js";
+import {
+  renderPartnerSupportList,
+  renderPartnerSupportNew,
+  renderPartnerSupportThread,
+} from "./views/support.js";
 
 // rest paths: "/", "/rooms", "/bookings", "/clients", "/client/{id}",
 //   "/hotel/{id}", "/hotel/{id}/rooms", "/room/{hid}/{rid}",
-//   "/room/{hid}/{rid}/availability", "/staff", "/audit", "/login"
+//   "/room/{hid}/{rid}/availability", "/staff", "/audit", "/login",
+//   "/support", "/support/new", "/support/{number}"
 const ROUTES = [
   { re: /^\/?$/, h: (_m) => renderHotelsList(), titleKey: "pageTitle.hotels" },
   { re: /^\/login$/, h: () => renderPartnerLogin(), titleKey: "pageTitle.devLogin" },
@@ -42,6 +48,9 @@ const ROUTES = [
   { re: /^\/room\/([^/]+)\/([^/]+)$/, h: (m) => renderRoomEdit({ hotelId: decodeURIComponent(m[1]), roomId: decodeURIComponent(m[2]) }), titleKey: "pageTitle.roomEdit" },
   { re: /^\/staff$/, h: () => renderStaffList(), titleKey: "pageTitle.staff" },
   { re: /^\/audit$/, h: () => renderAudit(), titleKey: "pageTitle.audit" },
+  { re: /^\/support$/, h: () => renderPartnerSupportList(), titleKey: "pageTitle.support" },
+  { re: /^\/support\/new$/, h: () => renderPartnerSupportNew(), titleKey: "pageTitle.support" },
+  { re: /^\/support\/([^/]+)$/, h: (m) => renderPartnerSupportThread(decodeURIComponent(m[1])), titleKey: "pageTitle.support" },
 ];
 
 // parentPath: куда вести «назад» из текущего partner-пути.

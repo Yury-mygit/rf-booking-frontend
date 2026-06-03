@@ -13,6 +13,7 @@ import { initRouter, route, run, navigate } from "./router.js";
 import { initTopbar } from "./topbar.js";
 import { renderEntry } from "./entry/index.js";
 import { openSettings, renderSettings } from "./settings.js";
+import { installSupportTopbar } from "./widgets/support_topbar.js";
 
 applyTheme();
 watchTheme();
@@ -21,6 +22,7 @@ initTopbar();
 applyStaticI18n();
 
 document.getElementById("settings-btn").addEventListener("click", openSettings);
+installSupportTopbar();
 
 // Маршруты. Блоки регистрируются через dynamic import — код блока скачивается
 // только при первом входе. Bundle entry остаётся компактным.

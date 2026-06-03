@@ -25,6 +25,11 @@ import { renderBookingMedia } from "./views/booking_media.js";
 import { renderChatThread } from "./views/chat/thread.js";
 import { renderPay } from "./views/pay.js";
 import { renderClientLogin } from "./views/login.js";
+import {
+  renderClientSupportList,
+  renderClientSupportNew,
+  renderClientSupportThread,
+} from "./views/support.js";
 
 // rest:
 //   /hotel/<slug>              → Отель (фото+описание)
@@ -49,6 +54,9 @@ const ROUTES = [
   { re: /^\/hotels$/, handler: () => renderHotels() },
   { re: /^\/chat\/thread\/(\d+)$/, handler: (m) => renderChatThread({ threadId: m[1] }) },
   { re: /^\/pay\/([^/]+)$/, handler: (m) => renderPay({ code: decodeURIComponent(m[1]) }) },
+  { re: /^\/support$/, handler: () => renderClientSupportList() },
+  { re: /^\/support\/new$/, handler: () => renderClientSupportNew() },
+  { re: /^\/support\/([^/]+)$/, handler: (m) => renderClientSupportThread(decodeURIComponent(m[1])) },
   { re: /^\/login$/, handler: () => renderClientLogin() },
 ];
 
