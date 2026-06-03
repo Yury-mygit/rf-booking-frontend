@@ -346,3 +346,215 @@
   align-items: center;
   justify-content: center;
 }
+
+/* ─── Admin Support subnav (под main top-bar) ──────────────────────── */
+
+.support-subnav {
+  display: flex;
+  gap: 4px;
+  padding: 6px 8px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  white-space: nowrap;
+}
+.support-subtab {
+  display: inline-block;
+  padding: 4px 10px;
+  font-size: 13px;
+  border-radius: 12px;
+  color: var(--text-muted);
+  text-decoration: none;
+  border: 1px solid transparent;
+}
+.support-subtab.active {
+  background: var(--accent);
+  color: var(--accent-text);
+}
+.support-subtab:hover:not(.active) {
+  border-color: var(--border);
+}
+
+/* ─── Admin Inbox controls (filters) ───────────────────────────────── */
+
+/* (используют общие .support-views / .support-filters сверху) */
+
+/* ─── Admin Support Thread (ast = admin-support-thread) ────────────── */
+
+.ast {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100dvh - var(--top-h) - var(--bn-h) - max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
+}
+.ast__head {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ast__back {
+  background: transparent;
+  border: 0;
+  font: inherit;
+  color: var(--text);
+  cursor: pointer;
+}
+.ast__title { flex: 1; display: flex; flex-direction: column; }
+.ast__title .muted { font-size: 12px; }
+.ast__meta {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 12px;
+  flex-wrap: wrap;
+}
+
+.ast__actions {
+  display: flex;
+  gap: 6px;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-soft);
+  overflow-x: auto;
+  white-space: nowrap;
+}
+.ast__act, .ast__sel {
+  font: inherit;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+
+.ast__body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+.ast__side {
+  width: 240px;
+  border-right: 1px solid var(--border);
+  background: var(--surface-soft);
+  overflow-y: auto;
+  padding: 8px;
+  font-size: 13px;
+}
+@media (max-width: 720px) {
+  .ast__side { display: none; }
+}
+.ast__chat { padding: 0 6px; }
+
+.ast__audit { border-top: 1px solid var(--border); background: var(--surface-soft); }
+.ast__audit summary { padding: 6px 12px; cursor: pointer; font-size: 13px; }
+.ast__event { font-size: 12px; padding: 2px 12px; }
+
+/* ─── Side-panel (user context) ───────────────────────────────────── */
+
+.suc__head { margin-bottom: 8px; }
+.suc__section { margin-top: 8px; }
+.suc__label {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.suc__list { display: flex; flex-direction: column; gap: 4px; }
+.suc__item {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 6px;
+  font-size: 12px;
+  background: var(--surface);
+  border-radius: 4px;
+  text-decoration: none;
+  color: var(--text);
+}
+.suc__item:hover { background: var(--border-soft); }
+.suc__num { font-family: ui-monospace, monospace; }
+.suc__status { color: var(--text-muted); }
+
+/* ─── Management views (roster / tags / categories / settings) ────── */
+
+.support-mgmt {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.support-mgmt__add {
+  background: var(--accent);
+  color: var(--accent-text);
+  border: 0;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font: inherit;
+  align-self: flex-start;
+}
+.support-mgmt__list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.support-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  gap: 8px;
+}
+.support-row--clickable { cursor: pointer; }
+.support-row--clickable:hover { background: var(--surface-soft); }
+.support-row.is-selected { border-color: var(--accent); }
+.support-row__del {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--err, #d35a5a);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font: inherit;
+  cursor: pointer;
+}
+
+.support-form {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.support-form label { display: flex; flex-direction: column; font-size: 12px; gap: 4px; }
+.support-form input,
+.support-form select {
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  color: var(--text);
+  font: inherit;
+}
+.support-form__row {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.support-form button {
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font: inherit;
+  color: var(--text);
+}
+.support-form button:disabled { opacity: 0.5; cursor: not-allowed; }

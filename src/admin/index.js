@@ -16,6 +16,13 @@ import { renderUsers } from "./views/users.js";
 import { renderHotels } from "./views/hotels.js";
 import { renderBookings } from "./views/bookings.js";
 import { renderAdminLogin } from "./views/login.js";
+import { renderAdminSupportInbox } from "./views/support/inbox.js";
+import { renderAdminSupportThread } from "./views/support/ticket.js";
+import { renderAdminSupportAgents } from "./views/support/agents.js";
+import { renderAdminSupportTags } from "./views/support/tags.js";
+import { renderAdminSupportCategories } from "./views/support/categories.js";
+import { renderAdminSupportSettings } from "./views/support/settings.js";
+import { renderAdminSupportCanned } from "./views/support/canned.js";
 
 const ROUTES = [
   { re: /^\/?$/, h: () => renderMetrics(), titleKey: "pageTitle.adminMetrics" },
@@ -23,6 +30,13 @@ const ROUTES = [
   { re: /^\/users$/, h: () => renderUsers(), titleKey: "pageTitle.adminUsers" },
   { re: /^\/hotels$/, h: () => renderHotels(), titleKey: "pageTitle.adminHotels" },
   { re: /^\/bookings$/, h: () => renderBookings(), titleKey: "pageTitle.adminBookings" },
+  { re: /^\/support$/, h: () => renderAdminSupportInbox(), titleKey: "pageTitle.adminSupport" },
+  { re: /^\/support\/agents$/, h: () => renderAdminSupportAgents(), titleKey: "pageTitle.adminSupport" },
+  { re: /^\/support\/tags$/, h: () => renderAdminSupportTags(), titleKey: "pageTitle.adminSupport" },
+  { re: /^\/support\/categories$/, h: () => renderAdminSupportCategories(), titleKey: "pageTitle.adminSupport" },
+  { re: /^\/support\/settings$/, h: () => renderAdminSupportSettings(), titleKey: "pageTitle.adminSupport" },
+  { re: /^\/support\/canned$/, h: () => renderAdminSupportCanned(), titleKey: "pageTitle.adminSupport" },
+  { re: /^\/support\/([^/]+)$/, h: (m) => renderAdminSupportThread(decodeURIComponent(m[1])), titleKey: "pageTitle.adminSupport" },
   { re: /^\/login$/, h: () => renderAdminLogin(), titleKey: "pageTitle.adminLogin" },
 ];
 
