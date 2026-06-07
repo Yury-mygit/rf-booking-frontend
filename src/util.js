@@ -1,5 +1,17 @@
 // Общие утилиты, используемые view'хами разных блоков.
 
+// Превращает media-asset URL в URL миниатюры (256×256 webp).
+// Для legacy/non-media URL (пустой или `/api/v1/photos/…` — таких после
+// миграции 2026-06-07 в DB не должно быть, но на всякий случай) — возвращает
+// как есть. См. карту `booking → media migration`, Stage 6.
+export function assetThumbUrl(url) {
+  if (!url) return "";
+  if (/\/api\/v1\/assets\/[0-9a-f-]{36}$/i.test(url)) {
+    return url + "/thumb";
+  }
+  return url;
+}
+
 export function escapeHtml(s) {
   if (s == null) return "";
   return String(s).replace(

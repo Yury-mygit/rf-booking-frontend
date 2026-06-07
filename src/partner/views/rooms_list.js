@@ -1,7 +1,7 @@
 import { api } from "../../api.js";
 import { t } from "../../i18n.js";
 import { setTitle } from "../../topbar.js";
-import { escapeHtml } from "../../util.js";
+import { assetThumbUrl, escapeHtml } from "../../util.js";
 
 export async function renderRoomsList({ hotelId }) {
   const app = document.getElementById("app");
@@ -50,8 +50,9 @@ function attachCardHandlers(container) {
 
 function roomCardHtml(r, hotelId) {
   const photo = (r.photos && r.photos[0]) || "";
-  const photoHtml = photo
-    ? `<div class="hotel-thumb" style="background-image:url('${escapeHtml(photo)}')"></div>`
+  const thumb = assetThumbUrl(photo);
+  const photoHtml = thumb
+    ? `<div class="hotel-thumb" style="background-image:url('${escapeHtml(thumb)}')"></div>`
     : `<div class="hotel-thumb hotel-thumb-empty"></div>`;
   return `
     <div class="card hotel-row clickable-card" data-href="#/partner/room/${hotelId}/${r.id}" role="link" tabindex="0">
