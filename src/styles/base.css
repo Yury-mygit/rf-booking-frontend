@@ -59,7 +59,13 @@ body.tg-fullscreen {
   --topnav-h: calc(max(56px, 8vh) + env(safe-area-inset-top));
   --top-h: calc(41px + var(--topnav-h));
 }
-body.tg-fullscreen #topnav { display: block; }
+/* В fullscreen фон шапки тянем до верха экрана (без отдельного
+   topnav-spacer). Контент шапки сдвигаем вниз через padding-top,
+   чтобы не уехать под TG overlay (✕/⋮/Back). */
+body.tg-fullscreen #topnav { display: none; }
+body.tg-fullscreen #topbar {
+  padding-top: calc(4px + var(--topnav-h));
+}
 
 #topbar {
   display: flex;
@@ -68,11 +74,7 @@ body.tg-fullscreen #topnav { display: block; }
   background: var(--surface);
   border-bottom: 1px solid var(--text);
   position: sticky;
-  /* Sticky threshold = topnav-h: в normal mode = 0 (классический sticky
-     top: 0), в TG fullscreen = topnav-spacer height, чтобы topbar сразу
-     прилипал под TG overlay и не плыл вверх вместе с топ-надписью при
-     первых пикселях скролла. */
-  top: var(--topnav-h, 0px);
+  top: 0;
   z-index: 10;
   gap: 10px;
   min-height: 32px;
