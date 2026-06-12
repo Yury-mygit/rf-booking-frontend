@@ -368,16 +368,26 @@ body.has-book-confirm-bar main#app {
 
 /* Фильтры комнат прижаты к низу через sticky (не fixed) — sticky не
    создаёт нового compositing layer, поэтому sticky-topbar глобально
-   работает корректно даже на iOS/Android TG WebView. main#app не
-   нуждается в дополнительном padding-bottom — sticky-блок занимает
-   место в потоке. */
+   работает корректно даже на iOS/Android TG WebView. */
 .rooms-controls {
-  position: sticky; left: 0; right: 0; bottom: 0;
+  position: sticky;
+  bottom: 0;
   z-index: 19;
-  padding: 10px 12px max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px));
+  /* #app центрирован (max-width: 720px + padding: 14px). Выводим бар
+     фильтров за эти границы, чтобы фон тянулся от края до края экрана. */
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  padding: 10px 14px max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px));
   background: var(--surface);
-  border-top: 1px solid var(--border);
-  margin: 0 -12px -10px;
+  border-top: 1px solid var(--text);
+}
+/* На /rooms скрыт глобальный #bottomnav (hideBottomNav), а нижний бар
+   фильтров — sticky in flow. Глобальный padding-bottom на main (под
+   будущий bottomnav) тут не нужен — это даст пустое место в высоту
+   bn-h + safe-area-inset-bottom (на Android в TG может ≈15% экрана). */
+body.has-rooms-controls main#app {
+  padding-bottom: 0;
 }
 .filters-row { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
 .filter-cell { flex: 1 1 0; min-width: 0; }
