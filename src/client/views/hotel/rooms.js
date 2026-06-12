@@ -4,7 +4,7 @@
 import { getLang, t, tn } from "../../../i18n.js";
 import { navigate, getQuery } from "../../../router.js";
 import { setTitle, showBack } from "../../../topbar.js";
-import { setBottomNav } from "../../../bottomnav.js";
+import { hideBottomNav } from "../../../bottomnav.js";
 import { fmtShort } from "../../../widgets/calendar_utils.js";
 
 import { _state, ensureHotel, ensureEventSource, escapeHtml, hotelHash } from "./_shared.js";
@@ -26,7 +26,8 @@ export async function renderHotelRooms({ id }) {
   }
   setTitle(t("client.nav.rooms"));
   showBack(() => navigate(hotelHash(h)));
-  setBottomNav([]);
+  hideBottomNav();
+  document.body.classList.add("has-rooms-controls");
   app.innerHTML = `<div id="rooms-section"></div>`;
   renderRoomsList(document.getElementById("rooms-section"));
 }
@@ -47,6 +48,12 @@ function renderRoomsList(body) {
   const ciLabel = q.check_in ? fmtShort(q.check_in, lang) : t("rooms.check_in");
   const coLabel = q.check_out ? fmtShort(q.check_out, lang) : t("rooms.check_out");
   body.innerHTML = `
+    ${!hasDates ? `<p class="muted">${t("rooms.no_dates")}</p>` : ""}
+    <div id="rooms-list">
+      ${rooms.length === 0
+        ? `<p class="muted">${t("rooms.empty_filter")}</p>`
+        : rooms.map((r) => roomCardHtml(r, hasDates)).join("")}
+    </div>
     <div class="rooms-controls">
       <div class="filters-row">
         <div class="filter-cell filter-cell--dates">
@@ -68,12 +75,6 @@ function renderRoomsList(body) {
           </select>
         </div>
       </div>
-    </div>
-    ${!hasDates ? `<p class="muted">${t("rooms.no_dates")}</p>` : ""}
-    <div id="rooms-list">
-      ${rooms.length === 0
-        ? `<p class="muted">${t("rooms.empty_filter")}</p>`
-        : rooms.map((r) => roomCardHtml(r, hasDates)).join("")}
     </div>
   `;
   const openDates = (field, clearId) => (e) => {

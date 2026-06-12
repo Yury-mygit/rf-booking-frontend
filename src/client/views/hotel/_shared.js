@@ -82,9 +82,14 @@ export function ensureEventSource(hotelSlugOrId, onRefresh) {
 }
 
 // SSE закрываем при уходе с любого /client/hotel/<slug>/rooms.
+// has-rooms-controls (фиксированная нижняя панель фильтров) — снимаем
+// сразу же, чтобы padding-bottom не висел на других view.
 window.addEventListener("hashchange", () => {
   const hash = location.hash.replace(/^#/, "").split("?")[0];
-  if (!/^\/client\/hotel\/[^/]+\/rooms$/.test(hash)) closeEventSource();
+  if (!/^\/client\/hotel\/[^/]+\/rooms$/.test(hash)) {
+    closeEventSource();
+    document.body.classList.remove("has-rooms-controls");
+  }
 });
 
 export function hotelHash(h, tail = "") {

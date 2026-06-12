@@ -226,7 +226,20 @@
   font-weight: 600;
 }
 
-.rooms-controls { margin-bottom: 14px; }
+/* Фильтры комнат прибиты к низу поверх bottom-nav (аналогично
+   .hotel-quick-actions). main#app получает доп. padding-bottom через
+   body.has-rooms-controls, чтобы последняя карточка не уходила
+   под панель. */
+.rooms-controls {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  z-index: 19;
+  padding: 10px 12px max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px));
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+body.has-rooms-controls main#app {
+  padding-bottom: calc(70px + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
+}
 .filters-row { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
 .filter-cell { flex: 1 1 0; min-width: 0; }
 .filter-cell label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
