@@ -171,7 +171,7 @@ body.has-hotel-actions main#app {
   padding-bottom: calc(var(--bn-h) + 64px + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
 }
 
-/* Quick-actions панель над bottom-nav на view «Отель» (комнаты / услуги). */
+/* Quick-actions панель над bottom-nav на view «Отель» (комнаты). */
 .hotel-quick-actions {
   position: fixed;
   left: 0; right: 0;

@@ -48,7 +48,6 @@ export async function renderHotelDetail({ id }) {
     </div>
     <div class="hotel-quick-actions">
       <button class="primary qa-btn" id="hotel-rooms-btn" type="button">${escapeHtml(t("client.nav.rooms"))}</button>
-      <button class="primary qa-btn" id="hotel-services-btn" type="button">${escapeHtml(t("client.nav.services"))}</button>
     </div>
   `;
   const mapBtn = document.getElementById("hotel-map-btn");
@@ -56,5 +55,4 @@ export async function renderHotelDetail({ id }) {
   const chatBtn = document.getElementById("hotel-chat-btn");
   if (chatBtn) chatBtn.onclick = () => openChatWithHotel(h.id, null);
   document.getElementById("hotel-rooms-btn").onclick = () => navigate(hotelHash(h, "/rooms"));
-  document.getElementById("hotel-services-btn").onclick = () => navigate(hotelHash(h, "/services"));
 }
