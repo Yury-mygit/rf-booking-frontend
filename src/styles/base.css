@@ -68,11 +68,20 @@ body.tg-fullscreen #topnav { display: block; }
   background: var(--surface);
   border-bottom: 1px solid var(--text);
   position: sticky;
-  top: 0;
+  /* Sticky threshold = topnav-h: в normal mode = 0 (классический sticky
+     top: 0), в TG fullscreen = topnav-spacer height, чтобы topbar сразу
+     прилипал под TG overlay и не плыл вверх вместе с топ-надписью при
+     первых пикселях скролла. */
+  top: var(--topnav-h, 0px);
   z-index: 10;
   gap: 10px;
   min-height: 32px;
 }
+/* На client/hotels и client/hotel/<slug>/rooms iOS WebView теряет
+   sticky из-за соседнего fixed-слоя. Под body.transparent-topbar
+   переключаем topbar на fixed (всегда на месте) + прозрачный фон,
+   контент скроллится «под» ним. На остальных view (где filterbar
+   и т.п. ждут sticky-в-потоке) оставляем sticky. */
 #topbar-title {
   flex: 1;
   font-weight: 600;

@@ -46,7 +46,6 @@ function renderRoomsList(body) {
   const ciLabel = q.check_in ? fmtShort(q.check_in, lang) : t("rooms.check_in");
   const coLabel = q.check_out ? fmtShort(q.check_out, lang) : t("rooms.check_out");
   body.innerHTML = `
-    ${!hasDates ? `<p class="muted">${t("rooms.no_dates")}</p>` : ""}
     <div id="rooms-list">
       ${rooms.length === 0
         ? `<p class="muted">${t("rooms.empty_filter")}</p>`
