@@ -143,7 +143,7 @@ body.tg-fullscreen #topbar {
   height: calc(var(--bn-h) + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
   padding-bottom: max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px));
   background: var(--surface);
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--text);
   box-sizing: border-box;
 }
 main#app {
@@ -185,19 +185,23 @@ body.has-hotel-actions main#app {
   padding-bottom: calc(var(--bn-h) + 64px + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
 }
 
-/* Quick-actions панель над bottom-nav на view «Отель» (комнаты). */
+/* Quick-actions панель над bottom-nav на view «Отель» (комнаты).
+   Кнопка занимает всю площадь панели — без surface-рамки вокруг
+   accent-фона. */
 .hotel-quick-actions {
   position: fixed;
   left: 0; right: 0;
-  bottom: calc(58px + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
+  bottom: calc(var(--bn-h) + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
   z-index: 19;
   display: flex;
-  gap: 8px;
-  padding: 10px 12px;
-  background: var(--surface);
-  border-top: 1px solid var(--border);
+  padding: 0;
 }
-.hotel-quick-actions .qa-btn { flex: 1; margin: 0; }
+.hotel-quick-actions .qa-btn {
+  flex: 1;
+  margin: 0;
+  border-radius: 0;
+  padding: 12px 16px;
+}
 
 /* Общие стили элементов bottom-nav (partner/admin/client/settings/entry).
    height 100% растягивает item на всю фиксированную высоту контейнера —
