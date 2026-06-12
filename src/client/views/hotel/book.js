@@ -6,12 +6,13 @@
 // Успешное создание → /client/pay/<code>.
 
 import { api } from "../../../api.js";
-import { getLang, t } from "../../../i18n.js";
+import { getLang, t, tn } from "../../../i18n.js";
 import { navigate, getQuery } from "../../../router.js";
 import { setTitle, showBack } from "../../../topbar.js";
 import { setBottomNav } from "../../../bottomnav.js";
 import { inTelegram, tg } from "../../../tg.js";
-import { mountDateRange } from "../../../widgets/daterange.js";
+import { fmtShort } from "../../../widgets/calendar_utils.js";
+import { showToast } from "../../../widgets/toast.js";
 import { clientNavItems } from "../../nav.js";
 
 import { ensureHotel, escapeHtml, hotelHash } from "./_shared.js";
@@ -45,55 +46,36 @@ export async function renderHotelBookConfirm({ id, roomId }) {
     return;
   }
   const datesPicked = Boolean(q.check_in && q.check_out);
-  const initialGuests = Math.min(Number(q.guests) || 1, r.capacity);
+  const guests = Math.min(Number(q.guests) || 1, r.capacity);
+  const lang = getLang();
+  const datesLine = datesPicked
+    ? `${fmtShort(q.check_in, lang)} → ${fmtShort(q.check_out, lang)}`
+    : t("rooms.dates_required");
   app.innerHTML = `
     <div class="card">
       <h2>${escapeHtml(r.name_ru)}</h2>
       <div class="meta">${t("hotel.capacity", { n: r.capacity })}${r.beds != null ? ` · ${t("hotel.beds", { n: r.beds })}` : ""}</div>
       <div class="price">${t("hotel.price_per_night", { price: r.price_kgs })}</div>
     </div>
-    <div class="form-row">
-      ${datesPicked
-        ? `<div class="modal-summary">${t("rooms.modal_dates", { ci: q.check_in, co: q.check_out })}</div>`
-        : `<div id="m-dates"></div>`}
+    <div class="modal-summary ${datesPicked ? "" : "muted"}">
+      <div>${escapeHtml(datesLine)}</div>
+      <div>${escapeHtml(tn("hotel.guests", guests))}</div>
     </div>
-    <div class="form-row">
-      <label for="m-g">${t("rooms.filter.guests")} (max ${r.capacity})</label>
-      <input id="m-g" type="number" min="1" max="${r.capacity}" value="${initialGuests}" />
-    </div>
-    <button class="primary full" id="m-ok">${t("rooms.confirm")}</button>
+    <button class="primary full ${datesPicked ? "" : "is-disabled"}" id="m-ok">${t("rooms.confirm")}</button>
     <div id="m-err" class="error"></div>
   `;
-  let modalRange = null;
-  if (!datesPicked) {
-    modalRange = mountDateRange(document.getElementById("m-dates"), {
-      lang: getLang(),
-      labelIn: t("rooms.check_in"),
-      labelOut: t("rooms.check_out"),
-      placeholderIn: t("rooms.pick_date"),
-      placeholderOut: t("rooms.pick_date"),
-    });
-  }
   document.getElementById("m-ok").onclick = () =>
-    submitBookConfirm(h, r, q, datesPicked, modalRange);
+    submitBookConfirm(h, r, q, guests, datesPicked);
 }
 
-async function submitBookConfirm(h, r, q, datesFromQuery, modalRange) {
-  const err = document.getElementById("m-err");
-  let ci, co;
-  if (datesFromQuery) {
-    ci = q.check_in;
-    co = q.check_out;
-  } else if (modalRange) {
-    const v = modalRange.getValue();
-    ci = v.start;
-    co = v.end;
-  }
-  const g = Number(document.getElementById("m-g").value) || 1;
-  if (!ci || !co) {
-    err.textContent = t("rooms.dates_required");
+async function submitBookConfirm(h, r, q, g, datesPicked) {
+  if (!datesPicked) {
+    showToast(t("rooms.dates_required"));
     return;
   }
+  const err = document.getElementById("m-err");
+  const ci = q.check_in;
+  const co = q.check_out;
   if (!inTelegram && !api.hasToken()) {
     const link = buildTelegramDeepLink(h.slug, ci, co, g);
     document.getElementById("app").innerHTML = `

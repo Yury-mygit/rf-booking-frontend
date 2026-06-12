@@ -6,6 +6,7 @@ import { navigate, getQuery } from "../../../router.js";
 import { setTitle, showBack } from "../../../topbar.js";
 import { hideBottomNav } from "../../../bottomnav.js";
 import { fmtShort } from "../../../widgets/calendar_utils.js";
+import { showToast } from "../../../widgets/toast.js";
 
 import { _state, ensureHotel, ensureEventSource, escapeHtml, hotelHash } from "./_shared.js";
 import { CHAT_ICON_SVG, openChatWithHotel } from "../chat/open.js";
@@ -39,11 +40,8 @@ function renderRoomsList(body) {
   const beds = _state.bedsFilter;
   const hasDates = q.check_in && q.check_out;
   const selectValue = beds === "single" ? "single" : beds === "double" ? "double" : g >= 3 ? "family" : g === 1 ? "1" : "1";
-  const rooms = (h.rooms || []).filter((r) => {
-    if (beds === "single") return r.single_beds >= 2;
-    if (beds === "double") return r.double_beds >= 1;
-    return r.capacity >= g;
-  });
+  // Backend уже отфильтровал по beds/guests/датам (см. card #95).
+  const rooms = h.rooms || [];
   const lang = getLang();
   const ciLabel = q.check_in ? fmtShort(q.check_in, lang) : t("rooms.check_in");
   const coLabel = q.check_out ? fmtShort(q.check_out, lang) : t("rooms.check_out");
@@ -123,7 +121,13 @@ function renderRoomsList(body) {
     renderRoomsList(body);
   };
   body.querySelectorAll("button[data-book-room]").forEach((b) => {
-    b.onclick = () => navigateToBook(h, Number(b.dataset.bookRoom));
+    b.onclick = () => {
+      if (!hasDates) {
+        showToast(t("rooms.dates_required"));
+        return;
+      }
+      navigateToBook(h, Number(b.dataset.bookRoom));
+    };
   });
   body.querySelectorAll("button[data-chat-room]").forEach((b) => {
     b.onclick = () => {
@@ -153,7 +157,6 @@ function navigateToBook(h, roomId) {
 }
 
 function roomCardHtml(r, hasDates) {
-  const unavail = hasDates && r.available_for_dates === false;
   const chatBtn = `<button class="chat-icon-btn" type="button" data-chat-room="${r.id}" aria-label="${escapeHtml(t("chat.write_about_room"))}" title="${escapeHtml(t("chat.write_about_room"))}">${CHAT_ICON_SVG}</button>`;
   const photo = (r.photos && r.photos[0]) || "";
   const photoStyle = photo ? ` style="background-image:url('${escapeHtml(photo)}')"` : "";
@@ -162,7 +165,7 @@ function roomCardHtml(r, hasDates) {
   if (r.double_beds > 0) metaParts.push(tn("hotel.double_beds", r.double_beds));
   if (r.floor != null) metaParts.push(t("hotel.floor", { n: r.floor }));
   return `
-    <div class="room ${unavail ? "unavailable" : ""}">
+    <div class="room">
       <div class="room-photo"${photoStyle}></div>
       <div class="room-body">
         <div class="room-titlerow">
@@ -172,9 +175,7 @@ function roomCardHtml(r, hasDates) {
         <div class="meta">${metaParts.join(" · ")}</div>
         <div class="price">${t("hotel.price_per_night", { price: r.price_kgs })}</div>
         ${hasDates && r.total_kgs_for_dates != null ? `<div class="meta">${t("hotel.total", { total: r.total_kgs_for_dates })}</div>` : ""}
-        ${unavail
-          ? `<button class="primary" disabled>${t("hotel.unavailable")}</button>`
-          : `<button class="primary" data-book-room="${r.id}">${t("hotel.book")}</button>`}
+        <button class="primary ${hasDates ? "" : "is-disabled"}" data-book-room="${r.id}">${t("hotel.book")}</button>
       </div>
     </div>
   `;

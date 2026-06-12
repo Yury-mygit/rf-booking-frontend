@@ -251,6 +251,21 @@ button.primary {
   margin-top: 8px;
 }
 button.primary:disabled { background: var(--disabled-bg); cursor: not-allowed; }
+button.primary.is-disabled { background: var(--disabled-bg); cursor: not-allowed; }
+
+/* Toast — поверх всего, центр снизу. В TG WebApp обычно перехватывается
+   нативным showAlert; этот fallback виден только вне TG. */
+.app-toast {
+  position: fixed; left: 50%; bottom: 80px; transform: translateX(-50%);
+  max-width: 80%;
+  background: rgba(0, 0, 0, 0.85); color: #fff;
+  padding: 10px 16px; border-radius: 6px;
+  font-size: 14px; line-height: 1.3;
+  z-index: 100;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.2s;
+}
+.app-toast.show { opacity: 1; }
 button.secondary {
   background: var(--surface);
   color: var(--accent);
