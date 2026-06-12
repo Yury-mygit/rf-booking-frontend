@@ -3,6 +3,10 @@ import { t } from "../../i18n.js";
 import { navigate } from "../../router.js";
 import { setTitle } from "../../topbar.js";
 import { escapeHtml } from "../../util.js";
+import {
+  ROOM_AMENITIES_BY_SECTION,
+  ROOM_PAID_ALLOWED,
+} from "../../widgets/amenities_spec.js";
 
 const MAIN_FIELDS = [
   ["name_ru", "room.name_ru", "input"],
@@ -21,7 +25,7 @@ const DESCRIPTION_FIELDS = [
   ["description_en", "room.description_en", "textarea"],
 ];
 
-const TABS = ["main", "description", "photos"];
+const TABS = ["main", "description", "photos", "amenities"];
 
 let _state = { hotelId: null, roomId: null, isNew: false, room: null, active: "main" };
 
@@ -80,7 +84,79 @@ function switchTab(name) {
   if (name === "main") body.innerHTML = mainFormHtml(_state.room);
   else if (name === "description") body.innerHTML = descriptionFormHtml(_state.room);
   else if (name === "photos") return renderPhotosTab(body);
+  else if (name === "amenities") return renderAmenitiesTab(body);
   wireSaveHandler();
+}
+
+function renderAmenitiesTab(body) {
+  const canEdit = canManageRooms();
+  const items = _state.room.amenities || [];
+  const byKind = new Map(items.map((it) => [it.kind, it]));
+  const disabled = canEdit ? "" : "disabled";
+  body.innerHTML = `
+    <form id="form-amenities">
+      ${ROOM_AMENITIES_BY_SECTION.map((sec) => `
+        <fieldset class="amenities-section">
+          <legend>${escapeHtml(t("amenity.section." + sec.section))}</legend>
+          <div class="amenities-grid">
+            ${sec.kinds.map((kind) => {
+              const cur = byKind.get(kind);
+              const checked = cur ? "checked" : "";
+              const paidChecked = cur?.paid ? "checked" : "";
+              const paidShown = ROOM_PAID_ALLOWED.has(kind);
+              return `<div class="amenity-row">
+                <label>
+                  <input type="checkbox" name="am-${kind}" ${checked} ${disabled} />
+                  <span>${escapeHtml(t("amenity." + kind))}</span>
+                </label>
+                ${paidShown ? `<label class="amenity-paid">
+                  <input type="checkbox" name="paid-${kind}" ${paidChecked} ${disabled} ${cur ? "" : "disabled"} />
+                  <span>${escapeHtml(t("amenity.paid"))}</span>
+                </label>` : ""}
+              </div>`;
+            }).join("")}
+          </div>
+        </fieldset>
+      `).join("")}
+      ${canEdit ? `<button class="primary full" id="btn-save-am">${t("app.save")}</button>` : ""}
+      <div id="err" class="error"></div>
+    </form>`;
+
+  if (!canEdit) return;
+
+  // Включение «paid» доступно только если включён сам amenity.
+  body.querySelectorAll("input[type=checkbox][name^=am-]").forEach((cb) => {
+    cb.addEventListener("change", () => {
+      const kind = cb.name.slice(3);
+      const paid = body.querySelector(`input[name="paid-${kind}"]`);
+      if (!paid) return;
+      paid.disabled = !cb.checked;
+      if (!cb.checked) paid.checked = false;
+    });
+  });
+
+  document.getElementById("btn-save-am").onclick = async (e) => {
+    e.preventDefault();
+    const form = document.getElementById("form-amenities");
+    const amenities = [];
+    for (const sec of ROOM_AMENITIES_BY_SECTION) {
+      for (const kind of sec.kinds) {
+        if (!form.elements["am-" + kind]?.checked) continue;
+        const row = { kind };
+        if (ROOM_PAID_ALLOWED.has(kind) && form.elements["paid-" + kind]?.checked) {
+          row.paid = true;
+        }
+        amenities.push(row);
+      }
+    }
+    try {
+      const updated = await api.updateRoom(_state.hotelId, _state.roomId, { amenities });
+      _state.room = updated;
+      document.getElementById("err").innerHTML = `<span class="success">${t("avail.saved")}</span>`;
+    } catch (err) {
+      document.getElementById("err").textContent = t("app.error", { msg: err.message });
+    }
+  };
 }
 
 function canManageRooms() {

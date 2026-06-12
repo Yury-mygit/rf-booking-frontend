@@ -13,6 +13,11 @@ import { setBottomNav } from "../../../bottomnav.js";
 import { inTelegram, tg } from "../../../tg.js";
 import { fmtShort } from "../../../widgets/calendar_utils.js";
 import { showToast } from "../../../widgets/toast.js";
+import {
+  HOTEL_AMENITIES_BY_SECTION,
+  ROOM_AMENITIES_BY_SECTION,
+  ROOM_PAID_ALLOWED,
+} from "../../../widgets/amenities_spec.js";
 import { clientNavItems } from "../../nav.js";
 
 import { ensureHotel, escapeHtml, hotelHash } from "./_shared.js";
@@ -61,11 +66,61 @@ export async function renderHotelBookConfirm({ id, roomId }) {
       <div>${escapeHtml(datesLine)}</div>
       <div>${escapeHtml(tn("hotel.guests", guests))}</div>
     </div>
+    ${checkinCheckoutHtml(h)}
+    ${amenitiesSectionsHtml(h, r)}
     <button class="primary full ${datesPicked ? "" : "is-disabled"}" id="m-ok">${t("rooms.confirm")}</button>
     <div id="m-err" class="error"></div>
   `;
   document.getElementById("m-ok").onclick = () =>
     submitBookConfirm(h, r, q, guests, datesPicked);
+}
+
+function fmtTime(v) {
+  if (!v) return "";
+  return v.slice(0, 5); // "HH:MM:SS" → "HH:MM"
+}
+
+function checkinCheckoutHtml(h) {
+  const ci = fmtTime(h.checkin_time);
+  const co = fmtTime(h.checkout_time);
+  if (!ci && !co) return "";
+  const parts = [];
+  if (ci) parts.push(`<div><span class="muted">${escapeHtml(t("amenity.section.checkin_label"))}</span> ${escapeHtml(t("amenity.checkin_from", { time: ci }))}</div>`);
+  if (co) parts.push(`<div><span class="muted">${escapeHtml(t("amenity.section.checkout_label"))}</span> ${escapeHtml(t("amenity.checkout_until", { time: co }))}</div>`);
+  return `<div class="amenities-times">
+    <div class="amenities-section-title">${escapeHtml(t("amenity.section.checkin_checkout"))}</div>
+    ${parts.join("")}
+  </div>`;
+}
+
+function amenitiesSectionsHtml(h, r) {
+  const hotelKinds = new Set(h.amenities || []);
+  const roomItems = r.amenities || [];
+  const roomByKind = new Map(roomItems.map((it) => [it.kind, it]));
+
+  const sections = [];
+  // Hotel-level
+  for (const sec of HOTEL_AMENITIES_BY_SECTION) {
+    const picked = sec.kinds.filter((k) => hotelKinds.has(k));
+    if (picked.length) sections.push({ key: sec.section, chips: picked.map((k) => ({ kind: k })) });
+  }
+  // Room-level
+  for (const sec of ROOM_AMENITIES_BY_SECTION) {
+    const picked = sec.kinds.filter((k) => roomByKind.has(k));
+    if (picked.length) sections.push({
+      key: sec.section,
+      chips: picked.map((k) => ({ kind: k, paid: roomByKind.get(k).paid === true && ROOM_PAID_ALLOWED.has(k) })),
+    });
+  }
+  if (!sections.length) return "";
+  return sections.map((s) => `
+    <div class="amenities-block">
+      <div class="amenities-section-title">${escapeHtml(t("amenity.section." + s.key))}</div>
+      <div class="amenities-chips">
+        ${s.chips.map((c) => `<span class="chip ${c.paid ? "chip--paid" : ""}">${escapeHtml(t("amenity." + c.kind))}${c.paid ? ` · ${escapeHtml(t("amenity.paid"))}` : ""}</span>`).join("")}
+      </div>
+    </div>
+  `).join("");
 }
 
 async function submitBookConfirm(h, r, q, g, datesPicked) {

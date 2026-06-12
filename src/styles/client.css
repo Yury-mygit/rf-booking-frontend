@@ -150,6 +150,49 @@
   color: var(--text-muted);
 }
 .chip--accent { background: var(--accent); color: var(--accent-text); }
+.chip--paid { background: var(--surface-soft); color: var(--text); border: 1px solid var(--border); }
+
+/* Amenities sections + chips on book.js */
+.amenities-block { margin: 14px 0; }
+.amenities-section-title {
+  font-size: 13px; font-weight: 600; color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.amenities-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.amenities-times {
+  margin: 14px 0;
+  background: var(--surface-soft);
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+.amenities-times .amenities-section-title { margin-bottom: 4px; }
+.amenities-times > div + div { margin-top: 2px; }
+
+/* Partner amenities form: fieldset + 2-column grid of toggles */
+.amenities-section {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin: 12px 0;
+}
+.amenities-section legend {
+  padding: 0 6px;
+  font-size: 13px; font-weight: 600; color: var(--text-muted);
+}
+.amenities-grid {
+  display: grid; grid-template-columns: 1fr; gap: 6px;
+}
+@media (min-width: 480px) {
+  .amenities-grid { grid-template-columns: 1fr 1fr; }
+}
+.amenities-grid .amenity-row {
+  display: flex; align-items: center; gap: 12px;
+  font-size: 14px;
+}
+.amenities-grid .amenity-row label { display: inline-flex; align-items: center; gap: 6px; }
+.amenities-grid .amenity-paid { font-size: 12px; color: var(--text-muted); }
 
 /* Карточка отеля в списке /client/hotels: 15vh высотой, слева квадратное
    фото (width = height = 15vh), справа — название сверху + описание. */
