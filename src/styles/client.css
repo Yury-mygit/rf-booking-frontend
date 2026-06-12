@@ -152,6 +152,22 @@
 .chip--accent { background: var(--accent); color: var(--accent-text); }
 .chip--paid { background: var(--surface-soft); color: var(--text); border: 1px solid var(--border); }
 
+/* Icon-only amenity chip: 22×22 SVG в квадрате, опциональный ₽ справа. */
+.chip-icon {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: var(--border-soft);
+  color: var(--text);
+  padding: 6px 10px;
+  border-radius: 8px;
+  line-height: 0;
+}
+.chip-icon svg { display: block; width: 22px; height: 22px; }
+.chip-icon .chip-paid {
+  font-size: 13px; font-weight: 700; color: var(--accent);
+  line-height: 1;
+}
+.chip-icon.is-paid { background: var(--surface-soft); border: 1px solid var(--border); }
+
 /* Amenities sections + chips on book.js */
 .amenities-block { margin: 14px 0; }
 .amenities-section-title {
@@ -169,6 +185,20 @@
 }
 .amenities-times .amenities-section-title { margin-bottom: 4px; }
 .amenities-times > div + div { margin-top: 2px; }
+
+/* Confirm-bar на book.js: прижата к bottom-nav, кнопка во весь ряд. */
+.book-confirm-bar {
+  position: fixed; left: 0; right: 0;
+  bottom: calc(var(--bn-h) + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
+  z-index: 19;
+  padding: 10px 12px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+.book-confirm-bar .primary.full { margin: 0; }
+body.has-book-confirm-bar main#app {
+  padding-bottom: calc(var(--bn-h) + 70px + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
+}
 
 /* Partner amenities form: fieldset + 2-column grid of toggles */
 .amenities-section {

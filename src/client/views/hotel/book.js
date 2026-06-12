@@ -18,6 +18,7 @@ import {
   ROOM_AMENITIES_BY_SECTION,
   ROOM_PAID_ALLOWED,
 } from "../../../widgets/amenities_spec.js";
+import { amenityIconHtml } from "../../../widgets/amenities_icons.js";
 import { clientNavItems } from "../../nav.js";
 
 import { ensureHotel, escapeHtml, hotelHash } from "./_shared.js";
@@ -44,6 +45,7 @@ export async function renderHotelBookConfirm({ id, roomId }) {
   setTitle(t("client.nav.book"));
   showBack(() => navigate(hotelHash(h, "/rooms")));
   setBottomNav(clientNavItems("rooms"));
+  document.body.classList.add("has-book-confirm-bar");
 
   const r = (h.rooms || []).find((x) => x.id === Number(roomId));
   if (!r) {
@@ -68,8 +70,10 @@ export async function renderHotelBookConfirm({ id, roomId }) {
     </div>
     ${checkinCheckoutHtml(h)}
     ${amenitiesSectionsHtml(h, r)}
-    <button class="primary full ${datesPicked ? "" : "is-disabled"}" id="m-ok">${t("rooms.confirm")}</button>
     <div id="m-err" class="error"></div>
+    <div class="book-confirm-bar">
+      <button class="primary full ${datesPicked ? "" : "is-disabled"}" id="m-ok">${t("rooms.confirm")}</button>
+    </div>
   `;
   document.getElementById("m-ok").onclick = () =>
     submitBookConfirm(h, r, q, guests, datesPicked);
@@ -117,7 +121,13 @@ function amenitiesSectionsHtml(h, r) {
     <div class="amenities-block">
       <div class="amenities-section-title">${escapeHtml(t("amenity.section." + s.key))}</div>
       <div class="amenities-chips">
-        ${s.chips.map((c) => `<span class="chip ${c.paid ? "chip--paid" : ""}">${escapeHtml(t("amenity." + c.kind))}${c.paid ? ` · ${escapeHtml(t("amenity.paid"))}` : ""}</span>`).join("")}
+        ${s.chips.map((c) => {
+          const label = escapeHtml(t("amenity." + c.kind) + (c.paid ? " · " + t("amenity.paid") : ""));
+          return `<span class="chip-icon ${c.paid ? "is-paid" : ""}" title="${label}" aria-label="${label}">
+            ${amenityIconHtml(c.kind)}
+            ${c.paid ? `<span class="chip-paid">₽</span>` : ""}
+          </span>`;
+        }).join("")}
       </div>
     </div>
   `).join("");
