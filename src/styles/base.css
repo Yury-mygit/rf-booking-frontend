@@ -81,7 +81,8 @@ body.tg-fullscreen #topnav { display: block; }
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-#settings-btn {
+#settings-btn,
+#support-btn {
   display: grid;
   place-items: center;
   width: 28px;
@@ -93,8 +94,10 @@ body.tg-fullscreen #topnav { display: block; }
   color: var(--text);
   cursor: pointer;
 }
-#settings-btn:hover { background: rgba(127,127,127,0.18); }
-#settings-btn svg { display: block; }
+#settings-btn:hover,
+#support-btn:hover { background: rgba(127,127,127,0.18); }
+#settings-btn svg,
+#support-btn svg { display: block; }
 
 .topbar-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 
