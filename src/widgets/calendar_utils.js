@@ -69,17 +69,3 @@ export function buildMonthGrid(monthAnchor) {
   return cells;
 }
 
-// Форматирование одиночной/диапазона дат для поля «Даты». Возвращает
-// строку для отображения, без префиксов («10 окт», «10–15 окт»,
-// «10 окт – 5 нояб»).
-export function fmtDatesField(checkIn, checkOut, lang) {
-  if (!checkIn && !checkOut) return "";
-  if (checkIn && !checkOut) return fmtShort(checkIn, lang);
-  const a = fromISO(checkIn);
-  const b = fromISO(checkOut);
-  if (a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear()) {
-    const monthShort = new Intl.DateTimeFormat(lang, { month: "short" }).format(a);
-    return `${a.getDate()}–${b.getDate()} ${monthShort}`;
-  }
-  return `${fmtShort(checkIn, lang)} – ${fmtShort(checkOut, lang)}`;
-}

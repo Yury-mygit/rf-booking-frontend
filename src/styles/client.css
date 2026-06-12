@@ -234,6 +234,8 @@
   width: 100%; padding: 8px 10px; border: 1px solid var(--border);
   background: var(--surface); color: var(--text); border-radius: 4px; font-size: 14px;
 }
+.filter-cell--dates { display: flex; gap: 8px; }
+.filter-cell--dates .dates-field { flex: 1 1 0; min-width: 0; }
 .filter-cell--guests { flex: 0 0 110px; }
 .filter-cell--guests select {
   width: 100%; padding: 8px 28px 8px 10px;
@@ -266,11 +268,9 @@
   font-size: 14px; line-height: 1; flex-shrink: 0;
 }
 
-/* View «Даты» — full-screen календарь. Внизу: bn-nav (пустой) +
-   actions-bar над ним с кнопкой «Подтвердить». «Отмена» = TG BackButton
-   (showBack callback тоже зовёт cancel). padding-bottom учитывает
-   actions (~64px) поверх bn-nav. */
-.dates-view { padding-bottom: calc(var(--bn-h) + 72px + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px))); }
+/* View «Даты» — full-screen single-date календарь. Тап по разрешённой
+   дате сразу возвращает на /rooms; «Отмена» — TG BackButton. */
+.dates-view { padding-bottom: calc(var(--bn-h) + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px))); }
 .dates-month-head {
   display: flex; align-items: center; justify-content: space-between;
   padding: 4px 0 12px;
@@ -298,19 +298,9 @@
 .dates-day.out-month { color: var(--text-faint); }
 .dates-day.disabled { color: var(--text-faint); cursor: not-allowed; opacity: 0.4; }
 .dates-day.today { outline: 1px solid var(--accent); outline-offset: -2px; }
-.dates-day.range-start, .dates-day.range-end {
+.dates-day.picked {
   background: var(--accent); color: var(--accent-text); font-weight: 600;
 }
-.dates-day.in-range { background: var(--border-soft); }
-
-.dates-actions {
-  position: fixed; left: 0; right: 0;
-  bottom: calc(var(--bn-h) + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
-  padding: 10px 12px;
-  background: var(--surface); border-top: 1px solid var(--border);
-  z-index: 19;
-}
-.dates-confirm { width: 100%; padding: 10px 16px; margin: 0; }
 
 .address-line { display: inline-flex; align-items: center; gap: 6px; }
 .map-pin-btn {

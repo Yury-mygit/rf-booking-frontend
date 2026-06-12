@@ -5,8 +5,12 @@ import { call } from "./http.js";
 export const client = {
   hotelDetails(id, params = {}) {
     const qs = new URLSearchParams();
+    // Backend requires both check_in and check_out together or neither.
+    const hasBothDates = params.check_in && params.check_out;
     for (const [k, v] of Object.entries(params)) {
-      if (v !== "" && v != null) qs.set(k, v);
+      if (v === "" || v == null) continue;
+      if ((k === "check_in" || k === "check_out") && !hasBothDates) continue;
+      qs.set(k, v);
     }
     return call("GET", `/public/hotels/${id}${qs.toString() ? "?" + qs : ""}`);
   },

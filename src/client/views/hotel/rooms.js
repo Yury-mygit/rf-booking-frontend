@@ -5,7 +5,7 @@ import { getLang, t, tn } from "../../../i18n.js";
 import { navigate, getQuery } from "../../../router.js";
 import { setTitle, showBack } from "../../../topbar.js";
 import { setBottomNav } from "../../../bottomnav.js";
-import { fmtDatesField } from "../../../widgets/calendar_utils.js";
+import { fmtShort } from "../../../widgets/calendar_utils.js";
 
 import { _state, ensureHotel, ensureEventSource, escapeHtml, hotelHash } from "./_shared.js";
 import { CHAT_ICON_SVG, openChatWithHotel } from "../chat/open.js";
@@ -43,15 +43,20 @@ function renderRoomsList(body) {
     if (beds === "double") return r.double_beds >= 1;
     return r.capacity >= g;
   });
-  const datesLabel = fmtDatesField(q.check_in, q.check_out, getLang()) || t("rooms.dates");
-  const hasDateValue = !!(q.check_in || q.check_out);
+  const lang = getLang();
+  const ciLabel = q.check_in ? fmtShort(q.check_in, lang) : t("rooms.check_in");
+  const coLabel = q.check_out ? fmtShort(q.check_out, lang) : t("rooms.check_out");
   body.innerHTML = `
     <div class="rooms-controls">
       <div class="filters-row">
         <div class="filter-cell filter-cell--dates">
-          <button type="button" class="dates-field ${hasDateValue ? "filled" : ""}" id="f-dates-btn">
-            <span class="dates-field-value">${escapeHtml(datesLabel)}</span>
-            ${hasDateValue ? `<span class="dates-field-clear" id="f-dates-clear" role="button" aria-label="${escapeHtml(t("app.clear"))}">×</span>` : ""}
+          <button type="button" class="dates-field ${q.check_in ? "filled" : ""}" id="f-checkin-btn">
+            <span class="dates-field-value">${escapeHtml(ciLabel)}</span>
+            ${q.check_in ? `<span class="dates-field-clear" id="f-checkin-clear" role="button" aria-label="${escapeHtml(t("app.clear"))}">×</span>` : ""}
+          </button>
+          <button type="button" class="dates-field ${q.check_out ? "filled" : ""}" id="f-checkout-btn">
+            <span class="dates-field-value">${escapeHtml(coLabel)}</span>
+            ${q.check_out ? `<span class="dates-field-clear" id="f-checkout-clear" role="button" aria-label="${escapeHtml(t("app.clear"))}">×</span>` : ""}
           </button>
         </div>
         <div class="filter-cell filter-cell--guests">
@@ -71,25 +76,31 @@ function renderRoomsList(body) {
         : rooms.map((r) => roomCardHtml(r, hasDates)).join("")}
     </div>
   `;
-  document.getElementById("f-dates-btn").onclick = (e) => {
-    if (e.target.id === "f-dates-clear") return;
+  const openDates = (field, clearId) => (e) => {
+    if (e.target.id === clearId) return;
     const qs = new URLSearchParams();
+    qs.set("field", field);
     if (q.check_in) qs.set("check_in", q.check_in);
     if (q.check_out) qs.set("check_out", q.check_out);
     if (q.guests) qs.set("guests", q.guests);
     if (q.beds) qs.set("beds", q.beds);
-    const tail = qs.toString() ? `/dates?${qs.toString()}` : "/dates";
-    navigate(hotelHash(h, tail));
+    navigate(hotelHash(h, `/dates?${qs.toString()}`));
   };
-  const clearBtn = document.getElementById("f-dates-clear");
-  if (clearBtn) clearBtn.onclick = (e) => {
+  document.getElementById("f-checkin-btn").onclick = openDates("checkin", "f-checkin-clear");
+  document.getElementById("f-checkout-btn").onclick = openDates("checkout", "f-checkout-clear");
+  const clearField = (keepKey) => (e) => {
     e.stopPropagation();
     const qs = new URLSearchParams();
+    if (q[keepKey]) qs.set(keepKey, q[keepKey]);
     if (q.guests) qs.set("guests", q.guests);
     if (q.beds) qs.set("beds", q.beds);
     const tail = qs.toString() ? `/rooms?${qs.toString()}` : "/rooms";
     navigate(hotelHash(h, tail));
   };
+  const ciClear = document.getElementById("f-checkin-clear");
+  if (ciClear) ciClear.onclick = clearField("check_out");
+  const coClear = document.getElementById("f-checkout-clear");
+  if (coClear) coClear.onclick = clearField("check_in");
   document.getElementById("f-guests").onchange = (e) => {
     const v = e.target.value;
     if (v === "single") {

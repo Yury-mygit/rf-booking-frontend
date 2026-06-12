@@ -1,18 +1,15 @@
-// Dates picker — full-screen view. Открывается с client/hotel/<slug>/dates,
-// возвращается на /rooms с применённым (Подтвердить) или сохранённым
-// (Отмена) фильтром.
-//
-// Алгоритм: selection — массив ISO-дат, max 2. Click toggle'ит дату; 3-й
-// клик (при 2 выделенных) сбрасывает selection и делает кликнутую якорем.
-// На применение: 0 дат — фильтр снят; 1 — single-night (check_out = +1);
-// 2 — check_in = min, check_out = max.
+// Dates picker — full-screen single-date view. Открывается с
+// client/hotel/<slug>/dates?field=checkin|checkout. Constraint:
+// для checkin disabled даты >= q.check_out; для checkout disabled
+// даты <= q.check_in. Min — todayISO. Тап по разрешённой дате
+// сразу navigate'ит на /rooms с обновлённым полем. Back (showBack
+// callback) — отмена без записи.
 
 import { getLang, t } from "../../../i18n.js";
 import { navigate, getQuery } from "../../../router.js";
 import { setTitle, showBack } from "../../../topbar.js";
 import { setBottomNav } from "../../../bottomnav.js";
 import {
-  addDays,
   addMonths,
   buildMonthGrid,
   fmtMonthTitle,
@@ -40,85 +37,74 @@ export async function renderHotelDates({ id }) {
 
   const q = getQuery();
   const lang = getLang();
+  const field = q.field === "checkout" ? "checkout" : "checkin";
+  const targetKey = field === "checkin" ? "check_in" : "check_out";
+  const picked = q[targetKey] || null;
   const minISO = todayISO();
-  const selection = [];
-  if (q.check_in) selection.push(q.check_in);
-  if (q.check_out && q.check_out !== q.check_in) selection.push(q.check_out);
+  // upper bound для checkin = q.check_out (exclusive); lower bound
+  // для checkout = q.check_in (exclusive). null = bound отсутствует.
+  const upperExcl = field === "checkin" ? (q.check_out || null) : null;
+  const lowerExcl = field === "checkout" ? (q.check_in || null) : null;
 
-  const anchor = selection[0] || todayISO();
-  let monthAnchor = startOfMonth(fromISO(anchor));
+  const anchorISO = picked || (field === "checkout" && q.check_in) || (field === "checkin" && q.check_out) || todayISO();
+  let monthAnchor = startOfMonth(fromISO(anchorISO));
 
-  function cancel() {
+  function backToRooms(extraQS) {
     const qs = new URLSearchParams();
-    if (q.check_in) qs.set("check_in", q.check_in);
-    if (q.check_out) qs.set("check_out", q.check_out);
+    if (extraQS) {
+      for (const [k, v] of extraQS) qs.set(k, v);
+    } else {
+      if (q.check_in) qs.set("check_in", q.check_in);
+      if (q.check_out) qs.set("check_out", q.check_out);
+    }
     if (q.guests) qs.set("guests", q.guests);
     if (q.beds) qs.set("beds", q.beds);
     const tail = qs.toString() ? `/rooms?${qs.toString()}` : "/rooms";
     navigate(hotelHash(h, tail));
   }
 
-  function confirm() {
-    const qs = new URLSearchParams();
-    if (q.guests) qs.set("guests", q.guests);
-    if (q.beds) qs.set("beds", q.beds);
-    if (selection.length === 1) {
-      const ci = selection[0];
-      qs.set("check_in", ci);
-      qs.set("check_out", toISO(addDays(fromISO(ci), 1)));
-    } else if (selection.length === 2) {
-      const sorted = [...selection].sort();
-      qs.set("check_in", sorted[0]);
-      qs.set("check_out", sorted[1]);
-    }
-    const tail = `/rooms?${qs.toString()}`;
-    navigate(hotelHash(h, tail));
+  showBack(() => backToRooms(null));
+
+  function isDisabled(iso) {
+    if (iso < minISO) return true;
+    if (upperExcl && iso >= upperExcl) return true;
+    if (lowerExcl && iso <= lowerExcl) return true;
+    return false;
   }
 
-  showBack(cancel);
-
   function pickDay(iso) {
-    if (iso < minISO) return;
-    const idx = selection.indexOf(iso);
-    if (idx >= 0) {
-      selection.splice(idx, 1);
-    } else if (selection.length < 2) {
-      selection.push(iso);
+    if (isDisabled(iso)) return;
+    const next = new URLSearchParams();
+    if (field === "checkin") {
+      next.set("check_in", iso);
+      if (q.check_out) next.set("check_out", q.check_out);
     } else {
-      selection.length = 0;
-      selection.push(iso);
+      if (q.check_in) next.set("check_in", q.check_in);
+      next.set("check_out", iso);
     }
-    render();
+    backToRooms(next);
   }
 
   function render() {
-    const sorted = [...selection].sort();
-    const startISO = sorted[0] || null;
-    const endISO = sorted[1] || null;
     const cells = buildMonthGrid(monthAnchor);
     const weekdays = weekdayShortNames(lang);
     const today = todayISO();
     const gridHtml = cells.map((d) => {
       const iso = toISO(d);
       const inMonth = d.getMonth() === monthAnchor.getMonth();
-      const disabled = iso < minISO;
-      const isStart = startISO && iso === startISO;
-      const isEnd = endISO && iso === endISO;
-      const inRange = startISO && endISO && iso > startISO && iso < endISO;
+      const disabled = isDisabled(iso);
+      const isPicked = picked && iso === picked;
       const isToday = iso === today;
       const cls = [
         "dates-day",
         inMonth ? "" : "out-month",
         disabled ? "disabled" : "",
-        isStart ? "range-start" : "",
-        isEnd ? "range-end" : "",
-        inRange ? "in-range" : "",
+        isPicked ? "picked" : "",
         isToday ? "today" : "",
       ].filter(Boolean).join(" ");
       return `<button type="button" class="${cls}" data-iso="${iso}" ${disabled ? "disabled" : ""}>${d.getDate()}</button>`;
     }).join("");
 
-    const hasSelection = selection.length > 0;
     app.innerHTML = `
       <div class="dates-view">
         <div class="dates-month-head">
@@ -130,9 +116,6 @@ export async function renderHotelDates({ id }) {
           ${weekdays.map((n) => `<div class="dates-wd">${escapeHtml(n)}</div>`).join("")}
         </div>
         <div class="dates-grid">${gridHtml}</div>
-        <div class="dates-actions">
-          <button type="button" class="primary dates-confirm" id="dates-confirm">${escapeHtml(t("app.confirm"))}</button>
-        </div>
       </div>
     `;
 
@@ -145,7 +128,6 @@ export async function renderHotelDates({ id }) {
         render();
       });
     });
-    document.getElementById("dates-confirm").addEventListener("click", confirm);
   }
 
   render();
