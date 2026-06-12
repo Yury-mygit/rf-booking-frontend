@@ -1,18 +1,6 @@
-// Тонкие partner-обёртки над общей реализацией user-side support views.
+// Partner-side support chat (карта #92).
 
-import {
-  renderUserSupportList,
-  renderUserSupportNew,
-  renderUserSupportThread,
-} from "../../widgets/support_user_views.js";
+import { renderUserSupportChat } from "../../widgets/support_user_views.js";
 
-const BASE = "/partner/support";
-
-export const renderPartnerSupportList = () =>
-  renderUserSupportList({ baseUrl: BASE });
-
-export const renderPartnerSupportNew = () =>
-  renderUserSupportNew({ baseUrl: BASE });
-
-export const renderPartnerSupportThread = (number) =>
-  renderUserSupportThread({ baseUrl: BASE, number });
+export const renderPartnerSupportChat = () =>
+  renderUserSupportChat({ block: "partner" });

@@ -28,12 +28,16 @@ async function refreshBadge() {
     b.classList.remove("has-unread");
     return;
   }
+  const block = blockOf();
+  if (block !== "client" && block !== "partner") {
+    b.classList.remove("has-unread");
+    return;
+  }
   try {
-    const page = await api.listMyTickets({ status: "open", limit: 100 });
-    const unread = (page.items || []).some((t) => t.unread);
-    b.classList.toggle("has-unread", unread);
+    const thread = await api.getMyThread(block);
+    b.classList.toggle("has-unread", !!(thread && thread.has_unread));
   } catch {
-    // Не показываем error — это фоновый poll.
+    // Фоновый poll — ошибки не показываем.
   }
 }
 

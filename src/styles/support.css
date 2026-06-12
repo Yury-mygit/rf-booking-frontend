@@ -558,3 +558,38 @@
   color: var(--text);
 }
 .support-form button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ─── admin support list (карта #92) ─────────────────────────────────── */
+.sl-row {
+  display: flex;
+  gap: 12px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  align-items: center;
+}
+.sl-row:hover { background: var(--surface-soft); }
+.sl-row--unread .sl-row__user { font-weight: 700; }
+.sl-row__main { flex: 1; min-width: 0; }
+.sl-row__title { display: flex; gap: 6px; align-items: baseline; }
+.sl-row__user { font-weight: 500; color: var(--text); }
+.sl-row__block { font-size: 12px; color: var(--text-muted); }
+.sl-row__preview {
+  font-size: 13px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sl-row__side { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.sl-row__time { font-size: 11px; color: var(--text-muted); }
+.sl-badge {
+  background: var(--accent, #2563eb);
+  color: white;
+  border-radius: 9px;
+  padding: 1px 7px;
+  font-size: 11px;
+  font-weight: 600;
+  min-width: 18px;
+  text-align: center;
+}

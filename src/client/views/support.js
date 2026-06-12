@@ -1,21 +1,6 @@
-// Тонкие client-обёртки над общей реализацией user-side support views.
-// Логика и DOM идентичны partner-варианту — параметризация через
-// baseUrl ("/client/support" vs "/partner/support") нужна только
-// для navigate/href.
+// Client-side support chat (карта #92).
 
-import {
-  renderUserSupportList,
-  renderUserSupportNew,
-  renderUserSupportThread,
-} from "../../widgets/support_user_views.js";
+import { renderUserSupportChat } from "../../widgets/support_user_views.js";
 
-const BASE = "/client/support";
-
-export const renderClientSupportList = () =>
-  renderUserSupportList({ baseUrl: BASE });
-
-export const renderClientSupportNew = () =>
-  renderUserSupportNew({ baseUrl: BASE });
-
-export const renderClientSupportThread = (number) =>
-  renderUserSupportThread({ baseUrl: BASE, number });
+export const renderClientSupportChat = () =>
+  renderUserSupportChat({ block: "client" });
