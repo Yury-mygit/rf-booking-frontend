@@ -26,3 +26,20 @@ export function showToast(msg) {
   if (el._hideTimer) clearTimeout(el._hideTimer);
   el._hideTimer = setTimeout(() => el.classList.remove("show"), 2500);
 }
+
+// Лёгкая подсказка — всегда inline, не использует tg.showAlert.
+// Для коротких meta-сообщений типа «название amenity по тапу на иконку»,
+// где модальный диалог был бы излишне навязчив.
+export function showHint(msg) {
+  let el = document.getElementById("app-toast");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "app-toast";
+    el.className = "app-toast";
+    document.body.appendChild(el);
+  }
+  el.textContent = msg;
+  el.classList.add("show");
+  if (el._hideTimer) clearTimeout(el._hideTimer);
+  el._hideTimer = setTimeout(() => el.classList.remove("show"), 1800);
+}

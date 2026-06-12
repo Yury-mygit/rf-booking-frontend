@@ -59,10 +59,13 @@ export async function renderHotelBookConfirm({ id, roomId }) {
     ? `${fmtShort(q.check_in, lang)} → ${fmtShort(q.check_out, lang)}`
     : t("rooms.dates_required");
   app.innerHTML = `
-    <div class="card">
-      <h2>${escapeHtml(r.name_ru)}</h2>
-      <div class="meta">${t("hotel.capacity", { n: r.capacity })}${r.beds != null ? ` · ${t("hotel.beds", { n: r.beds })}` : ""}</div>
-      <div class="price">${t("hotel.price_per_night", { price: r.price_kgs })}</div>
+    <div class="card room-card">
+      ${roomPhotosHtml(r)}
+      <div class="room-card-body">
+        <h2>${escapeHtml(r.name_ru)}</h2>
+        <div class="meta">${t("hotel.capacity", { n: r.capacity })}${r.beds != null ? ` · ${t("hotel.beds", { n: r.beds })}` : ""}</div>
+        <div class="price">${t("hotel.price_per_night", { price: r.price_kgs })}</div>
+      </div>
     </div>
     <div class="modal-summary ${datesPicked ? "" : "muted"}">
       <div>${escapeHtml(datesLine)}</div>
@@ -77,6 +80,55 @@ export async function renderHotelBookConfirm({ id, roomId }) {
   `;
   document.getElementById("m-ok").onclick = () =>
     submitBookConfirm(h, r, q, guests, datesPicked);
+  app.querySelectorAll(".chip-icon[data-kind]").forEach((el) => {
+    el.addEventListener("click", () => {
+      const label = el.getAttribute("aria-label") || el.getAttribute("title") || "";
+      if (label) showChipTip(el, label);
+    });
+  });
+}
+
+let _tipEl = null;
+function ensureTip() {
+  if (_tipEl) return _tipEl;
+  _tipEl = document.createElement("div");
+  _tipEl.className = "chip-tooltip";
+  document.body.appendChild(_tipEl);
+  return _tipEl;
+}
+
+function showChipTip(chipEl, text) {
+  const tip = ensureTip();
+  tip.textContent = text;
+  tip.classList.remove("below");
+  tip.classList.add("show");
+  requestAnimationFrame(() => {
+    const chipRect = chipEl.getBoundingClientRect();
+    const tipRect = tip.getBoundingClientRect();
+    const margin = 8;
+    let left = chipRect.left + chipRect.width / 2 - tipRect.width / 2;
+    if (left < margin) left = margin;
+    if (left + tipRect.width > window.innerWidth - margin) {
+      left = window.innerWidth - tipRect.width - margin;
+    }
+    let top = chipRect.top - tipRect.height - 8;
+    if (top < margin) {
+      top = chipRect.bottom + 8;
+      tip.classList.add("below");
+    }
+    tip.style.left = left + "px";
+    tip.style.top = top + window.scrollY + "px";
+  });
+  if (tip._timer) clearTimeout(tip._timer);
+  tip._timer = setTimeout(() => tip.classList.remove("show"), 1800);
+}
+
+function roomPhotosHtml(r) {
+  const photos = r.photos || [];
+  if (!photos.length) return "";
+  return `<div class="room-photos-carousel">
+    ${photos.map((p) => `<img class="room-photo-slide" src="${escapeHtml(p)}" alt="" />`).join("")}
+  </div>`;
 }
 
 function fmtTime(v) {
@@ -123,7 +175,7 @@ function amenitiesSectionsHtml(h, r) {
       <div class="amenities-chips">
         ${s.chips.map((c) => {
           const label = escapeHtml(t("amenity." + c.kind) + (c.paid ? " · " + t("amenity.paid") : ""));
-          return `<span class="chip-icon ${c.paid ? "is-paid" : ""}" title="${label}" aria-label="${label}">
+          return `<span class="chip-icon ${c.paid ? "is-paid" : ""}" data-kind="${c.kind}" title="${label}" aria-label="${label}">
             ${amenityIconHtml(c.kind)}
             ${c.paid ? `<span class="chip-paid">₽</span>` : ""}
           </span>`;
