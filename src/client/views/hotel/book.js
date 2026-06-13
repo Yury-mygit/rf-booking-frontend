@@ -35,9 +35,16 @@ export async function renderHotelBookConfirm({ id, roomId }) {
   const app = document.getElementById("app");
   app.innerHTML = `<p>${t("common.loading")}</p>`;
   const q = getQuery();
+  // На /book не передаём guests/beds в hotelDetails — иначе бэк (#95)
+  // отфильтрует уже выбранный юзером номер и find(roomId) вернёт undefined
+  // («Номер не найден»). check_in/check_out оставляем — нужны бэку для
+  // available_for_dates и total_kgs_for_dates на этом конкретном номере.
+  const detailsQ = {};
+  if (q.check_in) detailsQ.check_in = q.check_in;
+  if (q.check_out) detailsQ.check_out = q.check_out;
   let h;
   try {
-    h = await ensureHotel(id, q);
+    h = await ensureHotel(id, detailsQ);
   } catch (e) {
     app.innerHTML = `<div class="error">${t("common.error", { msg: e.message })}</div>`;
     return;

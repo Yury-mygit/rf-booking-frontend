@@ -101,23 +101,19 @@ function renderRoomsList(body) {
   if (coClear) coClear.onclick = clearField("check_in");
   document.getElementById("f-guests").onchange = (e) => {
     const v = e.target.value;
-    if (v === "single") {
-      _state.guestsFilter = 2;
-      _state.bedsFilter = "single";
-    } else if (v === "double") {
-      _state.guestsFilter = 2;
-      _state.bedsFilter = "double";
-    } else if (v === "family") {
-      _state.guestsFilter = 4;
-      _state.bedsFilter = null;
-    } else {
-      _state.guestsFilter = 1;
-      _state.bedsFilter = null;
-    }
-    _state.query.guests = String(_state.guestsFilter);
-    if (_state.bedsFilter) _state.query.beds = _state.bedsFilter;
-    else delete _state.query.beds;
-    renderRoomsList(body);
+    let nextGuests = 1;
+    let nextBeds = null;
+    if (v === "single") { nextGuests = 2; nextBeds = "single"; }
+    else if (v === "double") { nextGuests = 2; nextBeds = "double"; }
+    else if (v === "family") { nextGuests = 4; nextBeds = null; }
+    // Меняем фильтр в URL и заново роутимся — это триггерит ensureHotel
+    // с новым q, бэк отдаёт свежий список (#95: фильтрация на бэке).
+    const qs = new URLSearchParams();
+    if (q.check_in) qs.set("check_in", q.check_in);
+    if (q.check_out) qs.set("check_out", q.check_out);
+    qs.set("guests", String(nextGuests));
+    if (nextBeds) qs.set("beds", nextBeds);
+    navigate(hotelHash(h, "/rooms?" + qs.toString()));
   };
   body.querySelectorAll("button[data-book-room]").forEach((b) => {
     b.onclick = () => {
