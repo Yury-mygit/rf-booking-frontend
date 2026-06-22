@@ -386,8 +386,23 @@ body.has-book-confirm-bar main#app {
    фильтров — sticky in flow. Глобальный padding-bottom на main (под
    будущий bottomnav) тут не нужен — это даст пустое место в высоту
    bn-h + safe-area-inset-bottom (на Android в TG может ≈15% экрана). */
+/* main#app тянем во всю высоту viewport и кладём контент колонкой,
+   чтобы #rooms-list (flex: 1) толкал .rooms-controls к низу — иначе
+   при коротком списке (мало комнат / пустой результат) sticky не
+   срабатывает и бар висит сразу под последней карточкой. */
 body.has-rooms-controls main#app {
   padding-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100dvh - var(--top-h, 0px));
+}
+body.has-rooms-controls #rooms-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+body.has-rooms-controls #rooms-list {
+  flex: 1;
 }
 .filters-row { display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
 .filter-cell { flex: 1 1 0; min-width: 0; }
