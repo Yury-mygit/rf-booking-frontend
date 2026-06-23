@@ -37,6 +37,7 @@ export const partner = {
   getRoom: (hid, rid) => call("GET", `/p/hotels/${hid}/rooms/${rid}`),
   createRoom: (hid, payload) => call("POST", `/p/hotels/${hid}/rooms`, payload),
   updateRoom: (hid, rid, payload) => call("PUT", `/p/hotels/${hid}/rooms/${rid}`, payload),
+  setRoomStatus: (rid, status) => call("PUT", `/p/rooms/${rid}/status`, { status }),
   deleteRoom: (hid, rid) => call("DELETE", `/p/hotels/${hid}/rooms/${rid}`),
 
   // ─── Availability ──────────────────────────────────────────────────────

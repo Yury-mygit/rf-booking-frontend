@@ -163,6 +163,22 @@ function canManageRooms() {
   return api.canDo("manage_rooms", api.activeOwnerId());
 }
 
+function publishBlockHtml(room) {
+  if (_state.isNew || !room) return "";
+  if (!canManageRooms()) return "";
+  const isPub = room.status === "published";
+  const action = isPub ? t("room.unpublish_action") : t("room.publish_action");
+  const hint = isPub ? t("room.unpublish_hint") : t("room.publish_hint");
+  const chipCls = isPub ? "published" : "draft";
+  const chipText = isPub ? t("room.status.published") : t("room.status.draft");
+  return `
+    <div class="publish-block" style="margin-top:14px;padding:10px;border:1px solid var(--border,#ddd);border-radius:4px">
+      <div style="margin-bottom:8px"><span class="status-pill ${chipCls}">${chipText}</span></div>
+      <button class="secondary full" id="btn-publish">${action}</button>
+      <p class="meta" style="margin:6px 0 0">${hint}</p>
+    </div>`;
+}
+
 function mainFormHtml(room) {
   const canEdit = canManageRooms();
   return `
@@ -171,6 +187,7 @@ function mainFormHtml(room) {
         fieldHtml([k, key, kind], room?.[k] ?? "")
       ).join("")}
       ${canEdit ? `<button class="primary full" id="btn-save">${t("app.save")}</button>` : ""}
+      ${publishBlockHtml(room)}
       ${canEdit && !_state.isNew ? `<p style="margin-top:10px"><button class="danger" id="btn-del">${t("app.delete")}</button></p>` : ""}
       ${!_state.isNew ? `<p><a class="secondary" style="text-decoration:none;display:inline-block;padding:8px 14px;border:1px solid var(--accent);border-radius:4px;color:var(--accent);background:var(--surface)" href="#/partner/room/${_state.hotelId}/${_state.roomId}/availability">${t("room.availability")}</a></p>` : ""}
       <div id="err" class="error"></div>
@@ -317,6 +334,17 @@ function wireSaveHandler() {
     try {
       await api.deleteRoom(_state.hotelId, _state.roomId);
       navigate(`#/partner/hotel/${_state.hotelId}/rooms`);
+    } catch (e) {
+      document.getElementById("err").textContent = t("app.error", { msg: e.message });
+    }
+  });
+
+  document.getElementById("btn-publish")?.addEventListener("click", async (ev) => {
+    ev.preventDefault();
+    const next = _state.room.status === "published" ? "draft" : "published";
+    try {
+      _state.room = await api.setRoomStatus(_state.roomId, next);
+      switchTab("main");
     } catch (e) {
       document.getElementById("err").textContent = t("app.error", { msg: e.message });
     }
