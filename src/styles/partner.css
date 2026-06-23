@@ -341,3 +341,19 @@ button.link:disabled { opacity: 0.5; cursor: not-allowed; }
   width: auto;
   margin-top: 0;
 }
+
+/* Fixed create-action bar над bottom-nav (card #131).
+   Прецедент паттерна: `.quick-actions` в base.css. */
+.create-bar {
+  position: fixed;
+  left: 0; right: 0;
+  bottom: calc(var(--bn-h) + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
+  padding: 8px 12px;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  z-index: 30;
+}
+body.has-create-bar main#app {
+  padding-bottom: calc(var(--bn-h) + 56px + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
+}
+.create-bar > button.primary { margin-top: 0; }

@@ -2,8 +2,18 @@ import { api } from "../../api.js";
 import { t } from "../../i18n.js";
 import { assetThumbUrl, escapeHtml } from "../../util.js";
 
-const newBtnHtml = () =>
-  `<p><a href="#/partner/hotel/new" class="primary" style="padding:10px 16px;background:var(--accent);color:var(--accent-text);border-radius:4px;text-decoration:none;display:inline-block">${t("hotels.new")}</a></p>`;
+const createBarHtml = () =>
+  `<div class="create-bar"><button class="primary" id="hotels-create-btn">${t("hotels.new")}</button></div>`;
+
+// body.has-create-bar держит padding-bottom на main#app, чтобы
+// последняя карточка не уходила под fixed-bar. Снимаем при уходе
+// с /partner root — иначе соседние partner-view получают лишний отступ.
+window.addEventListener("hashchange", () => {
+  const hash = location.hash.replace(/^#/, "").split("?")[0];
+  if (!/^\/partner\/?$/.test(hash)) {
+    document.body.classList.remove("has-create-bar");
+  }
+});
 
 function cardHtml(h) {
   const photo = (h.photos && h.photos[0]) || "";
@@ -48,8 +58,15 @@ export async function renderHotelsList() {
   const activeOwnerId = api.activeOwnerId();
   const owner = api.owners().find((o) => o.owner_user_id === activeOwnerId);
   const isSelf = !!(owner && owner.is_self);
+  if (isSelf) document.body.classList.add("has-create-bar");
+  else document.body.classList.remove("has-create-bar");
   app.innerHTML = `<div id="list">${t("common.loading")}</div>
-    <div id="new-btn">${isSelf ? newBtnHtml() : ""}</div>`;
+    ${isSelf ? createBarHtml() : ""}`;
+  if (isSelf) {
+    document.getElementById("hotels-create-btn").addEventListener("click", () => {
+      location.hash = "#/partner/hotel/new";
+    });
+  }
   try {
     const hotels = await api.listHotels();
     const list = document.getElementById("list");
