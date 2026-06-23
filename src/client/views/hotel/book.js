@@ -50,7 +50,15 @@ export async function renderHotelBookConfirm({ id, roomId }) {
     return;
   }
   setTitle(t("client.nav.book"));
-  showBack(() => navigate(hotelHash(h, "/rooms")));
+  // Возврат на /rooms сохраняем все активные фильтры из URL —
+  // иначе юзер «теряет» выбранные guests/beds/check_in/out.
+  const backQs = new URLSearchParams();
+  if (q.check_in) backQs.set("check_in", q.check_in);
+  if (q.check_out) backQs.set("check_out", q.check_out);
+  if (q.guests) backQs.set("guests", q.guests);
+  if (q.beds) backQs.set("beds", q.beds);
+  const backTail = backQs.toString() ? "/rooms?" + backQs.toString() : "/rooms";
+  showBack(() => navigate(hotelHash(h, backTail)));
   setBottomNav(clientNavItems("rooms"));
   document.body.classList.add("has-book-confirm-bar");
 

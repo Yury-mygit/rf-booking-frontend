@@ -147,6 +147,9 @@ function navigateToBook(h, roomId) {
   if (q.check_in) qs.set("check_in", q.check_in);
   if (q.check_out) qs.set("check_out", q.check_out);
   qs.set("guests", String(_state.guestsFilter));
+  // Beds сохраняем для back-навигации с /book → /rooms (фильтры не
+  // сбрасываются). На /book hotelDetails сам не передаёт guests/beds.
+  if (_state.bedsFilter) qs.set("beds", _state.bedsFilter);
   const tail = `/book/${roomId}?${qs.toString()}`;
   navigate(hotelHash(h, tail));
 }
