@@ -17,6 +17,7 @@ import {
   renderHotelBookConfirm,
   renderHotelMap,
   renderHotelDates,
+  renderHotelGuests,
 } from "./views/hotel/index.js";
 import { renderHotels } from "./views/hotels.js";
 import { renderBookings } from "./views/bookings.js";
@@ -41,6 +42,7 @@ const ROUTES = [
   { re: /^\/hotel\/([^/]+)\/map$/, handler: (m) => renderHotelMap({ id: decodeURIComponent(m[1]) }) },
   { re: /^\/hotel\/([^/]+)\/rooms$/, handler: (m) => renderHotelRooms({ id: decodeURIComponent(m[1]) }) },
   { re: /^\/hotel\/([^/]+)\/dates$/, handler: (m) => renderHotelDates({ id: decodeURIComponent(m[1]) }) },
+  { re: /^\/hotel\/([^/]+)\/guests$/, handler: (m) => renderHotelGuests({ id: decodeURIComponent(m[1]) }) },
   { re: /^\/hotel\/([^/]+)\/services$/, handler: (m) => renderHotelServices({ id: decodeURIComponent(m[1]) }) },
   { re: /^\/hotel\/([^/]+)\/book\/([^/]+)$/, handler: (m) => renderHotelBookConfirm({ id: decodeURIComponent(m[1]), roomId: decodeURIComponent(m[2]) }) },
   { re: /^\/hotel\/([^/]+)$/, handler: (m) => renderHotelDetail({ id: decodeURIComponent(m[1]) }) },

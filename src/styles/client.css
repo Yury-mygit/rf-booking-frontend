@@ -413,17 +413,8 @@ body.has-rooms-controls #rooms-list {
 }
 .filter-cell--dates { display: flex; gap: 8px; }
 .filter-cell--dates .dates-field { flex: 1 1 0; min-width: 0; }
-.filter-cell--guests { flex: 0 0 110px; }
-.filter-cell--guests select {
-  width: 100%; padding: 8px 28px 8px 10px;
-  border: 1px solid var(--border); border-radius: 4px;
-  background: var(--surface); color: var(--text);
-  font-size: 14px; font-family: inherit; line-height: 1.2;
-  appearance: none; -webkit-appearance: none; -moz-appearance: none;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-}
+.filter-cell--guests { flex: 0 0 150px; min-width: 0; }
+.filter-cell--guests .dates-field { width: 100%; }
 
 /* Поле «Даты» в фильтре комнат — одна кнопка, при клике переход на
    /client/hotel/<slug>/dates. × очищает фильтр (stopPropagation чтобы
@@ -478,6 +469,58 @@ body.has-rooms-controls #rooms-list {
 .dates-day.picked {
   background: var(--accent); color: var(--accent-text); font-weight: 600;
 }
+
+/* Guests picker (card #125) */
+.guests-view {
+  display: flex; flex-direction: column;
+  padding-bottom: calc(72px + env(safe-area-inset-bottom));
+}
+.guests-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 4px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.guests-row-info { flex: 1; min-width: 0; }
+.guests-row-title { font-size: 15px; font-weight: 500; }
+.guests-row-hint { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.guests-counter {
+  display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+}
+.guests-btn {
+  width: 36px; height: 36px; padding: 0;
+  border: 1px solid var(--border); background: var(--bg);
+  color: var(--text); cursor: pointer; border-radius: 50%;
+  font-size: 18px; line-height: 1; font-weight: 600;
+}
+.guests-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.guests-btn:not(:disabled):active { background: var(--border-soft); }
+.guests-input {
+  width: 40px; text-align: center;
+  border: 0; background: transparent; color: var(--text);
+  font: inherit; font-size: 16px; font-weight: 500;
+  -moz-appearance: textfield;
+}
+.guests-input::-webkit-outer-spin-button,
+.guests-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.guests-ages { padding: 14px 4px; border-bottom: 1px solid var(--border-soft); }
+.guests-ages-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 10px; margin-top: 10px;
+}
+.guests-age-cell { display: flex; flex-direction: column; gap: 4px; }
+.guests-age-cell label { font-size: 12px; color: var(--text-muted); }
+.guests-age-input {
+  padding: 8px 10px;
+  border: 1px solid var(--border); background: var(--bg); color: var(--text);
+  border-radius: 6px; font: inherit; font-size: 15px;
+}
+.guests-apply-bar {
+  position: sticky; bottom: 0;
+  margin-top: 16px; padding: 12px 0 calc(12px + env(safe-area-inset-bottom));
+  background: var(--bg);
+  border-top: 1px solid var(--border-soft);
+}
+.guests-apply-bar .primary { width: 100%; }
 
 .address-line { display: inline-flex; align-items: center; gap: 6px; }
 .map-pin-btn {

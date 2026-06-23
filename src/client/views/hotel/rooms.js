@@ -8,15 +8,43 @@ import { hideBottomNav } from "../../../bottomnav.js";
 import { fmtShort } from "../../../widgets/calendar_utils.js";
 import { showToast } from "../../../widgets/toast.js";
 
-import { _state, ensureHotel, ensureEventSource, escapeHtml, hotelHash } from "./_shared.js";
+import {
+  _state,
+  ensureHotel,
+  ensureEventSource,
+  escapeHtml,
+  formatGuestsLabel,
+  hotelHash,
+  preserveGuestsQuery,
+  readGuestsFromQuery,
+  setGuestsQuery,
+} from "./_shared.js";
 import { CHAT_ICON_SVG, openChatWithHotel } from "../chat/open.js";
 
 export async function renderHotelRooms({ id }) {
   const app = document.getElementById("app");
   app.innerHTML = `<p>${t("common.loading")}</p>`;
-  const q = getQuery();
+  let q = getQuery();
+
+  // Back-compat (Q9): old `?guests=single|double|family|N` → structural.
+  // single (1+1) и double исторически означали 2 гостей, потому adults=2;
+  // beds preserved отдельно (Q11). Реалистично trip-конверсия: pre-#125
+  // ссылки больше не генерим, но кэш WebView/закладки.
+  if (q.guests && !q.adults) {
+    const mapped = mapLegacyGuests(q.guests);
+    const qs = new URLSearchParams();
+    if (q.check_in) qs.set("check_in", q.check_in);
+    if (q.check_out) qs.set("check_out", q.check_out);
+    if (mapped.beds) qs.set("beds", mapped.beds);
+    else if (q.beds) qs.set("beds", q.beds);
+    qs.set("adults", String(mapped.adults));
+    if (mapped.children > 0) qs.set("children", String(mapped.children));
+    navigate(`/client/hotel/${encodeURIComponent(id)}/rooms?${qs.toString()}`);
+    return;
+  }
+
   _state.query = q;
-  _state.guestsFilter = Number(q.guests) || 1;
+  _state.guests = readGuestsFromQuery(q);
   _state.bedsFilter = q.beds === "single" || q.beds === "double" ? q.beds : null;
   let h;
   try {
@@ -36,15 +64,14 @@ export async function renderHotelRooms({ id }) {
 function renderRoomsList(body) {
   const h = _state.hotel;
   const q = _state.query;
-  const g = _state.guestsFilter;
-  const beds = _state.bedsFilter;
-  const hasDates = q.check_in && q.check_out;
-  const selectValue = beds === "single" ? "single" : beds === "double" ? "double" : g >= 3 ? "family" : g === 1 ? "1" : "1";
-  // Backend уже отфильтровал по beds/guests/датам (см. card #95).
+  const guests = _state.guests;
+  // Backend уже отфильтровал по beds/гостям/датам (см. card #95, #125).
   const rooms = h.rooms || [];
   const lang = getLang();
+  const hasDates = q.check_in && q.check_out;
   const ciLabel = q.check_in ? fmtShort(q.check_in, lang) : t("rooms.check_in");
   const coLabel = q.check_out ? fmtShort(q.check_out, lang) : t("rooms.check_out");
+  const guestsLabel = formatGuestsLabel(guests);
   body.innerHTML = `
     <div id="rooms-list">
       ${rooms.length === 0
@@ -64,12 +91,9 @@ function renderRoomsList(body) {
           </button>
         </div>
         <div class="filter-cell filter-cell--guests">
-          <select id="f-guests" aria-label="${escapeHtml(t("rooms.filter.guests"))}">
-            <option value="1" ${selectValue === "1" ? "selected" : ""}>${escapeHtml(t("rooms.filter.guests_1"))}</option>
-            <option value="single" ${selectValue === "single" ? "selected" : ""}>${escapeHtml(t("rooms.filter.guests_1plus1"))}</option>
-            <option value="double" ${selectValue === "double" ? "selected" : ""}>${escapeHtml(t("rooms.filter.guests_2"))}</option>
-            <option value="family" ${selectValue === "family" ? "selected" : ""}>${escapeHtml(t("rooms.filter.guests_family"))}</option>
-          </select>
+          <button type="button" class="dates-field filled" id="f-guests-btn" aria-label="${escapeHtml(t("rooms.guests.title"))}">
+            <span class="dates-field-value">${escapeHtml(guestsLabel)}</span>
+          </button>
         </div>
       </div>
     </div>
@@ -80,7 +104,7 @@ function renderRoomsList(body) {
     qs.set("field", field);
     if (q.check_in) qs.set("check_in", q.check_in);
     if (q.check_out) qs.set("check_out", q.check_out);
-    if (q.guests) qs.set("guests", q.guests);
+    preserveGuestsQuery(qs, q);
     if (q.beds) qs.set("beds", q.beds);
     navigate(hotelHash(h, `/dates?${qs.toString()}`));
   };
@@ -90,7 +114,7 @@ function renderRoomsList(body) {
     e.stopPropagation();
     const qs = new URLSearchParams();
     if (q[keepKey]) qs.set(keepKey, q[keepKey]);
-    if (q.guests) qs.set("guests", q.guests);
+    preserveGuestsQuery(qs, q);
     if (q.beds) qs.set("beds", q.beds);
     const tail = qs.toString() ? `/rooms?${qs.toString()}` : "/rooms";
     navigate(hotelHash(h, tail));
@@ -99,21 +123,13 @@ function renderRoomsList(body) {
   if (ciClear) ciClear.onclick = clearField("check_out");
   const coClear = document.getElementById("f-checkout-clear");
   if (coClear) coClear.onclick = clearField("check_in");
-  document.getElementById("f-guests").onchange = (e) => {
-    const v = e.target.value;
-    let nextGuests = 1;
-    let nextBeds = null;
-    if (v === "single") { nextGuests = 2; nextBeds = "single"; }
-    else if (v === "double") { nextGuests = 2; nextBeds = "double"; }
-    else if (v === "family") { nextGuests = 4; nextBeds = null; }
-    // Меняем фильтр в URL и заново роутимся — это триггерит ensureHotel
-    // с новым q, бэк отдаёт свежий список (#95: фильтрация на бэке).
+  document.getElementById("f-guests-btn").onclick = () => {
     const qs = new URLSearchParams();
     if (q.check_in) qs.set("check_in", q.check_in);
     if (q.check_out) qs.set("check_out", q.check_out);
-    qs.set("guests", String(nextGuests));
-    if (nextBeds) qs.set("beds", nextBeds);
-    navigate(hotelHash(h, "/rooms?" + qs.toString()));
+    if (q.beds) qs.set("beds", q.beds);
+    preserveGuestsQuery(qs, q);
+    navigate(hotelHash(h, "/guests?" + qs.toString()));
   };
   body.querySelectorAll("button[data-book-room]").forEach((b) => {
     b.onclick = () => {
@@ -146,7 +162,7 @@ function navigateToBook(h, roomId) {
   const qs = new URLSearchParams();
   if (q.check_in) qs.set("check_in", q.check_in);
   if (q.check_out) qs.set("check_out", q.check_out);
-  qs.set("guests", String(_state.guestsFilter));
+  setGuestsQuery(qs, _state.guests);
   // Beds сохраняем для back-навигации с /book → /rooms (фильтры не
   // сбрасываются). На /book hotelDetails сам не передаёт guests/beds.
   if (_state.bedsFilter) qs.set("beds", _state.bedsFilter);
@@ -177,4 +193,15 @@ function roomCardHtml(r, hasDates) {
       </div>
     </div>
   `;
+}
+
+function mapLegacyGuests(g) {
+  if (g === "family") return { adults: 2, children: 2, beds: null };
+  if (g === "double") return { adults: 2, children: 0, beds: "double" };
+  if (g === "single") return { adults: 2, children: 0, beds: "single" };
+  const n = Number(g);
+  if (Number.isFinite(n) && n >= 1) {
+    return { adults: Math.min(Math.max(Math.trunc(n), 1), 8), children: 0, beds: null };
+  }
+  return { adults: 1, children: 0, beds: null };
 }

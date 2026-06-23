@@ -20,7 +20,7 @@ import {
   weekdayShortNames,
 } from "../../../widgets/calendar_utils.js";
 
-import { ensureHotel, escapeHtml, hotelHash } from "./_shared.js";
+import { ensureHotel, escapeHtml, hotelHash, preserveGuestsQuery } from "./_shared.js";
 
 export async function renderHotelDates({ id }) {
   const app = document.getElementById("app");
@@ -57,7 +57,7 @@ export async function renderHotelDates({ id }) {
       if (q.check_in) qs.set("check_in", q.check_in);
       if (q.check_out) qs.set("check_out", q.check_out);
     }
-    if (q.guests) qs.set("guests", q.guests);
+    preserveGuestsQuery(qs, q);
     if (q.beds) qs.set("beds", q.beds);
     const tail = qs.toString() ? `/rooms?${qs.toString()}` : "/rooms";
     navigate(hotelHash(h, tail));

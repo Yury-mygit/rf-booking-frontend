@@ -92,7 +92,7 @@ async function load() {
           <div class="card">
             <h3>${escapeHtml(b.hotel_name_ru)} — ${escapeHtml(b.room_name_ru)}</h3>
             <div class="meta">${t("bookings.code", { code: b.code })}</div>
-            <div class="meta">${t("bookings.dates", { ci: b.check_in, co: b.check_out, n: b.guests })}</div>
+            <div class="meta">${t("bookings.dates", { ci: b.check_in, co: b.check_out, n: b.adults + b.children + b.infants })}</div>
             <div class="meta">${t("bookings.client", { name: escapeHtml(b.client_first_name || "—") })}</div>
             <div class="price">${t("bookings.total", { total: b.total_kgs })}</div>
             <div class="meta">${paidPill} ${confirmedPill} ${postpayPill}</div>

@@ -39,7 +39,7 @@ async function load() {
           <div><b>${escapeHtml(b.hotel_name_ru)}</b>
             <span class="status-pill ${b.status}">${t("bookings.status." + b.status)}</span></div>
           <div class="meta">${t("bookings.code", { code: b.code })}</div>
-          <div class="meta">${t("bookings.dates", { ci: b.check_in, co: b.check_out, n: b.guests })}</div>
+          <div class="meta">${t("bookings.dates", { ci: b.check_in, co: b.check_out, n: b.adults + b.children + b.infants })}</div>
           <div class="meta">uid=${b.client_id} · ${t("bookings.client", { name: escapeHtml(b.client_first_name || "—") })}</div>
           <div class="meta">${t("bookings.total", { total: b.total_kgs })}</div>
           ${b.status === "pending" || b.status === "paid"

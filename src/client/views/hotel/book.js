@@ -6,7 +6,7 @@
 // Успешное создание → /client/pay/<code>.
 
 import { api } from "../../../api.js";
-import { getLang, t, tn } from "../../../i18n.js";
+import { getLang, t } from "../../../i18n.js";
 import { navigate, getQuery } from "../../../router.js";
 import { setTitle, showBack } from "../../../topbar.js";
 import { setBottomNav } from "../../../bottomnav.js";
@@ -21,13 +21,23 @@ import {
 import { amenityIconHtml } from "../../../widgets/amenities_icons.js";
 import { clientNavItems } from "../../nav.js";
 
-import { ensureHotel, escapeHtml, hotelHash } from "./_shared.js";
+import {
+  ensureHotel,
+  escapeHtml,
+  formatGuestsLabel,
+  hotelHash,
+  preserveGuestsQuery,
+  readGuestsFromQuery,
+} from "./_shared.js";
 
 const CLIENT_BOT = "rforge_stay_bot";
 
-function buildTelegramDeepLink(hotelSlug, ci, co, g) {
+// deep-link backwards-compatible format `_<ci>_<co>_<sum>` (#125 tg.py
+// regex принимает 1-3 trailing ints; sum достаточно для slug-парсера).
+function buildTelegramDeepLink(hotelSlug, ci, co, guests) {
   const base = `hotel_${hotelSlug}`;
-  const sp = ci && co ? `${base}_${ci}_${co}_${g || 1}` : base;
+  const sum = guests.adults + guests.children + guests.infants;
+  const sp = ci && co ? `${base}_${ci}_${co}_${sum || 1}` : base;
   return `https://t.me/${CLIENT_BOT}?startapp=${sp}`;
 }
 
@@ -55,7 +65,7 @@ export async function renderHotelBookConfirm({ id, roomId }) {
   const backQs = new URLSearchParams();
   if (q.check_in) backQs.set("check_in", q.check_in);
   if (q.check_out) backQs.set("check_out", q.check_out);
-  if (q.guests) backQs.set("guests", q.guests);
+  preserveGuestsQuery(backQs, q);
   if (q.beds) backQs.set("beds", q.beds);
   const backTail = backQs.toString() ? "/rooms?" + backQs.toString() : "/rooms";
   showBack(() => navigate(hotelHash(h, backTail)));
@@ -68,7 +78,13 @@ export async function renderHotelBookConfirm({ id, roomId }) {
     return;
   }
   const datesPicked = Boolean(q.check_in && q.check_out);
-  const guests = Math.min(Number(q.guests) || 1, r.capacity);
+  const guests = readGuestsFromQuery(q);
+  // UX-cap: structural input уже clamped в picker'е; здесь подстраховка
+  // на случай прямой ссылки с adults > capacity (бэк всё равно 400).
+  if (guests.adults + guests.children > r.capacity) {
+    guests.adults = Math.min(guests.adults, r.capacity);
+    guests.children = Math.max(0, r.capacity - guests.adults);
+  }
   const lang = getLang();
   const datesLine = datesPicked
     ? `${fmtShort(q.check_in, lang)} → ${fmtShort(q.check_out, lang)}`
@@ -84,7 +100,7 @@ export async function renderHotelBookConfirm({ id, roomId }) {
     </div>
     <div class="modal-summary ${datesPicked ? "" : "muted"}">
       <div>${escapeHtml(datesLine)}</div>
-      <div>${escapeHtml(tn("hotel.guests", guests))}</div>
+      <div>${escapeHtml(formatGuestsLabel(guests))}</div>
     </div>
     ${checkinCheckoutHtml(h)}
     ${amenitiesSectionsHtml(h, r)}
@@ -200,7 +216,7 @@ function amenitiesSectionsHtml(h, r) {
   `).join("");
 }
 
-async function submitBookConfirm(h, r, q, g, datesPicked) {
+async function submitBookConfirm(h, r, q, guests, datesPicked) {
   if (!datesPicked) {
     showToast(t("rooms.dates_required"));
     return;
@@ -209,7 +225,7 @@ async function submitBookConfirm(h, r, q, g, datesPicked) {
   const ci = q.check_in;
   const co = q.check_out;
   if (!inTelegram && !api.hasToken()) {
-    const link = buildTelegramDeepLink(h.slug, ci, co, g);
+    const link = buildTelegramDeepLink(h.slug, ci, co, guests);
     document.getElementById("app").innerHTML = `
       <div class="card" style="text-align:center">
         <p>${t("book.need_telegram")}</p>
@@ -229,12 +245,18 @@ async function submitBookConfirm(h, r, q, g, datesPicked) {
   }
   err.textContent = t("common.loading");
   try {
-    const b = await api.createBooking({
+    const payload = {
       room_id: r.id,
       check_in: ci,
       check_out: co,
-      guests: g,
-    });
+      adults: guests.adults,
+      children: guests.children,
+      infants: guests.infants,
+    };
+    if (guests.children > 0 && guests.child_ages.length > 0) {
+      payload.child_ages = guests.child_ages;
+    }
+    const b = await api.createBooking(payload);
     navigate(`#/client/pay/${b.code}`);
   } catch (e) {
     err.textContent = t("common.error", { msg: e.message });

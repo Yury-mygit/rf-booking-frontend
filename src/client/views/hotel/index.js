@@ -7,3 +7,4 @@ export { renderHotelServices } from "./services.js";
 export { renderHotelBookConfirm } from "./book.js";
 export { renderHotelMap } from "./map.js";
 export { renderHotelDates } from "./dates.js";
+export { renderHotelGuests } from "./guests.js";

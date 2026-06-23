@@ -47,7 +47,9 @@ export async function openWalkinModal({ hotelId, roomId, room, initialDate, onSu
           <label>${t("client.last_name")}<input name="last_name"></label>
           <label>${t("client.phone")}<input name="phone" inputmode="tel"></label>
           <label>${t("client.email")}<input name="email" type="email"></label>
-          <label>${t("walkin.guests")}<input name="guests" type="number" min="1" max="${room.capacity}" value="1"></label>
+          <label>${t("walkin.adults")}<input name="adults" type="number" min="1" max="${Math.min(8, room.capacity)}" value="1"></label>
+          <label>${t("walkin.children")}<input name="children" type="number" min="0" max="6" value="0"></label>
+          <label>${t("walkin.infants")}<input name="infants" type="number" min="0" max="4" value="0"></label>
           <label>${t("client.doc_kind")}
             <select name="doc_kind">
               <option value="">${t("client.doc_kind.none")}</option>
@@ -145,7 +147,9 @@ export async function openWalkinModal({ hotelId, roomId, room, initialDate, onSu
       room_id: Number(roomId),
       check_in: checkIn,
       check_out: checkOut || addDays(checkIn, 1),
-      guests: Number(fd.get("guests") || 1),
+      adults: Number(fd.get("adults") || 1),
+      children: Number(fd.get("children") || 0),
+      infants: Number(fd.get("infants") || 0),
       first_name: fd.get("first_name").trim(),
       last_name: fd.get("last_name").trim() || null,
       phone: fd.get("phone").trim() || null,

@@ -15,7 +15,7 @@ import { setLastHotel } from "../../state.js";
 export const _state = {
   hotel: null,
   query: {},
-  guestsFilter: 1,
+  guests: { adults: 1, children: 0, infants: 0, child_ages: [] },
   bedsFilter: null,
   eventSource: null,
   refreshTimer: null,
@@ -97,6 +97,56 @@ window.addEventListener("hashchange", () => {
 
 export function hotelHash(h, tail = "") {
   return `#/client/hotel/${encodeURIComponent(h.slug || h.id)}${tail}`;
+}
+
+// Structural guests helpers (card #125).
+// `_state.guests = {adults, children, infants, child_ages}` — readGuests
+// клампит ввод по карте (Q4), parseChildAges разбирает csv (Q9 кодировка).
+const GUESTS_LIMITS = {
+  adults: { min: 1, max: 8 },
+  children: { min: 0, max: 6 },
+  infants: { min: 0, max: 4 },
+};
+
+export function readGuestsFromQuery(q) {
+  const clamp = (n, lo, hi) => (n < lo ? lo : n > hi ? hi : n);
+  return {
+    adults: clamp(Number(q.adults) || 1, GUESTS_LIMITS.adults.min, GUESTS_LIMITS.adults.max),
+    children: clamp(Number(q.children) || 0, GUESTS_LIMITS.children.min, GUESTS_LIMITS.children.max),
+    infants: clamp(Number(q.infants) || 0, GUESTS_LIMITS.infants.min, GUESTS_LIMITS.infants.max),
+    child_ages: (q.child_ages || "")
+      .split(",")
+      .map(Number)
+      .filter((n) => Number.isFinite(n) && n >= 0),
+  };
+}
+
+export function preserveGuestsQuery(qs, q) {
+  if (q.adults) qs.set("adults", q.adults);
+  if (q.children) qs.set("children", q.children);
+  if (q.infants) qs.set("infants", q.infants);
+  if (q.child_ages) qs.set("child_ages", q.child_ages);
+}
+
+export function setGuestsQuery(qs, guests) {
+  qs.set("adults", String(guests.adults));
+  if (guests.children > 0) qs.set("children", String(guests.children));
+  if (guests.infants > 0) qs.set("infants", String(guests.infants));
+  if (guests.children > 0 && guests.child_ages.length > 0) {
+    qs.set("child_ages", guests.child_ages.join(","));
+  }
+}
+
+// Label for `.guests-field` button + summary в book.js.
+// empty/default («1 взрослый, без детей и младенцев») → «Гости» (Q8).
+export function formatGuestsLabel({ adults, children, infants }) {
+  if (adults === 1 && children === 0 && infants === 0) {
+    return t("rooms.guests.title");
+  }
+  const parts = [t("rooms.guests.adults_short", { n: adults })];
+  if (children > 0) parts.push(t("rooms.guests.children_short", { n: children }));
+  if (infants > 0) parts.push(t("rooms.guests.infants_short", { n: infants }));
+  return parts.join(" · ");
 }
 
 export const PIN_SVG = `<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/></svg>`;
