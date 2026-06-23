@@ -65,7 +65,9 @@ export async function renderHotelGuests({ id }) {
   showBack(() => backToRooms(false));
 
   function render() {
-    const rowsHtml = ["adults", "children", "infants"]
+    // infants ряд скрыт по фидбеку Юрия 2026-06-23 (Stage 6); state.infants
+    // preserved через query, бэкенд-поле остаётся (Q5 / subdecision 1).
+    const rowsHtml = ["adults", "children"]
       .map((key) => counterRowHtml(key, state[key]))
       .join("");
     const agesHtml = state.children > 0 ? ageInputsHtml(state.child_ages) : "";
