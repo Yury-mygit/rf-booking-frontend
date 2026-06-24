@@ -376,7 +376,6 @@
   "settings.tab.payments": "Payments",
   "settings.title": "Settings",
   "staff.add_btn": "Add",
-  "staff.add_hint": "Staff member joins the team immediately after adding. Open the bot to your colleagues — they must be registered.",
   "staff.add_no_perm": "You don't have permission to manage staff of this owner.",
   "staff.add_ok": "Staff member added",
   "staff.add_title": "Add staff member",

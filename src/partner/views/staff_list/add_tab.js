@@ -25,7 +25,6 @@ export async function renderAddTab(app, ownerId) {
   app.innerHTML = `
     <section class="staff-add">
       <h3>${t("staff.quick_add_title")}</h3>
-      <p class="muted">${t("staff.add_hint")}</p>
       <form id="staff-add-form" class="form">
         <div class="form-row">
           <label for="staff-tg-id">${t("staff.telegram_id")}</label>
