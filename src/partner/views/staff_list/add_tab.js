@@ -26,11 +26,11 @@ export async function renderAddTab(app, ownerId) {
     <section class="staff-add">
       <h3>${t("staff.quick_add_title")}</h3>
       <form id="staff-add-form" class="form">
-        <div class="form-row">
+        <div class="form-row form-row--horizontal">
           <label for="staff-tg-id">${t("staff.telegram_id")}</label>
           <input id="staff-tg-id" type="number" required min="1" placeholder="123456789" />
         </div>
-        <div class="form-row">
+        <div class="form-row form-row--horizontal">
           <label for="staff-note">${t("staff.note")}</label>
           <input id="staff-note" type="text" maxlength="128" placeholder="${t("staff.note_placeholder")}" />
         </div>
