@@ -1,6 +1,10 @@
 import { api } from "../../api.js";
 import { t } from "../../i18n.js";
+import { navigate } from "../../router.js";
+import { setTitle } from "../../topbar.js";
 import { escapeHtml, relativeTime } from "../../util.js";
+import { setSubBottomNav } from "../nav.js";
+import { TABS, TAB_ICONS, _state as STAFF_STATE } from "./staff_list/index.js";
 
 const PAGE_SIZE = 50;
 const ACTION_OPTIONS = [
@@ -15,6 +19,30 @@ const ACTION_OPTIONS = [
 
 const _state = { offset: 0, action: "", q: "", since: "", until: "", items: [], hasMore: true };
 
+// Standalone /partner/audit route: поднимаем staff-субпанель (journal
+// активен), а клики по другим табам переключают _state.active и
+// переходят на /partner/staff. Когда audit рендерится как 4-й таб из
+// staff_list, эта функция всё равно вызывается (renderAudit), но
+// document.body.classList уже стоит — повторный add дешёвый.
+function mountStaffSubnav() {
+  STAFF_STATE.active = "journal";
+  document.body.classList.add("has-subnav");
+  setTitle(`${t("pageTitle.staff")} / ${t("staff.tab.journal")}`);
+  setSubBottomNav(
+    TABS.map((name) => ({
+      key: name,
+      label: t("staff.tab." + name),
+      icon: TAB_ICONS[name],
+      active: name === "journal",
+      onClick: () => {
+        STAFF_STATE.active = name;
+        if (name === "journal") return; // уже здесь
+        navigate("#/partner/staff");
+      },
+    })),
+  );
+}
+
 export async function renderAudit() {
   const app = document.getElementById("app");
   const ownerId = api.activeOwnerId();
@@ -22,6 +50,8 @@ export async function renderAudit() {
     app.innerHTML = `<p class="muted">${t("audit.no_owner")}</p>`;
     return;
   }
+
+  mountStaffSubnav();
 
   // Title set by parent (partner/index.js syncTopChrome via titleKey,
   // или вызывающий staff-таб). Здесь только тело.
@@ -111,18 +141,20 @@ function renderBody() {
     return;
   }
   body.innerHTML = `
-    <table class="recent-table">
-      <thead>
-        <tr>
-          <th>${t("audit.col_when")}</th>
-          <th>${t("audit.col_who")}</th>
-          <th>${t("audit.col_action")}</th>
-          <th>${t("audit.col_subject")}</th>
-          <th>${t("audit.col_payload")}</th>
-        </tr>
-      </thead>
-      <tbody>${_state.items.map(renderRow).join("")}</tbody>
-    </table>
+    <div class="table-scroll">
+      <table class="recent-table">
+        <thead>
+          <tr>
+            <th>${t("audit.col_when")}</th>
+            <th>${t("audit.col_who")}</th>
+            <th>${t("audit.col_action")}</th>
+            <th>${t("audit.col_subject")}</th>
+            <th>${t("audit.col_payload")}</th>
+          </tr>
+        </thead>
+        <tbody>${_state.items.map(renderRow).join("")}</tbody>
+      </table>
+    </div>
   `;
 }
 

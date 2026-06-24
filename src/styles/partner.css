@@ -64,9 +64,19 @@ button.danger { background: var(--surface); color: var(--error); border: 1px sol
 .perms-matrix .perm-row-click { cursor: pointer; }
 .perms-matrix .perm-row-click:hover { background: var(--border-soft); }
 
-.audit-filters { margin: 12px 0; }
+.audit-filters { margin: 12px 0; display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; }
+.audit-filters label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--text-faint); min-width: 0; flex: 1 1 140px; }
+.audit-filters input, .audit-filters select { max-width: 100%; box-sizing: border-box; }
 .audit-filters select { padding: 4px 8px; font-size: 13px; border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 4px; }
+.audit-filters #audit-csv { flex: 0 0 auto; }
 .audit-payload { font-size: 11px; font-family: monospace; color: var(--text-faint); max-width: 320px; overflow: hidden; text-overflow: ellipsis; }
+
+@media (max-width: 600px) {
+  /* На узких экранах payload-колонка скрыта — содержимое не помещается
+     и тянет таблицу за viewport (см. card 133). */
+  #audit-body table.recent-table th:nth-child(5),
+  #audit-body table.recent-table td.audit-payload { display: none; }
+}
 
 .hotel-row { display: flex; align-items: stretch; gap: 12px; padding: 10px; position: relative; }
 .clickable-card { cursor: pointer; }
@@ -137,6 +147,7 @@ button.danger { background: var(--surface); color: var(--error); border: 1px sol
 
 .recent-bookings { margin: 18px 0; }
 .recent-bookings h3 { margin: 0 0 8px; font-size: 14px; }
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .recent-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .recent-table th { text-align: left; font-weight: 500; color: var(--text-faint); padding: 4px 6px; border-bottom: 1px solid var(--border-soft); }
 .recent-table td { padding: 6px; border-bottom: 1px solid var(--border-soft); vertical-align: middle; }
@@ -347,13 +358,13 @@ button.link:disabled { opacity: 0.5; cursor: not-allowed; }
 .create-bar {
   position: fixed;
   left: 0; right: 0;
-  bottom: calc(var(--bn-h) + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
+  bottom: calc(var(--bn-h) + var(--sn-h, 0px) + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
   padding: 8px 12px;
   background: var(--bg);
   border-top: 1px solid var(--border);
   z-index: 30;
 }
 body.has-create-bar main#app {
-  padding-bottom: calc(var(--bn-h) + 56px + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
+  padding-bottom: calc(var(--bn-h) + var(--sn-h, 0px) + 56px + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
 }
 .create-bar > button.primary { margin-top: 0; }

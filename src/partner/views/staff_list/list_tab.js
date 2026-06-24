@@ -23,7 +23,7 @@ export async function renderListTab(app, ownerId) {
     <p class="muted">${t("staff.scope_hint", { owner: owner ? (owner.owner_display_name || "—") : "—" })}</p>
     ${staff.length === 0
       ? `<p class="muted">${t("staff.empty")}</p>`
-      : `<table class="recent-table">
+      : `<div class="table-scroll"><table class="recent-table">
           <thead>
             <tr>
               <th>${t("staff.col_who")}</th>
@@ -34,7 +34,7 @@ export async function renderListTab(app, ownerId) {
             </tr>
           </thead>
           <tbody>${staff.map((s) => renderStaffRow(s, canManage)).join("")}</tbody>
-        </table>`}
+        </table></div>`}
   `;
   if (canManage) wireRowActions(ownerId);
 }

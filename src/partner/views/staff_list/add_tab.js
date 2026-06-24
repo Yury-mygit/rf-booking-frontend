@@ -58,7 +58,7 @@ export async function renderAddTab(app, ownerId) {
       <p class="muted">${t("staff.invites_hint")}</p>
       ${invites.length === 0
         ? `<p class="muted">${t("staff.invites_empty")}</p>`
-        : `<table class="recent-table">
+        : `<div class="table-scroll"><table class="recent-table">
             <thead>
               <tr>
                 <th>${t("staff.col_perms")}</th>
@@ -68,7 +68,7 @@ export async function renderAddTab(app, ownerId) {
               </tr>
             </thead>
             <tbody>${invites.map(renderInviteRow).join("")}</tbody>
-          </table>`}
+          </table></div>`}
     </section>
   `;
 

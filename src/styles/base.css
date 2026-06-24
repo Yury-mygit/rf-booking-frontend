@@ -136,6 +136,10 @@ body.tg-fullscreen #topbar {
    HTML-атрибут hidden (display:none) перебивался этим правилом из-за
    specificity (chat thread скрывает через #bottomnav.hidden = true). */
 :root { --bn-h: 42px; }
+/* --sn-h задаётся только когда субпанель поднята (body.has-subnav),
+   чтобы fixed-bars / padding-bottom использовали `var(--sn-h, 0px)`
+   как 0 на роутах без субпанели. */
+body.has-subnav { --sn-h: 42px; }
 #bottomnav:not([hidden]) {
   display: flex;
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
@@ -150,10 +154,29 @@ main#app {
   padding-bottom: calc(var(--bn-h) + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
 }
 
+/* Sub-bottomnav — секционная панель табов прямо над главным
+   #bottomnav. Заполняется через setSubBottomNav. Высота фиксирована
+   через --sn-h; body.has-subnav расширяет padding-bottom у main#app. */
+#subbottomnav:not([hidden]) {
+  display: flex;
+  position: fixed; left: 0; right: 0;
+  bottom: calc(var(--bn-h) + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
+  z-index: 19;
+  justify-content: space-around; align-items: stretch;
+  height: var(--sn-h, 42px);
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  box-sizing: border-box;
+}
+body.has-subnav main#app {
+  padding-bottom: calc(var(--bn-h) + var(--sn-h, 0px) + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
+}
+
 /* Centered mode: items занимают треть ширины, space-around на nav сам
    располагает 1/2/3 кнопок симметрично (1 → центр; 2 → симметрично
    от центра; 3 → равномерно). */
-#bottomnav[data-bn-mode="centered"] .bn-item {
+#bottomnav[data-bn-mode="centered"] .bn-item,
+#subbottomnav[data-bn-mode="centered"] .bn-item {
   flex: 0 0 33.333%;
 }
 
@@ -182,7 +205,7 @@ main#app {
 }
 .fb-item svg { display: block; }
 body.has-hotel-actions main#app {
-  padding-bottom: calc(var(--bn-h) + 64px + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
+  padding-bottom: calc(var(--bn-h) + var(--sn-h, 0px) + 64px + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
 }
 
 /* Quick-actions панель над bottom-nav на view «Отель» (комнаты).
@@ -191,7 +214,7 @@ body.has-hotel-actions main#app {
 .hotel-quick-actions {
   position: fixed;
   left: 0; right: 0;
-  bottom: calc(var(--bn-h) + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
+  bottom: calc(var(--bn-h) + var(--sn-h, 0px) + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
   z-index: 19;
   display: flex;
   padding: 0;
