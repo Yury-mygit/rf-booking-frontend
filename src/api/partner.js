@@ -120,6 +120,24 @@ export const partner = {
   },
   deleteClientPhoto: (id) => call("DELETE", `/p/clients/${id}/photo`),
 
+  // ─── Roles (должности) ────────────────────────────────────────────────
+  listRoles: (opts = {}) => {
+    const qs = new URLSearchParams();
+    const ownerId = opts.ownerId ?? state.activeOwnerId();
+    if (ownerId) qs.set("owner_id", ownerId);
+    const s = qs.toString();
+    return call("GET", "/p/roles" + (s ? `?${s}` : ""));
+  },
+  createRole: (payload, opts = {}) => {
+    const qs = new URLSearchParams();
+    const ownerId = opts.ownerId ?? state.activeOwnerId();
+    if (ownerId) qs.set("owner_id", ownerId);
+    const s = qs.toString();
+    return call("POST", "/p/roles" + (s ? `?${s}` : ""), payload);
+  },
+  updateRole: (id, payload) => call("PATCH", `/p/roles/${id}`, payload),
+  deleteRole: (id) => call("DELETE", `/p/roles/${id}`),
+
   // ─── Staff ─────────────────────────────────────────────────────────────
   listStaff: (opts = {}) => {
     const qs = new URLSearchParams();

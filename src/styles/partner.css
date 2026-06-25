@@ -371,3 +371,68 @@ body.has-create-bar main#app {
   padding-bottom: calc(var(--bn-h) + var(--sn-h, 0px) + 56px + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
 }
 .create-bar > button.primary { margin-top: 0; }
+
+/* Staff perms-tab v2 (карта #135 Stage 6): card-per-staff + chips +
+   tri-state. Заменяет старую матрицу-таблицу. */
+.staff-cards { display: flex; flex-direction: column; gap: 10px; }
+.staff-card {
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+.staff-card-header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+.staff-card-section { margin-top: 8px; }
+.staff-card-label { font-size: 12px; color: var(--text-faint); margin-bottom: 4px; }
+.staff-card-actions { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+.staff-card-actions button.primary { margin-top: 0; width: auto; }
+.staff-card .save-status { font-size: 12px; }
+
+.role-chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.role-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 6px 2px 8px;
+  background: var(--border-soft);
+  border-radius: 12px;
+  font-size: 12px;
+}
+.chip-x {
+  border: none; background: transparent; cursor: pointer;
+  font-size: 14px; line-height: 1; padding: 0 2px; color: var(--text-faint);
+}
+.chip-x:hover { color: var(--danger, #c33); }
+
+.role-add-wrap { margin-top: 6px; }
+.role-add-dropdown summary { cursor: pointer; font-size: 12px; }
+.role-add-dropdown summary::-webkit-details-marker { display: none; }
+.role-add-menu {
+  display: flex; flex-direction: column; gap: 2px;
+  margin-top: 4px; padding: 4px;
+  border: 1px solid var(--border-soft); border-radius: 4px;
+  background: var(--bg);
+  max-width: 280px;
+}
+.role-add-item {
+  text-align: left; padding: 4px 8px;
+  background: transparent; border: none; cursor: pointer;
+  font: inherit; border-radius: 3px;
+}
+.role-add-item:hover { background: var(--border-soft); }
+
+.tri-matrix { display: grid; grid-template-columns: 1fr auto auto; gap: 6px 10px; align-items: center; }
+.tri-row { display: contents; }
+.tri-label { font-size: 13px; }
+.tri-eff { font-size: 12px; color: var(--text-faint); }
+
+.tristate {
+  width: 28px; height: 28px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  cursor: pointer;
+  font-size: 16px; line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.tristate[data-state="inherit"] { color: var(--text-faint); border-style: dashed; }
+.tristate[data-state="on"]      { color: var(--success); border-color: var(--success); }
+.tristate[data-state="off"]     { color: var(--danger, #c33); border-color: var(--danger, #c33); }

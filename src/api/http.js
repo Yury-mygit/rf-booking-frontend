@@ -19,6 +19,7 @@ export async function call(method, path, body) {
     const err = new Error(data.message || r.statusText);
     err.code = data.error || "http_error";
     err.status = r.status;
+    if (data.detail !== undefined) err.detail = data.detail;
     window.dispatchEvent(new CustomEvent("apierror", { detail: err }));
     throw err;
   }
@@ -34,6 +35,7 @@ export async function callMultipart(method, path, formData) {
     const err = new Error(data.message || r.statusText);
     err.code = data.error || "http_error";
     err.status = r.status;
+    if (data.detail !== undefined) err.detail = data.detail;
     window.dispatchEvent(new CustomEvent("apierror", { detail: err }));
     throw err;
   }

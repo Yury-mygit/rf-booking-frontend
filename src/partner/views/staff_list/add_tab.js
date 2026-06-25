@@ -1,12 +1,16 @@
-// Add tab — quick-add по telegram_id + invite-ссылки (создание / список /
-// отзыв / копирование). Под одной вкладкой два независимых блока, потому
-// что оба про добавление сотрудника и часто используются вместе.
+// Add tab — quick-add по telegram_id + invite-ссылки. Карта #135 Stage 7:
+//   - quick-add: chips ролей (M2M) + tri-state матрица override (default
+//     все inherit, Q-α 2026-06-25);
+//   - invite: минимальный (note + expires_in_days), без ролей и prefilled
+//     perms (Q8). Бывший owner назначает роли/override сотруднику после
+//     accept'а через таб «Права».
 
 import { api } from "../../../api.js";
 import { t } from "../../../i18n.js";
 import { escapeHtml } from "../../../util.js";
 
 import { PERMS, ownerCanManage, render } from "./index.js";
+import { triStateHtml, wireTriState, readTriState } from "./tristate.js";
 
 export async function renderAddTab(app, ownerId) {
   const { canManage } = ownerCanManage(ownerId);
@@ -16,10 +20,14 @@ export async function renderAddTab(app, ownerId) {
   }
 
   let invites = [];
+  let roles = [];
   try {
-    invites = await api.listStaffInvites(ownerId);
+    [invites, roles] = await Promise.all([
+      api.listStaffInvites(ownerId),
+      api.listRoles({ ownerId }),
+    ]);
   } catch (_) {
-    /* invites — мягко: если упадёт, секцию покажем пустой */
+    /* мягко: пустые секции, форма всё равно отрисуется */
   }
 
   app.innerHTML = `
@@ -34,15 +42,25 @@ export async function renderAddTab(app, ownerId) {
           <label for="staff-note">${t("staff.note")}</label>
           <input id="staff-note" type="text" maxlength="128" placeholder="${t("staff.note_placeholder")}" />
         </div>
-        <fieldset class="perms-group">
-          <legend>${t("staff.perms")}</legend>
-          ${PERMS.map((p) => `
-            <label class="perm-row">
-              <input type="checkbox" name="${p}" ${p === "manage_bookings" ? "checked" : ""} />
-              <span>${t("staff.perm." + p)}</span>
-            </label>
-          `).join("")}
-        </fieldset>
+
+        <div class="staff-card-section">
+          <div class="staff-card-label">${t("perms.roles_label")}</div>
+          <div class="role-chips" id="add-chips"></div>
+          <div class="role-add-wrap" id="add-role-wrap"></div>
+        </div>
+
+        <div class="staff-card-section">
+          <div class="staff-card-label">${t("perms.matrix_label")}</div>
+          <div class="tri-matrix" id="add-tri">
+            ${PERMS.map((p) => `
+              <div class="tri-row">
+                <span class="tri-label">${t("staff.perm." + p)}</span>
+                ${triStateHtml(p, null, false)}
+              </div>
+            `).join("")}
+          </div>
+        </div>
+
         <button class="primary" type="submit">${t("staff.add_btn")}</button>
         <div id="staff-add-err" class="error" style="display:none"></div>
         <div id="staff-add-ok" class="success" style="display:none"></div>
@@ -60,7 +78,6 @@ export async function renderAddTab(app, ownerId) {
         : `<div class="table-scroll"><table class="recent-table">
             <thead>
               <tr>
-                <th>${t("staff.col_perms")}</th>
                 <th>${t("staff.col_note")}</th>
                 <th>${t("staff.col_expires")}</th>
                 <th></th>
@@ -71,7 +88,57 @@ export async function renderAddTab(app, ownerId) {
     </section>
   `;
 
-  // Quick-add form
+  // Quick-add: chips + tri-state local state
+  const rolesById = new Map(roles.map((r) => [r.id, r]));
+  const local = { roleIds: new Set() };
+  const chipsBox = document.getElementById("add-chips");
+  const addWrap = document.getElementById("add-role-wrap");
+  const triBox = document.getElementById("add-tri");
+
+  function rerenderChips() {
+    chipsBox.innerHTML = renderChipsHtml([...local.roleIds], rolesById);
+    rerenderAddBtn();
+  }
+
+  function rerenderAddBtn() {
+    const remaining = roles.filter((r) => !local.roleIds.has(r.id));
+    if (roles.length === 0) {
+      addWrap.innerHTML = `<span class="muted">${t("staff.no_roles_yet")}</span>`;
+      return;
+    }
+    if (remaining.length === 0) {
+      addWrap.innerHTML = `<span class="muted">${t("perms.no_more_roles")}</span>`;
+      return;
+    }
+    addWrap.innerHTML = `
+      <details class="role-add-dropdown">
+        <summary class="link">${t("perms.add_role_btn")}</summary>
+        <div class="role-add-menu">
+          ${remaining.map((r) => `<button type="button" class="role-add-item" data-role-id="${r.id}">${escapeHtml(r.name)}</button>`).join("")}
+        </div>
+      </details>
+    `;
+  }
+
+  chipsBox.addEventListener("click", (e) => {
+    const x = e.target.closest('button[data-act="remove-role"]');
+    if (!x) return;
+    local.roleIds.delete(Number(x.dataset.roleId));
+    rerenderChips();
+  });
+
+  addWrap.addEventListener("click", (e) => {
+    const item = e.target.closest(".role-add-item");
+    if (!item) return;
+    local.roleIds.add(Number(item.dataset.roleId));
+    addWrap.querySelector("details")?.removeAttribute("open");
+    rerenderChips();
+  });
+
+  wireTriState(triBox);
+  rerenderChips();
+
+  // Quick-add submit
   const form = document.getElementById("staff-add-form");
   form.onsubmit = async (e) => {
     e.preventDefault();
@@ -81,12 +148,13 @@ export async function renderAddTab(app, ownerId) {
     okBox.style.display = "none";
     const tgId = Number(document.getElementById("staff-tg-id").value);
     const note = document.getElementById("staff-note").value.trim() || null;
-    const perms = {};
-    PERMS.forEach((p) => {
-      perms[p] = form.querySelector(`input[name=${p}]`).checked;
-    });
+    const perms = readTriState(triBox);
     try {
-      await api.addStaff({ telegram_id: tgId, perms, note }, { ownerId });
+      await api.addStaff(
+        { telegram_id: tgId, role_ids: [...local.roleIds], perms, note },
+        { ownerId },
+      );
+      // Refresh accessible_owners (новый staff может изменить effective у owner self).
       try {
         const w = await api.whoami();
         api.setSession(api.authToken(), api.user(), w.accessible_owners || []);
@@ -94,26 +162,40 @@ export async function renderAddTab(app, ownerId) {
       okBox.textContent = t("staff.add_ok");
       okBox.style.display = "block";
       form.reset();
-      PERMS.forEach((p) => {
-        if (p === "manage_bookings") form.querySelector(`input[name=${p}]`).checked = true;
+      local.roleIds.clear();
+      // Сбросить tri-state на all inherit.
+      triBox.querySelectorAll(".tristate").forEach((btn) => {
+        btn.dataset.state = "inherit";
+        btn.querySelector(".tristate-glyph").textContent = "·";
+        btn.setAttribute("aria-checked", "mixed");
       });
+      rerenderChips();
     } catch (err) {
       errBox.textContent = t("app.error", { msg: err.message });
       errBox.style.display = "block";
     }
   };
 
-  // Invite-link actions
+  // Invites
   document.getElementById("invite-create-btn").onclick = () => openInviteCreateModal(ownerId);
   wireInviteRowActions(ownerId);
 }
 
+function renderChipsHtml(roleIds, rolesById) {
+  if (roleIds.length === 0) {
+    return `<span class="muted">${t("perms.no_roles")}</span>`;
+  }
+  return roleIds.map((id) => {
+    const r = rolesById.get(id);
+    const name = r ? escapeHtml(r.name) : `#${id}`;
+    return `<span class="role-chip" data-role-id="${id}">${name}<button type="button" class="chip-x" data-act="remove-role" data-role-id="${id}" aria-label="${t("perms.remove_role")}">×</button></span>`;
+  }).join("");
+}
+
 function renderInviteRow(inv) {
-  const permsLabels = PERMS.filter((p) => inv.perms[p]).map((p) => t("staff.perm_short." + p)).join(", ") || "—";
   const expires = new Date(inv.expires_at).toLocaleDateString();
   return `
     <tr data-id="${inv.id}">
-      <td class="perms-cell">${escapeHtml(permsLabels)}</td>
       <td>${escapeHtml(inv.note || "—")}</td>
       <td>${escapeHtml(expires)}</td>
       <td class="row-actions">
@@ -151,11 +233,13 @@ function wireInviteRowActions(ownerId) {
 }
 
 function openInviteCreateModal(ownerId) {
+  // Q8: invite минимальный. Никаких ролей/perms — только note + срок.
   const overlay = document.createElement("div");
   overlay.className = "modal-overlay";
   overlay.innerHTML = `
     <div class="modal-card">
       <h3>${t("staff.invite_create_title")}</h3>
+      <p class="muted">${t("staff.invite_minimal_hint")}</p>
       <div class="form-row">
         <label>${t("staff.note")}</label>
         <input id="iv-note" type="text" maxlength="128" placeholder="${t("staff.note_placeholder")}" />
@@ -168,20 +252,11 @@ function openInviteCreateModal(ownerId) {
           <option value="30">30</option>
         </select>
       </div>
-      <fieldset class="perms-group">
-        <legend>${t("staff.perms")}</legend>
-        ${PERMS.map((p) => `
-          <label class="perm-row">
-            <input type="checkbox" name="${p}" ${p === "manage_bookings" ? "checked" : ""} />
-            <span>${t("staff.perm." + p)}</span>
-          </label>
-        `).join("")}
-      </fieldset>
+      <div id="iv-err" class="error" style="display:none"></div>
       <div class="row-actions">
         <button class="secondary" id="iv-cancel">${t("app.cancel")}</button>
         <button class="primary" id="iv-save">${t("staff.invite_create_btn")}</button>
       </div>
-      <div id="iv-err" class="error" style="display:none"></div>
     </div>
   `;
   document.body.appendChild(overlay);
@@ -189,12 +264,8 @@ function openInviteCreateModal(ownerId) {
   document.getElementById("iv-save").onclick = async () => {
     const note = document.getElementById("iv-note").value.trim() || null;
     const days = Number(document.getElementById("iv-days").value);
-    const perms = {};
-    PERMS.forEach((p) => {
-      perms[p] = overlay.querySelector(`input[name=${p}]`).checked;
-    });
     try {
-      const inv = await api.createStaffInvite({ perms, note, expires_in_days: days }, ownerId);
+      const inv = await api.createStaffInvite({ note, expires_in_days: days }, ownerId);
       overlay.remove();
       try {
         await navigator.clipboard.writeText(inv.url);

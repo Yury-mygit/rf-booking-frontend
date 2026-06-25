@@ -1,6 +1,6 @@
 // List tab — таблица сотрудников + edit/remove actions.
-// openEditModal экспортируется — используется также из perms_tab.js
-// (клик по строке матрицы прав).
+// openEditModal редактирует только `note` (Stage 6 Q1=β #135); роли и
+// права sotrudnik'а — в perms_tab.
 
 import { api } from "../../../api.js";
 import { t } from "../../../i18n.js";
@@ -40,7 +40,9 @@ export async function renderListTab(app, ownerId) {
 }
 
 function renderStaffRow(s, canManage) {
-  const permsLabels = PERMS.filter((p) => s.perms[p]).map((p) => t("staff.perm_short." + p)).join(", ") || "—";
+  // effective_perms = override (bool) → OR(role union) → false. Tri-state
+  // perms (s.perms) хранит только override и не годится для display.
+  const permsLabels = PERMS.filter((p) => s.effective_perms[p]).map((p) => t("staff.perm_short." + p)).join(", ") || "—";
   return `
     <tr data-id="${s.id}">
       <td>${escapeHtml(s.staff_display_name || "—")}</td>
@@ -75,6 +77,9 @@ function wireRowActions(ownerId) {
   });
 }
 
+// Модалка из list_tab редактирует только note. Роли (M2M) и tri-state
+// override прав живут в табе «Права» (perms_tab.js) — единственное
+// место, где их можно менять, чтобы не дублировать UX (Q1=β #135).
 export async function openEditModal(staffId, ownerId) {
   const list = await api.listStaff({ ownerId });
   const s = list.find((x) => x.id === staffId);
@@ -90,32 +95,19 @@ export async function openEditModal(staffId, ownerId) {
         <label>${t("staff.note")}</label>
         <input id="m-note" type="text" maxlength="128" value="${escapeHtml(s.note || "")}" />
       </div>
-      <fieldset class="perms-group">
-        <legend>${t("staff.perms")}</legend>
-        ${PERMS.map((p) => `
-          <label class="perm-row">
-            <input type="checkbox" name="${p}" ${s.perms[p] ? "checked" : ""} />
-            <span>${t("staff.perm." + p)}</span>
-          </label>
-        `).join("")}
-      </fieldset>
+      <div id="m-err" class="error" style="display:none"></div>
       <div class="row-actions">
         <button class="secondary" id="m-cancel">${t("app.cancel")}</button>
         <button class="primary" id="m-save">${t("app.save")}</button>
       </div>
-      <div id="m-err" class="error" style="display:none"></div>
     </div>
   `;
   document.body.appendChild(overlay);
   document.getElementById("m-cancel").onclick = () => overlay.remove();
   document.getElementById("m-save").onclick = async () => {
     const note = document.getElementById("m-note").value.trim() || null;
-    const perms = {};
-    PERMS.forEach((p) => {
-      perms[p] = overlay.querySelector(`input[name=${p}]`).checked;
-    });
     try {
-      await api.updateStaff(staffId, { perms, note });
+      await api.updateStaff(staffId, { note });
       overlay.remove();
       render();
     } catch (err) {
