@@ -56,7 +56,6 @@ export async function renderAddTab(app, ownerId) {
         <h3 style="margin:0">${t("staff.invites_title")}</h3>
         <button class="primary" id="invite-create-btn" style="width:auto;margin:0">${t("staff.invite_create_btn")}</button>
       </div>
-      <p class="muted">${t("staff.invites_hint")}</p>
       ${invites.length === 0
         ? `<p class="muted">${t("staff.invites_empty")}</p>`
         : `<div class="table-scroll"><table class="recent-table">

@@ -46,6 +46,8 @@ button.danger { background: var(--surface); color: var(--error); border: 1px sol
 .perms-cell { font-size: 12px; color: var(--text-faint); }
 
 .staff-add, .staff-list { margin: 16px 0; }
+.staff-add, .staff-invites { border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+.staff-add > h3:first-child, .staff-invites > .staff-header-row { margin-top: 0; }
 .staff-header-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .staff-header-row h2 { margin: 0; }
 .pill-link { display: inline-block; padding: 4px 12px; border: 1px solid var(--border); border-radius: 999px; font-size: 13px; color: var(--text); text-decoration: none; background: var(--surface); }
