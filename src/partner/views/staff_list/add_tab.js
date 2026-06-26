@@ -1,16 +1,14 @@
-// Add tab — quick-add по telegram_id + invite-ссылки. Карта #135 Stage 7:
-//   - quick-add: chips ролей (M2M) + tri-state матрица override (default
-//     все inherit, Q-α 2026-06-25);
-//   - invite: минимальный (note + expires_in_days), без ролей и prefilled
-//     perms (Q8). Бывший owner назначает роли/override сотруднику после
-//     accept'а через таб «Права».
+// Add tab — quick-add по telegram_id + ФИО + invite-ссылки. Карта #136:
+// форма содержит только telegram_id + фамилия/имя/отчество (все nullable).
+// Роли и tri-state perms назначаются отдельно через таб «Права».
+// Invite — минимальный (note + expires_in_days), без ролей и prefilled
+// perms (#135 Q8).
 
 import { api } from "../../../api.js";
 import { t } from "../../../i18n.js";
 import { escapeHtml } from "../../../util.js";
 
-import { PERMS, ownerCanManage, render } from "./index.js";
-import { triStateHtml, wireTriState, readTriState } from "./tristate.js";
+import { ownerCanManage, render } from "./index.js";
 
 export async function renderAddTab(app, ownerId) {
   const { canManage } = ownerCanManage(ownerId);
@@ -20,14 +18,10 @@ export async function renderAddTab(app, ownerId) {
   }
 
   let invites = [];
-  let roles = [];
   try {
-    [invites, roles] = await Promise.all([
-      api.listStaffInvites(ownerId),
-      api.listRoles({ ownerId }),
-    ]);
+    invites = await api.listStaffInvites(ownerId);
   } catch (_) {
-    /* мягко: пустые секции, форма всё равно отрисуется */
+    /* мягко: пустой список */
   }
 
   app.innerHTML = `
@@ -39,26 +33,16 @@ export async function renderAddTab(app, ownerId) {
           <input id="staff-tg-id" type="number" required min="1" placeholder="123456789" />
         </div>
         <div class="form-row form-row--horizontal">
-          <label for="staff-note">${t("staff.note")}</label>
-          <input id="staff-note" type="text" maxlength="128" placeholder="${t("staff.note_placeholder")}" />
+          <label for="staff-last">${t("staff.last_name")}</label>
+          <input id="staff-last" type="text" maxlength="128" />
         </div>
-
-        <div class="staff-card-section">
-          <div class="staff-card-label">${t("perms.roles_label")}</div>
-          <div class="role-chips" id="add-chips"></div>
-          <div class="role-add-wrap" id="add-role-wrap"></div>
+        <div class="form-row form-row--horizontal">
+          <label for="staff-first">${t("staff.first_name")}</label>
+          <input id="staff-first" type="text" maxlength="128" />
         </div>
-
-        <div class="staff-card-section">
-          <div class="staff-card-label">${t("perms.matrix_label")}</div>
-          <div class="tri-matrix" id="add-tri">
-            ${PERMS.map((p) => `
-              <div class="tri-row">
-                <span class="tri-label">${t("staff.perm." + p)}</span>
-                ${triStateHtml(p, null, false)}
-              </div>
-            `).join("")}
-          </div>
+        <div class="form-row form-row--horizontal">
+          <label for="staff-middle">${t("staff.middle_name")}</label>
+          <input id="staff-middle" type="text" maxlength="128" />
         </div>
 
         <button class="primary" type="submit">${t("staff.add_btn")}</button>
@@ -88,57 +72,6 @@ export async function renderAddTab(app, ownerId) {
     </section>
   `;
 
-  // Quick-add: chips + tri-state local state
-  const rolesById = new Map(roles.map((r) => [r.id, r]));
-  const local = { roleIds: new Set() };
-  const chipsBox = document.getElementById("add-chips");
-  const addWrap = document.getElementById("add-role-wrap");
-  const triBox = document.getElementById("add-tri");
-
-  function rerenderChips() {
-    chipsBox.innerHTML = renderChipsHtml([...local.roleIds], rolesById);
-    rerenderAddBtn();
-  }
-
-  function rerenderAddBtn() {
-    const remaining = roles.filter((r) => !local.roleIds.has(r.id));
-    if (roles.length === 0) {
-      addWrap.innerHTML = `<span class="muted">${t("staff.no_roles_yet")}</span>`;
-      return;
-    }
-    if (remaining.length === 0) {
-      addWrap.innerHTML = `<span class="muted">${t("perms.no_more_roles")}</span>`;
-      return;
-    }
-    addWrap.innerHTML = `
-      <details class="role-add-dropdown">
-        <summary class="link">${t("perms.add_role_btn")}</summary>
-        <div class="role-add-menu">
-          ${remaining.map((r) => `<button type="button" class="role-add-item" data-role-id="${r.id}">${escapeHtml(r.name)}</button>`).join("")}
-        </div>
-      </details>
-    `;
-  }
-
-  chipsBox.addEventListener("click", (e) => {
-    const x = e.target.closest('button[data-act="remove-role"]');
-    if (!x) return;
-    local.roleIds.delete(Number(x.dataset.roleId));
-    rerenderChips();
-  });
-
-  addWrap.addEventListener("click", (e) => {
-    const item = e.target.closest(".role-add-item");
-    if (!item) return;
-    local.roleIds.add(Number(item.dataset.roleId));
-    addWrap.querySelector("details")?.removeAttribute("open");
-    rerenderChips();
-  });
-
-  wireTriState(triBox);
-  rerenderChips();
-
-  // Quick-add submit
   const form = document.getElementById("staff-add-form");
   form.onsubmit = async (e) => {
     e.preventDefault();
@@ -147,49 +80,30 @@ export async function renderAddTab(app, ownerId) {
     errBox.style.display = "none";
     okBox.style.display = "none";
     const tgId = Number(document.getElementById("staff-tg-id").value);
-    const note = document.getElementById("staff-note").value.trim() || null;
-    const perms = readTriState(triBox);
+    const lastName = document.getElementById("staff-last").value.trim() || null;
+    const firstName = document.getElementById("staff-first").value.trim() || null;
+    const middleName = document.getElementById("staff-middle").value.trim() || null;
     try {
       await api.addStaff(
-        { telegram_id: tgId, role_ids: [...local.roleIds], perms, note },
+        {
+          telegram_id: tgId,
+          first_name: firstName,
+          last_name: lastName,
+          middle_name: middleName,
+        },
         { ownerId },
       );
-      // Refresh accessible_owners (новый staff может изменить effective у owner self).
-      try {
-        const w = await api.whoami();
-        api.setSession(api.authToken(), api.user(), w.accessible_owners || []);
-      } catch (_) {}
       okBox.textContent = t("staff.add_ok");
       okBox.style.display = "block";
       form.reset();
-      local.roleIds.clear();
-      // Сбросить tri-state на all inherit.
-      triBox.querySelectorAll(".tristate").forEach((btn) => {
-        btn.dataset.state = "inherit";
-        btn.querySelector(".tristate-glyph").textContent = "·";
-        btn.setAttribute("aria-checked", "mixed");
-      });
-      rerenderChips();
     } catch (err) {
       errBox.textContent = t("app.error", { msg: err.message });
       errBox.style.display = "block";
     }
   };
 
-  // Invites
   document.getElementById("invite-create-btn").onclick = () => openInviteCreateModal(ownerId);
   wireInviteRowActions(ownerId);
-}
-
-function renderChipsHtml(roleIds, rolesById) {
-  if (roleIds.length === 0) {
-    return `<span class="muted">${t("perms.no_roles")}</span>`;
-  }
-  return roleIds.map((id) => {
-    const r = rolesById.get(id);
-    const name = r ? escapeHtml(r.name) : `#${id}`;
-    return `<span class="role-chip" data-role-id="${id}">${name}<button type="button" class="chip-x" data-act="remove-role" data-role-id="${id}" aria-label="${t("perms.remove_role")}">×</button></span>`;
-  }).join("");
 }
 
 function renderInviteRow(inv) {
@@ -233,7 +147,7 @@ function wireInviteRowActions(ownerId) {
 }
 
 function openInviteCreateModal(ownerId) {
-  // Q8: invite минимальный. Никаких ролей/perms — только note + срок.
+  // #135 Q8: invite минимальный. Никаких ролей/perms — только note + срок.
   const overlay = document.createElement("div");
   overlay.className = "modal-overlay";
   overlay.innerHTML = `
