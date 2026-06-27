@@ -438,3 +438,76 @@ body.has-create-bar main#app {
 .tristate[data-state="inherit"] { color: var(--text-faint); border-style: dashed; }
 .tristate[data-state="on"]      { color: var(--success); border-color: var(--success); }
 .tristate[data-state="off"]     { color: var(--danger, #c33); border-color: var(--danger, #c33); }
+
+/* Card #12 — per-hotel scope для роли. Каждая роль = блок с chip ролей +
+   набор chip отелей + "+ Отель" button. */
+.role-scope-list { display: flex; flex-direction: column; gap: 8px; }
+.role-block {
+  border: 1px dashed var(--border-soft);
+  border-radius: 4px;
+  padding: 6px 8px;
+}
+.role-block-header { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+.role-block-hotels { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.hotel-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 1px 6px;
+  background: var(--bg);
+  border: 1px solid var(--border-soft);
+  border-radius: 10px;
+  font-size: 12px;
+}
+.hotel-chip--global {
+  border-style: dashed;
+  color: var(--text-faint);
+  font-style: italic;
+}
+.chip-add {
+  border: 1px dashed var(--border);
+  background: transparent;
+  font-size: 12px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  cursor: pointer;
+  color: var(--text-faint);
+}
+.chip-add:hover { color: var(--text); border-color: var(--text); }
+
+/* Hotel-scope multi-select модалка (открывается из chip-add). */
+.hotel-scope-modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.4);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 200;
+}
+.hotel-scope-modal {
+  background: var(--surface);
+  border-radius: 6px;
+  padding: 12px 14px;
+  width: min(90vw, 360px);
+  max-height: 80vh;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.hotel-scope-modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+}
+.hotel-scope-search {
+  width: 100%; box-sizing: border-box;
+  padding: 6px 8px;
+  border: 1px solid var(--border-soft);
+  border-radius: 4px;
+  font: inherit;
+}
+.hotel-scope-list {
+  flex: 1; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.hotel-scope-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 4px 6px;
+  cursor: pointer;
+}
+.hotel-scope-item:hover { background: var(--border-soft); }
+.hotel-scope-modal-actions {
+  display: flex; justify-content: flex-end; gap: 8px;
+}
+.hotel-scope-modal-actions button.primary { margin: 0; width: auto; }
