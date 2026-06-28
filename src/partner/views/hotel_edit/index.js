@@ -54,6 +54,9 @@ export function setHotelTabsNav(id) {
 export function switchTab(name, id) {
   state.active = name;
   setHotelTabsNav(id);
+  // TBB-15 — title в topbar отражает активный таб (раньше всегда
+  // «Отель / Редактирование отеля», теперь «Отель / Статус|Ссылки|…»).
+  setTitle(`${t("pageTitle.hotelEdit")} / ${t("edit.section." + name)}`);
   if (name === "status") mountStatusSubnav(id);
   else { hideSubBottomNav(); document.body.classList.remove("has-subnav"); }
   const body = document.getElementById("tab-body");
@@ -117,7 +120,7 @@ export async function renderHotelEdit({ id }) {
     return;
   }
 
-  setTitle(`${t("pageTitle.hotelEdit")} / ${t("hotel.title.edit")}`);
+  // Title выставит switchTab() ниже — он знает активный таб (TBB-15).
   app.innerHTML = `<div id="tab-body"></div>`;
   setHotelTabsNav(id);
   switchTab(state.active, id);
