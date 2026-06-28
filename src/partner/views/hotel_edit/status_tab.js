@@ -8,6 +8,8 @@ import { navigate } from "../../../router.js";
 import { escapeHtml, relativeTime } from "../../../util.js";
 
 import { state, switchTab } from "./index.js";
+// TBB-11 — quick-actions перенесены в sub-bottomnav (см. hotel_edit/index.js
+// mountStatusSubnav). Здесь они больше не рендерятся в шапке status-tab.
 
 export async function renderStatusTab(body, id) {
   const h = state.hotel;
@@ -57,8 +59,6 @@ export async function renderStatusTab(body, id) {
       </div>
     </div>
 
-    ${renderQuickActions(h)}
-
     ${renderStatsCards(dash.stats)}
 
     <div class="status-checklist">
@@ -107,37 +107,6 @@ export async function renderStatusTab(body, id) {
   });
 
   wireRecentBookingActions(body, id);
-  wireQuickActions(body, id);
-}
-
-function renderQuickActions(h) {
-  const publicUrl = `https://book.dev.raftforge.art/?hotel=${encodeURIComponent(h.slug)}`;
-  return `
-    <div class="quick-actions">
-      <button class="qa" data-qa="share">${t("status.actions.share")}</button>
-      <button class="qa" data-qa="rooms">${t("status.actions.rooms")}</button>
-      <button class="qa" data-qa="bookings">${t("status.actions.bookings")}</button>
-      <a class="qa" href="${publicUrl}" target="_blank" rel="noopener">${t("status.actions.preview")}</a>
-    </div>
-  `;
-}
-
-function wireQuickActions(body, hotelId) {
-  body.querySelectorAll(".quick-actions [data-qa]").forEach((el) => {
-    el.onclick = (e) => {
-      const act = el.dataset.qa;
-      if (act === "share") {
-        e.preventDefault();
-        switchTab("share", hotelId);
-      } else if (act === "rooms") {
-        e.preventDefault();
-        navigate(`#/partner/hotel/${hotelId}/rooms`);
-      } else if (act === "bookings") {
-        e.preventDefault();
-        navigate("#/partner/bookings");
-      }
-    };
-  });
 }
 
 function renderRecentBookings(items) {

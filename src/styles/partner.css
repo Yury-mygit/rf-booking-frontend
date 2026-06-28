@@ -166,10 +166,6 @@ button.link:hover { text-decoration: underline; }
 button.link.danger { color: var(--error); }
 button.link:disabled { opacity: 0.5; cursor: not-allowed; }
 
-.quick-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
-.quick-actions .qa { display: inline-flex; align-items: center; padding: 8px 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text); font-size: 13px; cursor: pointer; text-decoration: none; }
-.quick-actions .qa:hover { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
-
 .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin-bottom: 14px; }
 .stat-card { background: var(--surface); border: 1px solid var(--border-soft); border-radius: 6px; padding: 10px 12px; min-width: 0; }
 .stat-card-wide { grid-column: span 2; }
@@ -358,8 +354,7 @@ button.link:disabled { opacity: 0.5; cursor: not-allowed; }
   margin-top: 0;
 }
 
-/* Fixed create-action bar над bottom-nav (card #131).
-   Прецедент паттерна: `.quick-actions` в base.css. */
+/* Fixed create-action bar над bottom-nav (card #131). */
 .create-bar {
   position: fixed;
   left: 0; right: 0;
