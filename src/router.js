@@ -55,12 +55,19 @@ export function currentPath() {
 }
 
 export async function run() {
-  // Сброс per-view UI: back-кнопка, bottom-nav, owner-selector скрыты по
+  // Сброс per-view UI: back-кнопка, filterbar, owner-selector скрыты по
   // умолчанию; view/блок сам(а) их включит, если нужно. hideBack снимает
   // и в-app кнопку, и TG WebApp BackButton (offClick + hide).
+  //
+  // Bottomnav — НЕ трогаем (TBB-16, 2026-07-02). Панель ambient/
+  // persistent: «висит над формой», управляется idempotent-ом внутри
+  // setBottomNav (см. src/bottomnav.js). Router-сайд `bn.hidden = true`
+  // до вызова view'ного setBottomNav создавал video-flash: панель
+  // синхронно уходила в hidden, потом await handler / микротаска,
+  // потом обратно visible — браузер успевал paint'нуть невидимое
+  // промежуточное состояние. Views, которым панель не нужна
+  // (dev-login, entry), сами вызывают `hideBottomNav()`.
   hideBack();
-  const bn = document.getElementById("bottomnav");
-  if (bn) bn.hidden = true;
   const fb = document.getElementById("filterbar");
   if (fb) { fb.hidden = true; fb.innerHTML = ""; }
   const os = document.getElementById("owner-selector");

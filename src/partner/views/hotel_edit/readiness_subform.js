@@ -1,17 +1,19 @@
-// Status tab — dashboard отеля: header + quick-actions + stats-cards +
-// checklist + recent bookings + danger-zone. Все секции собираются в
-// одном innerHTML, потом wire'аются listeners.
+// Readiness subform — дефолтный subform hub'а «Статус» (TBB-16 Stage 5,
+// переименован из status_tab.js; decision C — чтобы breadcrumb
+// «Отель / Статус / Готовность» не дублировал слово «Статус»).
+// Секции: header + stats-cards + checklist + recent bookings + danger-zone.
+// Все собираются в одном innerHTML, потом wire'аются listeners.
 
 import { api } from "../../../api.js";
 import { t } from "../../../i18n.js";
 import { navigate } from "../../../router.js";
 import { escapeHtml, relativeTime } from "../../../util.js";
 
-import { state, switchTab } from "./index.js";
+import { state, renderTabBody } from "./index.js";
 // TBB-11 — quick-actions перенесены в sub-bottomnav (см. hotel_edit/index.js
-// mountStatusSubnav). Здесь они больше не рендерятся в шапке status-tab.
+// mountHubSubnav). Здесь они больше не рендерятся в шапке subform'а.
 
-export async function renderStatusTab(body, id) {
+export async function renderReadinessSubform(body, id) {
   const h = state.hotel;
   body.innerHTML = `<p class="muted">${t("app.loading")}</p>`;
 
@@ -102,7 +104,7 @@ export async function renderStatusTab(body, id) {
   body.querySelectorAll(".check-action[data-tab]").forEach((a) => {
     a.onclick = (e) => {
       e.preventDefault();
-      switchTab(a.dataset.tab, id);
+      navigate(`#/partner/hotel/${id}/${a.dataset.tab}`);
     };
   });
 
@@ -168,7 +170,7 @@ function wireRecentBookingActions(body, hotelId) {
       try {
         if (act === "confirm") await api.confirmBooking(code);
         else if (act === "cancel") await api.cancelBooking(code);
-        await renderStatusTab(body, hotelId);
+        await renderReadinessSubform(body, hotelId);
       } catch (e) {
         alert(e.message);
         btn.disabled = false;
@@ -224,7 +226,7 @@ function renderChecklistItem(c) {
     } else if (c.action.room_id) {
       action = `<a href="#/partner/room/${hotelId}/${c.action.room_id}" class="check-action">${fixLabel}</a>`;
     } else if (c.action.nav === "rooms") {
-      action = `<a href="#/partner/hotel/${hotelId}/rooms" class="check-action">${fixLabel}</a>`;
+      action = `<a href="#/partner/hotel/${hotelId}/status/rooms" class="check-action">${fixLabel}</a>`;
     }
   }
   return `
@@ -239,7 +241,7 @@ async function statusChange(id, status) {
   try {
     const updated = await api.updateHotel(id, { status });
     state.hotel = updated;
-    switchTab("status", id);
+    renderTabBody(id, "status", "readiness");
   } catch (e) {
     alert(e.message);
   }

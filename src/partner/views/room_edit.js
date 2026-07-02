@@ -333,7 +333,7 @@ function wireSaveHandler() {
     if (!confirm(t("room.delete_confirm"))) return;
     try {
       await api.deleteRoom(_state.hotelId, _state.roomId);
-      navigate(`#/partner/hotel/${_state.hotelId}/rooms`);
+      navigate(`#/partner/hotel/${_state.hotelId}/status/rooms`);
     } catch (e) {
       document.getElementById("err").textContent = t("app.error", { msg: e.message });
     }

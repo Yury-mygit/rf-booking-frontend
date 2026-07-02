@@ -1,25 +1,26 @@
+// Rooms subform для hotel-hub (TBB-16, 2026-07-02 refactor).
+// Раньше renderRoomsList писал в `#app` и сам поднимал hotel-hub bottomnav
+// + subnav. Теперь это body-oriented subform: пишет только в переданный
+// container, а nav / title / shell'ом управляет `renderHotelHub`
+// (hotel_edit/index.js).
+
 import { api } from "../../api.js";
 import { t } from "../../i18n.js";
-import { setTitle } from "../../topbar.js";
 import { assetThumbUrl, escapeHtml } from "../../util.js";
+import { state } from "./hotel_edit/index.js";
 
-export async function renderRoomsList({ hotelId }) {
-  const app = document.getElementById("app");
-  app.innerHTML = t("app.loading");
-
-  let hotel = null;
+export async function renderRoomsSubform(body, hotelId) {
+  body.innerHTML = `<p class="muted">${t("app.loading")}</p>`;
   let rooms = [];
   try {
-    hotel = await api.getHotel(hotelId);
     rooms = await api.listRooms(hotelId);
   } catch (e) {
-    app.innerHTML = `<div class="error">${t("app.error", { msg: e.message })}</div>`;
+    body.innerHTML = `<div class="error">${t("app.error", { msg: e.message })}</div>`;
     return;
   }
-
-  const canManageRooms = api.canDo("manage_rooms", hotel.owner_user_id);
-  setTitle(`${t("pageTitle.hotelRooms")} / ${t("hotel.rooms")} — ${hotel.name_ru}`);
-  app.innerHTML = `
+  const hotel = state.hotel;
+  const canManageRooms = api.canDo("manage_rooms", hotel?.owner_user_id);
+  body.innerHTML = `
     <div id="rooms-list">
       ${rooms.length === 0
         ? `<p class="muted">— ${t("hotels.empty")} —</p>`

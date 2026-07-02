@@ -149,6 +149,11 @@ body.has-subnav { --sn-h: 42px; }
   background: var(--surface);
   border-top: 1px solid var(--text);
   box-sizing: border-box;
+  /* GPU-composited layer: reflow контента внутри main#app (например
+     swap innerHTML активного .hub-tab при переключении subform'а) не
+     заставляет перекрашивать fixed-панели. */
+  will-change: transform;
+  transform: translateZ(0);
 }
 main#app {
   padding-bottom: calc(var(--bn-h) + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
@@ -167,9 +172,22 @@ main#app {
   background: var(--surface);
   border-top: 1px solid var(--border);
   box-sizing: border-box;
+  will-change: transform;
+  transform: translateZ(0);
 }
 body.has-subnav main#app {
   padding-bottom: calc(var(--bn-h) + var(--sn-h, 0px) + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
+}
+
+/* TBB-16 (2026-07-02) — резерв под subnav для hotel-hub'а живёт на
+   `#hub-body`, не на `<body>`. Причина: смена body-класса при
+   переключении hub'ов инвалидирует ВСЕ потомки body, включая fixed
+   #bottomnav (paint зона перекрашивается несмотря на GPU-layer). С
+   классом на `#hub-body` invalidation локализован в его subtree, и
+   fixed-панели остаются вне scope'а. Значение 42px совпадает с
+   `--sn-h` из body.has-subnav и с высотой #subbottomnav. */
+#hub-body.has-subnav {
+  padding-bottom: 42px;
 }
 
 /* Centered mode: items занимают треть ширины, space-around на nav сам

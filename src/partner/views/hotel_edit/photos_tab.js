@@ -1,12 +1,12 @@
 // Photos tab — список фото с пере-ордером (up/down) + удаление + загрузка.
-// При каждой мутации (move/delete/upload) делаем switchTab("photos") для
+// При каждой мутации (move/delete/upload) вызываем renderTabBody для
 // рефреша блока — это проще чем in-place re-render.
 
 import { api } from "../../../api.js";
 import { t } from "../../../i18n.js";
 import { escapeHtml } from "../../../util.js";
 
-import { state, switchTab } from "./index.js";
+import { state, renderTabBody } from "./index.js";
 
 export function renderPhotosTab(body, id) {
   const photos = state.hotel.photos || [];
@@ -69,7 +69,7 @@ async function moveAndSave(index, delta, hotelId) {
   try {
     const res = await api.reorderPhotos(hotelId, photos);
     state.hotel.photos = res.photos;
-    switchTab("photos", hotelId);
+    renderTabBody(hotelId, "photos", null);
   } catch (e) {
     alert(e.message);
   }
@@ -80,7 +80,7 @@ async function deletePhoto(url, hotelId) {
   try {
     await api.deletePhoto(hotelId, url);
     state.hotel.photos = (state.hotel.photos || []).filter((u) => u !== url);
-    switchTab("photos", hotelId);
+    renderTabBody(hotelId, "photos", null);
   } catch (e) {
     alert(e.message);
   }
@@ -94,7 +94,7 @@ async function uploadPhoto(fileInput, hotelId) {
   try {
     const res = await api.uploadPhoto(hotelId, f);
     state.hotel.photos = res.photos;
-    switchTab("photos", hotelId);
+    renderTabBody(hotelId, "photos", null);
   } catch (e) {
     statusEl.innerHTML = `<span class="error">${escapeHtml(e.message)}</span>`;
   }

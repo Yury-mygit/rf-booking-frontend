@@ -19,8 +19,7 @@ import { renderAllRooms } from "./views/all_rooms.js";
 import { renderBookings } from "./views/bookings.js";
 import { renderClientsList } from "./views/clients_list.js";
 import { renderClientEdit } from "./views/client_edit.js";
-import { renderHotelEdit } from "./views/hotel_edit/index.js";
-import { renderRoomsList } from "./views/rooms_list.js";
+import { renderHotelHub } from "./views/hotel_edit/index.js";
 import { renderRoomEdit } from "./views/room_edit.js";
 import { renderAvailability } from "./views/availability.js";
 import { renderStaffList } from "./views/staff_list/index.js";
@@ -28,9 +27,13 @@ import { renderAudit } from "./views/audit.js";
 import { renderPartnerSupportChat } from "./views/support.js";
 
 // rest paths: "/", "/rooms", "/bookings", "/clients", "/client/{id}",
-//   "/hotel/{id}", "/hotel/{id}/rooms", "/room/{hid}/{rid}",
-//   "/room/{hid}/{rid}/availability", "/staff", "/audit", "/login",
-//   "/support"
+//   "/hotel/{id}/status/{sub}" (sub ∈ readiness|share|rooms|bookings),
+//   "/hotel/{id}/{hub}" (hub ∈ description|photos|amenities),
+//   "/room/{hid}/{rid}", "/room/{hid}/{rid}/availability",
+//   "/staff", "/audit", "/login", "/support"
+//
+// Legacy `/hotel/{id}` и `/hotel/{id}/rooms` — редирект на новые URL
+// (TBB-16, чтобы старые ссылки из бота продолжали работать).
 const ROUTES = [
   { re: /^\/?$/, h: (_m) => renderHotelsList(), titleKey: "pageTitle.hotels" },
   { re: /^\/login$/, h: () => renderPartnerLogin(), titleKey: "pageTitle.devLogin" },
@@ -38,8 +41,38 @@ const ROUTES = [
   { re: /^\/bookings$/, h: () => renderBookings(), titleKey: "pageTitle.bookings" },
   { re: /^\/clients$/, h: () => renderClientsList(), titleKey: "pageTitle.clients" },
   { re: /^\/client\/([^/]+)$/, h: (m) => renderClientEdit({ clientId: decodeURIComponent(m[1]) }), titleKey: "pageTitle.clientEdit" },
-  { re: /^\/hotel\/([^/]+)\/rooms$/, h: (m) => renderRoomsList({ hotelId: decodeURIComponent(m[1]) }), titleKey: "pageTitle.hotelRooms" },
-  { re: /^\/hotel\/([^/]+)$/, h: (m) => renderHotelEdit({ id: decodeURIComponent(m[1]) }), titleKey: "pageTitle.hotelEdit" },
+
+  // TBB-16 — Hotel-hub единая точка входа. Shell (`#hub-body` + nav + title)
+  // мау́нтится ОДИН РАЗ при первом заходе; переходы между hub'ами / subform'ами
+  // обновляют только контент внутри body — no `#app` wipe, no `api.getHotel`
+  // roundtrip. См. `hotel_edit/index.js:renderHotelHub`.
+  {
+    re: /^\/hotel\/([^/]+)\/status\/(readiness|share|rooms|bookings)$/,
+    h: (m) => renderHotelHub({
+      id: decodeURIComponent(m[1]), hub: "status", sub: m[2],
+    }),
+    titleKey: null,
+  },
+  {
+    re: /^\/hotel\/([^/]+)\/(description|photos|amenities)$/,
+    h: (m) => renderHotelHub({
+      id: decodeURIComponent(m[1]), hub: m[2], sub: null,
+    }),
+    titleKey: null,
+  },
+
+  // TBB-16 — Legacy redirects (не рендерят, только navigate).
+  {
+    re: /^\/hotel\/([^/]+)$/,
+    h: (m) => { navigate(`#/partner/hotel/${m[1]}/status/readiness`); },
+    titleKey: null,
+  },
+  {
+    re: /^\/hotel\/([^/]+)\/rooms$/,
+    h: (m) => { navigate(`#/partner/hotel/${m[1]}/status/rooms`); },
+    titleKey: null,
+  },
+
   { re: /^\/room\/([^/]+)\/([^/]+)\/availability$/, h: (m) => renderAvailability({ hotelId: decodeURIComponent(m[1]), roomId: decodeURIComponent(m[2]) }), titleKey: "pageTitle.availability" },
   { re: /^\/room\/([^/]+)\/([^/]+)$/, h: (m) => renderRoomEdit({ hotelId: decodeURIComponent(m[1]), roomId: decodeURIComponent(m[2]) }), titleKey: "pageTitle.roomEdit" },
   { re: /^\/staff$/, h: () => renderStaffList(), titleKey: "pageTitle.staff" },
@@ -54,9 +87,9 @@ const ROOT_PATHS = new Set(["/", "", "/rooms", "/bookings", "/clients", "/staff"
 export function parentPath(rest) {
   if (ROOT_PATHS.has(rest)) return null;
   let m;
-  if ((m = rest.match(/^\/hotel\/([^/]+)\/rooms$/))) return `/partner/hotel/${m[1]}`;
   if ((m = rest.match(/^\/room\/([^/]+)\/([^/]+)\/availability$/))) return `/partner/room/${m[1]}/${m[2]}`;
-  if ((m = rest.match(/^\/room\/([^/]+)\/([^/]+)$/))) return `/partner/hotel/${m[1]}/rooms`;
+  // TBB-16 — room-edit parent: под hub'ом Статус, sub Номера.
+  if ((m = rest.match(/^\/room\/([^/]+)\/([^/]+)$/))) return `/partner/hotel/${m[1]}/status/rooms`;
   if (rest.startsWith("/hotel/")) return "/partner/";
   if (rest.startsWith("/client/")) return "/partner/clients";
   if (rest === "/audit") return "/partner/staff";
@@ -77,16 +110,30 @@ function armPendingListener() {
   });
 }
 
+// TBB-16 — hotel-hub-контекст сам управляет и bottomnav'ом, и субпанелью
+// (renderHotelHub делает
+// setHotelTabsNav + mountHubSubnav или их аналог hide). Если бы
+// syncTopChrome тут по умолчанию сбрасывал в partner main nav + hide
+// sub, между этой строкой и view-рендером на долю секунды мелькала бы
+// главная 5-табная панель (Отели/Номера/Брони/…), потом обратно 4
+// hub'а — визуально это flash. Исключаем `/hotel/{id}/*` (кроме "new"
+// — там view = renderNewHotelForm без hub-nav, нужен main nav).
+function isHotelHubPath(rest) {
+  const m = rest.match(/^\/hotel\/([^/]+)(?:\/|$)/);
+  return !!m && m[1] !== "new";
+}
+
 function syncTopChrome(rest) {
   mountOwnerSelector();
+  const parent = parentPath(rest);
+  if (parent === null) showBack(() => navigate("#/"));
+  else showBack(() => navigate("#" + parent));
+  if (isHotelHubPath(rest)) return;
   // Default state: субпанель скрыта. View сам поднимает через
   // setSubBottomNav (staff_list / audit). Так не дублируем teardown
   // в каждом view.
   hideSubBottomNav();
   renderMainNav(activeNavKey(rest));
-  const parent = parentPath(rest);
-  if (parent === null) showBack(() => navigate("#/"));
-  else showBack(() => navigate("#" + parent));
 }
 
 async function refreshWhoami() {

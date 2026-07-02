@@ -101,7 +101,7 @@ function wireSaveHandler(isNew, id) {
     try {
       if (isNew) {
         const created = await api.createHotel(payload);
-        navigate("#/partner/hotel/" + created.id);
+        navigate("#/partner/hotel/" + created.id + "/status/readiness");
       } else {
         const updated = await api.updateHotel(id, payload);
         state.hotel = updated;
