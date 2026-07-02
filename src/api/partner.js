@@ -31,6 +31,7 @@ export const partner = {
   createHotel: (payload) => call("POST", "/p/hotels", payload),
   updateHotel: (id, payload) => call("PUT", `/p/hotels/${id}`, payload),
   deleteHotel: (id) => call("DELETE", `/p/hotels/${id}`),
+  shareHotelToSelf: (id) => call("POST", `/p/hotels/${id}/share-to-self`),
 
   // ─── Rooms ─────────────────────────────────────────────────────────────
   listRooms: (hid) => call("GET", `/p/hotels/${hid}/rooms`),
