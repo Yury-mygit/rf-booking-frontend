@@ -568,6 +568,7 @@
   "amenity.subforms.general": "Общие",
   "amenity.subforms.dining": "Питание",
   "amenity.subforms.placement": "Размещение",
+  "amenity.save_error": "Не удалось сохранить, попробуйте ещё раз",
   "amenity.checkin_from": "С {time}",
   "amenity.checkout_until": "До {time}",
   "amenity.paid": "Платно",

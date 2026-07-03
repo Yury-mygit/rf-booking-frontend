@@ -568,6 +568,7 @@
   "amenity.subforms.general": "Жалпы",
   "amenity.subforms.dining": "Тамактануу",
   "amenity.subforms.placement": "Жайгашуу",
+  "amenity.save_error": "Сакталган жок, кайра аракет кылыңыз",
   "amenity.checkin_from": "{time}-дан",
   "amenity.checkout_until": "{time}-га чейин",
   "amenity.paid": "Акылуу",

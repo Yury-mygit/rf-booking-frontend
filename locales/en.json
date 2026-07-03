@@ -568,6 +568,7 @@
   "amenity.subforms.general": "General",
   "amenity.subforms.dining": "Food & drink",
   "amenity.subforms.placement": "Placement",
+  "amenity.save_error": "Could not save, please try again",
   "amenity.checkin_from": "From {time}",
   "amenity.checkout_until": "Until {time}",
   "amenity.paid": "Paid",
