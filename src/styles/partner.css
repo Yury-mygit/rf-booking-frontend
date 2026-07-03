@@ -507,3 +507,14 @@ body.has-create-bar main#app {
   display: flex; justify-content: flex-end; gap: 8px;
 }
 .hotel-scope-modal-actions button.primary { margin: 0; width: auto; }
+
+/* Partner amenities (TBB-19): переопределяем client-стиль .amenities-section
+   под partner-паттерн (surface bg + border-soft) и убираем legend'ы —
+   subnav'ные названия tab'ов заменяют fieldset-заголовки. */
+#hub-body .amenities-section {
+  background: var(--surface);
+  border-color: var(--border-soft);
+  padding: 12px 14px;
+  margin: 0 0 12px;
+}
+#hub-body .amenities-section legend { display: none; }
