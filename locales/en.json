@@ -502,6 +502,7 @@
   "status.recent.col_status": "Status",
   "status.recent.empty": "No bookings yet",
   "status.recent.title": "Recent bookings",
+  "status.subforms.delete": "Danger zone",
   "status.subforms.readiness": "Readiness",
   "status.stats.bookings_active": "Active",
   "status.stats.bookings_total": "Bookings total",
