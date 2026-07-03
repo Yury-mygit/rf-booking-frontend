@@ -118,6 +118,7 @@
   "client.photo": "Фото",
   "client.photo.remove": "Удалить фото",
   "client.photo.upload": "Загрузить фото",
+  "client.save_error": "Не удалось сохранить, попробуйте ещё раз",
   "client.saved": "Сохранено",
   "client.subforms.chat": "Чат",
   "client.subforms.info": "Данные",

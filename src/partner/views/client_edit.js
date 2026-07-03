@@ -3,6 +3,7 @@ import { t } from "../../i18n.js";
 import { navigate } from "../../router.js";
 import { setTitle } from "../../topbar.js";
 import { escapeHtml } from "../../util.js";
+import { showToast } from "../../widgets/toast.js";
 import { setSubBottomNav } from "../nav.js";
 import { mountClientChat } from "./client_edit_chat.js";
 
@@ -116,6 +117,16 @@ export async function renderClientEdit({ clientId, sub = null }) {
   await showTab(clientId, resolvedSub);
 }
 
+async function savePartial(id, payload, rollback) {
+  try {
+    const updated = await api.updateClient(id, payload);
+    state.client = updated;
+  } catch {
+    rollback();
+    showToast(t("client.save_error"));
+  }
+}
+
 function renderInfoSubform(body, clientId) {
   const client = state.client;
   const history = state.history;
@@ -135,7 +146,7 @@ function renderInfoSubform(body, clientId) {
         </div>` : ""}
       </div>
 
-      <form id="client-form">
+      <form id="client-form" autocomplete="off">
         <label>${t("client.first_name")}<input name="first_name" value="${escapeHtml(client.first_name || "")}" required ${ro}></label>
         <label>${t("client.last_name")}<input name="last_name" value="${escapeHtml(client.last_name || "")}" ${ro}></label>
         <label>${t("client.phone")}<input name="phone" value="${escapeHtml(client.phone || "")}" ${ro}></label>
@@ -147,8 +158,6 @@ function renderInfoSubform(body, clientId) {
           </select>
         </label>
         <label>${t("client.doc_number")}<input name="doc_number" value="${escapeHtml(client.doc_number || "")}" ${ro}></label>
-        ${canEdit ? `<button type="submit" class="primary">${t("app.save")}</button>` : ""}
-        <span id="save-status" class="muted small"></span>
       </form>
     </div>
 
@@ -158,25 +167,39 @@ function renderInfoSubform(body, clientId) {
 
   if (!canEdit) return;
 
-  document.getElementById("client-form").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const fd = new FormData(e.target);
-    const payload = {
-      first_name: fd.get("first_name").trim() || null,
-      last_name: fd.get("last_name").trim() || null,
-      phone: fd.get("phone").trim() || null,
-      email: fd.get("email").trim() || null,
-      doc_kind: fd.get("doc_kind") || null,
-      doc_number: fd.get("doc_number").trim() || null,
+  const form = document.getElementById("client-form");
+
+  // Auto-save per-field: <input> → blur → PUT {[key]: value}; <select> → change.
+  // Пустая строка → null (backend требует min_length=1 для first_name; для
+  // остальных null тоже допустим).
+  form.querySelectorAll('input[name]').forEach((input) => {
+    input.onblur = () => {
+      const key = input.name;
+      const raw = input.value.trim();
+      const value = raw === "" ? null : raw;
+      const prev = state.client[key] ?? null;
+      if (value === prev) return;
+      // first_name — обязательное; пустое не отправляем, откатим UI.
+      if (key === "first_name" && value === null) {
+        input.value = prev || "";
+        return;
+      }
+      savePartial(clientId, { [key]: value }, () => {
+        input.value = prev || "";
+      });
     };
-    const status = document.getElementById("save-status");
-    status.textContent = "…";
-    try {
-      await api.updateClient(clientId, payload);
-      status.textContent = t("client.saved");
-    } catch (err) {
-      status.textContent = err.message;
-    }
+  });
+
+  form.querySelectorAll('select[name]').forEach((select) => {
+    select.onchange = () => {
+      const key = select.name;
+      const value = select.value || null;
+      const prev = state.client[key] ?? null;
+      if (value === prev) return;
+      savePartial(clientId, { [key]: value }, () => {
+        select.value = prev || "";
+      });
+    };
   });
 
   document.getElementById("photo-upload").addEventListener("click", async () => {

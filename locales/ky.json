@@ -118,6 +118,7 @@
   "client.photo": "Сүрөт",
   "client.photo.remove": "Сүрөттү өчүрүү",
   "client.photo.upload": "Сүрөттү жүктөө",
+  "client.save_error": "Сактоо мүмкүн болбоду, кайра аракет кылыңыз",
   "client.saved": "Сакталды",
   "client.subforms.chat": "Чат",
   "client.subforms.info": "Маалымат",

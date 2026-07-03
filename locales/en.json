@@ -118,6 +118,7 @@
   "client.photo": "Photo",
   "client.photo.remove": "Remove photo",
   "client.photo.upload": "Upload photo",
+  "client.save_error": "Save failed, please retry",
   "client.saved": "Saved",
   "client.subforms.chat": "Chat",
   "client.subforms.info": "Info",
