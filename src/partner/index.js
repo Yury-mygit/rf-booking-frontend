@@ -27,7 +27,7 @@ import { renderAudit } from "./views/audit.js";
 import { renderPartnerSupportChat } from "./views/support.js";
 
 // rest paths: "/", "/rooms", "/bookings", "/clients", "/client/{id}",
-//   "/hotel/{id}/status/{sub}" (sub ∈ readiness|share|rooms|bookings),
+//   "/hotel/{id}/status/{sub}" (sub ∈ readiness|share|rooms|bookings|delete),
 //   "/hotel/{id}/{hub}" (hub ∈ description|photos|amenities),
 //   "/room/{hid}/{rid}", "/room/{hid}/{rid}/availability",
 //   "/staff", "/audit", "/login", "/support"
@@ -53,7 +53,7 @@ const ROUTES = [
   // обновляют только контент внутри body — no `#app` wipe, no `api.getHotel`
   // roundtrip. См. `hotel_edit/index.js:renderHotelHub`.
   {
-    re: /^\/hotel\/([^/]+)\/status\/(readiness|share|rooms|bookings)$/,
+    re: /^\/hotel\/([^/]+)\/status\/(readiness|share|rooms|bookings|delete)$/,
     h: (m) => renderHotelHub({
       id: decodeURIComponent(m[1]), hub: "status", sub: m[2],
     }),
