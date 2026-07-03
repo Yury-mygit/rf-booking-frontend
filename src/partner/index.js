@@ -54,9 +54,18 @@ const ROUTES = [
     titleKey: null,
   },
   {
-    re: /^\/hotel\/([^/]+)\/(description|photos|amenities)$/,
+    re: /^\/hotel\/([^/]+)\/(description|photos)$/,
     h: (m) => renderHotelHub({
       id: decodeURIComponent(m[1]), hub: m[2], sub: null,
+    }),
+    titleKey: null,
+  },
+  // TBB-19 — amenities поднялся с 1 subform до 3, sub-сегмент опционален
+  // (flat `/amenities` резолвится в default `general` внутри renderHotelHub).
+  {
+    re: /^\/hotel\/([^/]+)\/amenities(?:\/(general|dining|placement))?$/,
+    h: (m) => renderHotelHub({
+      id: decodeURIComponent(m[1]), hub: "amenities", sub: m[2] || null,
     }),
     titleKey: null,
   },
