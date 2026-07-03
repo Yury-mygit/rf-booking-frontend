@@ -22,6 +22,12 @@ const SUB_ICONS = {
   chat: `<svg ${SVG_ATTR}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>`,
 };
 
+// Модуль-локальный state: `client` + `history` — грузятся раз при первом
+// заходе в клиента (`ensureShell`); при переключении info↔chat не
+// refetch'аются. Photo upload/remove сбрасывает `_mountedClientId`, чтобы
+// принудительно перечитать.
+const state = { client: null, history: null };
+let _mountedClientId = null;
 let _chatUnmount = null;
 
 // Teardown при уходе с /partner/client/{id} — снимаем has-subnav и unmount'им
@@ -32,15 +38,38 @@ function armClientHubTeardown() {
     if (!rest.startsWith("/client/")) {
       document.body.classList.remove("has-subnav");
       if (_chatUnmount) { try { _chatUnmount(); } catch {} _chatUnmount = null; }
+      _mountedClientId = null;
+      state.client = null;
+      state.history = null;
       window.removeEventListener("hashchange", once);
     }
   });
 }
 
-export async function renderClientEdit({ clientId, sub = null }) {
-  const resolvedSub = SUBS.includes(sub) ? sub : SUB_DEFAULT;
-  mountClientHubSubnav(clientId, resolvedSub);
-  return renderClientBody({ clientId });
+async function ensureShell(clientId) {
+  const app = document.getElementById("app");
+  const existing = document.getElementById("client-hub-body");
+  if (_mountedClientId === clientId && existing && state.client) {
+    return existing;
+  }
+  app.innerHTML = t("app.loading");
+  try {
+    const [client, history] = await Promise.all([
+      api.getClient(clientId),
+      api.listClientBookings(clientId),
+    ]);
+    state.client = client;
+    state.history = history;
+  } catch (e) {
+    app.innerHTML = `<div class="error">${t("app.error", { msg: e.message })}</div>`;
+    _mountedClientId = null;
+    return null;
+  }
+  app.innerHTML = `<div id="client-hub-body">${SUBS
+    .map((k) => `<div class="hub-tab" data-tab="${k}" hidden></div>`)
+    .join("")}</div>`;
+  _mountedClientId = clientId;
+  return document.getElementById("client-hub-body");
 }
 
 function mountClientHubSubnav(clientId, activeSub) {
@@ -54,29 +83,46 @@ function mountClientHubSubnav(clientId, activeSub) {
       onClick: () => navigate(`#/partner/client/${clientId}/${key}`),
     })),
   );
-  armClientHubTeardown();
 }
 
-async function renderClientBody({ clientId }) {
-  const app = document.getElementById("app");
-  app.innerHTML = t("app.loading");
+const RENDERERS = {
+  info: (body, id) => renderInfoSubform(body, id),
+  chat: (body) => renderChatSubform(body),
+};
 
-  let client, history;
-  try {
-    [client, history] = await Promise.all([
-      api.getClient(clientId),
-      api.listClientBookings(clientId),
-    ]);
-  } catch (e) {
-    app.innerHTML = `<div class="error">${t("app.error", { msg: e.message })}</div>`;
-    return;
+async function showTab(clientId, sub) {
+  const hubBody = document.getElementById("client-hub-body");
+  if (!hubBody) return;
+  // Уходим с чата — unmount, чтобы не работал SSE-listener пока не смотрим.
+  if (sub !== "chat" && _chatUnmount) {
+    try { _chatUnmount(); } catch {}
+    _chatUnmount = null;
   }
+  const bodyEl = hubBody.querySelector(`.hub-tab[data-tab="${sub}"]`);
+  if (!bodyEl) return;
+  await RENDERERS[sub](bodyEl, clientId);
+  hubBody.querySelectorAll(".hub-tab").forEach((el) => {
+    el.hidden = el.dataset.tab !== sub;
+  });
+}
 
+export async function renderClientEdit({ clientId, sub = null }) {
+  const resolvedSub = SUBS.includes(sub) ? sub : SUB_DEFAULT;
+  const body = await ensureShell(clientId);
+  if (!body) return;
+  setTitle(`${t("pageTitle.clientEdit")} / ${t("client.title")}`);
+  mountClientHubSubnav(clientId, resolvedSub);
+  armClientHubTeardown();
+  await showTab(clientId, resolvedSub);
+}
+
+function renderInfoSubform(body, clientId) {
+  const client = state.client;
+  const history = state.history;
   const canEdit = api.canDo("manage_bookings", api.activeOwnerId());
   const ro = canEdit ? "" : "readonly";
 
-  setTitle(`${t("pageTitle.clientEdit")} / ${t("client.title")}`);
-  app.innerHTML = `
+  body.innerHTML = `
     <div class="card">
       <div class="client-photo-block">
         ${client.photo_url
@@ -108,23 +154,7 @@ async function renderClientBody({ clientId }) {
 
     <h2 style="margin-top:24px">${t("client.history")}</h2>
     <div id="history">${historyHtml(history)}</div>
-
-    <h2 style="margin-top:24px">${t("chat.title")}</h2>
-    <div id="client-chat"></div>
   `;
-
-  if (_chatUnmount) {
-    try { _chatUnmount(); } catch {}
-    _chatUnmount = null;
-  }
-  _chatUnmount = mountClientChat(
-    document.getElementById("client-chat"),
-    client,
-    history,
-  );
-  // Chat teardown при уходе с /client/ обслуживается armClientHubTeardown
-  // из renderClientEdit; здесь второй listener не нужен (он бы дёргал unmount
-  // при info→chat переключении, а нам нужно unmount ТОЛЬКО за пределами hub'а).
 
   if (!canEdit) return;
 
@@ -154,7 +184,8 @@ async function renderClientBody({ clientId }) {
     if (!f) return;
     try {
       await api.uploadClientPhoto(clientId, f);
-      renderClientEdit({ clientId });
+      _mountedClientId = null; // force ensureShell to refetch client
+      renderClientEdit({ clientId, sub: "info" });
     } catch (err) {
       alert(err.message);
     }
@@ -165,12 +196,21 @@ async function renderClientBody({ clientId }) {
     rm.addEventListener("click", async () => {
       try {
         await api.deleteClientPhoto(clientId);
-        renderClientEdit({ clientId });
+        _mountedClientId = null;
+        renderClientEdit({ clientId, sub: "info" });
       } catch (err) {
         alert(err.message);
       }
     });
   }
+}
+
+function renderChatSubform(body) {
+  const client = state.client;
+  const history = state.history;
+  if (_chatUnmount) { try { _chatUnmount(); } catch {} _chatUnmount = null; }
+  body.innerHTML = "";
+  _chatUnmount = mountClientChat(body, client, history);
 }
 
 function historyHtml(bookings) {
