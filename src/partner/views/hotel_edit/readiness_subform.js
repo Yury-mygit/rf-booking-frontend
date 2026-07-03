@@ -1,8 +1,8 @@
 // Readiness subform — дефолтный subform hub'а «Статус» (TBB-16 Stage 5,
 // переименован из status_tab.js; decision C — чтобы breadcrumb
 // «Отель / Статус / Готовность» не дублировал слово «Статус»).
-// Секции: header + stats-cards + checklist + recent bookings + danger-zone.
-// Все собираются в одном innerHTML, потом wire'аются listeners.
+// Секции: header + stats-cards + checklist + recent bookings.
+// Danger-zone вынесен в отдельный subform `delete` (TBB-21).
 
 import { api } from "../../../api.js";
 import { t } from "../../../i18n.js";
@@ -76,30 +76,10 @@ export async function renderReadinessSubform(body, id) {
     <div class="recent-bookings" id="recent-bookings-wrap">
       ${renderRecentBookings(recent)}
     </div>
-
-    ${canManageHotel
-      ? `<div class="danger-zone">
-          <h3>${t("status.danger.title")}</h3>
-          <p class="muted">${t("status.danger.body")}</p>
-          <button class="danger" id="btn-del">${t("app.delete")}</button>
-        </div>`
-      : ""}
   `;
 
   document.getElementById("btn-pub")?.addEventListener("click", () => statusChange(id, "published"));
   document.getElementById("btn-unpub")?.addEventListener("click", () => statusChange(id, "draft"));
-  const btnDel = document.getElementById("btn-del");
-  if (btnDel) {
-    btnDel.onclick = async () => {
-      if (!confirm(t("hotel.delete_confirm"))) return;
-      try {
-        await api.deleteHotel(id);
-        navigate("#/partner/");
-      } catch (e) {
-        alert(e.message);
-      }
-    };
-  }
 
   body.querySelectorAll(".check-action[data-tab]").forEach((a) => {
     a.onclick = (e) => {
