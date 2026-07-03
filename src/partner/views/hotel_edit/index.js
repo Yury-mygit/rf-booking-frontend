@@ -45,6 +45,9 @@ const SUB_ICONS = {
   share: `<svg ${SVG_ATTR}><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"></path></svg>`,
   rooms: `<svg ${SVG_ATTR}><path d="M3 18v-7a3 3 0 0 1 3-3h12a3 3 0 0 1 3 3v7"></path><path d="M3 18h18"></path><path d="M7 11V8h4v3"></path><path d="M13 11V8h4v3"></path></svg>`,
   bookings: `<svg ${SVG_ATTR}><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><polyline points="8 14 11 17 16 12"></polyline></svg>`,
+  general: TAB_ICONS.amenities,
+  dining: TAB_ICONS.amenities,
+  placement: TAB_ICONS.amenities,
 };
 
 // Единая модель hub'а: список subform'ов + default. Порядок subform'ов
@@ -62,7 +65,14 @@ const HUB_STRUCTURE = {
   },
   description: { subforms: [{ key: "main" }], default: "main" },
   photos:      { subforms: [{ key: "main" }], default: "main" },
-  amenities:   { subforms: [{ key: "main" }], default: "main" },
+  amenities: {
+    subforms: [
+      { key: "general",   labelKey: "amenity.subforms.general" },
+      { key: "dining",    labelKey: "amenity.subforms.dining" },
+      { key: "placement", labelKey: "amenity.subforms.placement" },
+    ],
+    default: "general",
+  },
 };
 
 const HUBS = Object.keys(HUB_STRUCTURE);
@@ -72,9 +82,11 @@ const RENDERERS = {
   "status.share":     (body) => renderShareTab(body),
   "status.rooms":     (body, id) => renderRoomsSubform(body, id),
   "status.bookings":  (body, id) => renderBookingsSubform(body, id),
-  "description.main": (body, id) => renderDescriptionTab(body, id),
-  "photos.main":      (body, id) => renderPhotosTab(body, id),
-  "amenities.main":   (body, id) => renderAmenitiesTab(body, id),
+  "description.main":     (body, id) => renderDescriptionTab(body, id),
+  "photos.main":          (body, id) => renderPhotosTab(body, id),
+  "amenities.general":    (body, id) => renderAmenitiesTab(body, id, "general"),
+  "amenities.dining":     (body, id) => renderAmenitiesTab(body, id, "dining"),
+  "amenities.placement":  (body, id) => renderAmenitiesTab(body, id, "placement"),
 };
 
 const TAB_KEYS = Object.keys(RENDERERS);
@@ -86,6 +98,9 @@ const SUB_LABEL_KEY = {
   share: "status.actions.share",
   rooms: "status.actions.rooms",
   bookings: "status.actions.bookings",
+  general: "amenity.subforms.general",
+  dining: "amenity.subforms.dining",
+  placement: "amenity.subforms.placement",
 };
 
 export function buildBreadcrumb({ hub, sub, tail } = {}) {
@@ -104,11 +119,11 @@ export const state = { hotel: null, rooms: [] };
 let _mountedHotelId = null;
 
 function hubUrl(id, hub) {
-  // Flat URL для hub'ов с одним subform'ом; для Status ведём на дефолтный
-  // subform readiness (иначе URL `/status` не матчится).
-  return hub === "status"
-    ? `#/partner/hotel/${id}/status/${HUB_STRUCTURE.status.default}`
-    : `#/partner/hotel/${id}/${hub}`;
+  const struct = HUB_STRUCTURE[hub];
+  if (struct.subforms.length > 1) {
+    return `#/partner/hotel/${id}/${hub}/${struct.default}`;
+  }
+  return `#/partner/hotel/${id}/${hub}`;
 }
 
 function tabKeyFor(hub, sub) {
