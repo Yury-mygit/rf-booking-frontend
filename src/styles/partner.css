@@ -508,13 +508,53 @@ body.has-create-bar main#app {
 }
 .hotel-scope-modal-actions button.primary { margin: 0; width: auto; }
 
-/* Partner amenities (TBB-19): переопределяем client-стиль .amenities-section
-   под partner-паттерн (surface bg + border-soft) и убираем legend'ы —
-   subnav'ные названия tab'ов заменяют fieldset-заголовки. */
+/* Partner amenities (TBB-19): grid-карточки чекбоксов. Стили
+   .amenities-grid / .amenity-row живут в client.css, partner их не
+   подтягивает — потому дублируем под partner-паттерн (surface bg на
+   карточки, container без своих border/bg). */
 #hub-body .amenities-section {
-  background: var(--surface);
-  border-color: var(--border-soft);
-  padding: 12px 14px;
-  margin: 0 0 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: none;
+  padding: 0;
+  margin: 0;
 }
 #hub-body .amenities-section legend { display: none; }
+#hub-body .amenity-row input[type="time"] {
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  border-radius: 4px;
+  font-size: 14px;
+}
+#hub-body .amenities-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+@media (min-width: 480px) {
+  #hub-body .amenities-grid { grid-template-columns: 1fr 1fr; }
+}
+#hub-body .amenity-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  background: var(--surface);
+  font-size: 14px;
+  cursor: pointer;
+  margin: 0;
+}
+#hub-body .amenity-row input[type="checkbox"] {
+  flex-shrink: 0;
+  margin: 0;
+}
+#hub-body .amenity-row span {
+  flex: 1;
+  min-width: 0;
+  color: var(--text);
+}

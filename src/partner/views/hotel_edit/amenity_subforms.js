@@ -73,26 +73,42 @@ export function renderDiningSubform(body, id) {
   renderCheckboxSubform(body, id, "dining");
 }
 
+// Стандартные времена для отелей — заезд 14:00, выезд 12:00. Если у отеля
+// в БД NULL, backfill'им дефолты фоном при первом просмотре placement-вкладки.
+const DEFAULT_CHECKIN = "14:00";
+const DEFAULT_CHECKOUT = "12:00";
+
 export function renderPlacementSubform(body, id) {
   const h = state.hotel;
   const canEdit = api.canDo("manage_hotel", h?.owner_user_id);
-  const ci = fmtTimeValue(h?.checkin_time);
-  const co = fmtTimeValue(h?.checkout_time);
+  const ciBackend = fmtTimeValue(h?.checkin_time);
+  const coBackend = fmtTimeValue(h?.checkout_time);
+  const ci = ciBackend || DEFAULT_CHECKIN;
+  const co = coBackend || DEFAULT_CHECKOUT;
   const disabled = canEdit ? "" : "disabled";
 
   body.innerHTML = `
     <fieldset class="amenities-section">
-      <div class="form-row form-row--inline">
-        <label>${escapeHtml(t("rooms.check_in"))}
-          <input type="time" name="checkin_time" value="${ci}" ${disabled} />
-        </label>
-        <label>${escapeHtml(t("rooms.check_out"))}
-          <input type="time" name="checkout_time" value="${co}" ${disabled} />
-        </label>
-      </div>
+      <label class="amenity-row">
+        <span>${escapeHtml(t("rooms.check_in"))}</span>
+        <input type="time" name="checkin_time" value="${ci}" ${disabled} />
+      </label>
+      <label class="amenity-row">
+        <span>${escapeHtml(t("rooms.check_out"))}</span>
+        <input type="time" name="checkout_time" value="${co}" ${disabled} />
+      </label>
     </fieldset>`;
 
   if (!canEdit) return;
+
+  // Backfill defaults в БД если поле было NULL. Без rollback — если PUT
+  // провалился, следующий рендер повторит попытку (state.hotel не обновится).
+  const backfill = {};
+  if (!ciBackend) backfill.checkin_time = DEFAULT_CHECKIN;
+  if (!coBackend) backfill.checkout_time = DEFAULT_CHECKOUT;
+  if (Object.keys(backfill).length) {
+    savePartial(id, backfill, () => {});
+  }
 
   body.querySelectorAll('input[type="time"]').forEach((input) => {
     input.onblur = () => {
