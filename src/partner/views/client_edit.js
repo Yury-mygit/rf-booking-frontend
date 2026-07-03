@@ -15,11 +15,10 @@ const DOC_KINDS = ["passport", "id_card", "driving_license", "other"];
 const SUB_DEFAULT = "info";
 const SUBS = ["info", "chat"];
 
-// Placeholder-иконки для Stage 1; финальные (person / chat-bubble)
-// подберём на Stage 5.
+// SUB_ICONS (Stage 5, TBB-20 D5): person-outline для info + chat-bubble для chat.
 const SVG_ATTR = 'viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
 const SUB_ICONS = {
-  info: `<svg ${SVG_ATTR}><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><circle cx="12" cy="16" r="0.5" fill="currentColor"></circle></svg>`,
+  info: `<svg ${SVG_ATTR}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`,
   chat: `<svg ${SVG_ATTR}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>`,
 };
 
@@ -146,18 +145,34 @@ function renderInfoSubform(body, clientId) {
         </div>` : ""}
       </div>
 
-      <form id="client-form" autocomplete="off">
-        <label>${t("client.first_name")}<input name="first_name" value="${escapeHtml(client.first_name || "")}" required ${ro}></label>
-        <label>${t("client.last_name")}<input name="last_name" value="${escapeHtml(client.last_name || "")}" ${ro}></label>
-        <label>${t("client.phone")}<input name="phone" value="${escapeHtml(client.phone || "")}" ${ro}></label>
-        <label>${t("client.email")}<input name="email" type="email" value="${escapeHtml(client.email || "")}" ${ro}></label>
-        <label>${t("client.doc_kind")}
+      <form id="client-form" class="client-form" autocomplete="off">
+        <label class="client-row">
+          <span>${t("client.first_name")}</span>
+          <input name="first_name" value="${escapeHtml(client.first_name || "")}" required ${ro}>
+        </label>
+        <label class="client-row">
+          <span>${t("client.last_name")}</span>
+          <input name="last_name" value="${escapeHtml(client.last_name || "")}" ${ro}>
+        </label>
+        <label class="client-row">
+          <span>${t("client.phone")}</span>
+          <input name="phone" value="${escapeHtml(client.phone || "")}" ${ro}>
+        </label>
+        <label class="client-row">
+          <span>${t("client.email")}</span>
+          <input name="email" type="email" value="${escapeHtml(client.email || "")}" ${ro}>
+        </label>
+        <label class="client-row">
+          <span>${t("client.doc_kind")}</span>
           <select name="doc_kind" ${canEdit ? "" : "disabled"}>
             <option value="">${t("client.doc_kind.none")}</option>
             ${DOC_KINDS.map(k => `<option value="${k}"${client.doc_kind === k ? " selected" : ""}>${t("client.doc_kind." + k)}</option>`).join("")}
           </select>
         </label>
-        <label>${t("client.doc_number")}<input name="doc_number" value="${escapeHtml(client.doc_number || "")}" ${ro}></label>
+        <label class="client-row">
+          <span>${t("client.doc_number")}</span>
+          <input name="doc_number" value="${escapeHtml(client.doc_number || "")}" ${ro}>
+        </label>
       </form>
     </div>
 
