@@ -28,7 +28,11 @@ import { renderReadinessSubform } from "./readiness_subform.js";
 import { renderShareTab } from "./share_tab.js";
 import { renderDescriptionTab, renderNewHotelForm } from "./description_tab.js";
 import { renderPhotosTab } from "./photos_tab.js";
-import { renderAmenitiesTab } from "./amenities_tab.js";
+import {
+  renderGeneralSubform,
+  renderDiningSubform,
+  renderPlacementSubform,
+} from "./amenity_subforms.js";
 import { renderRoomsSubform } from "../rooms_list.js";
 import { renderBookingsSubform } from "../bookings.js";
 
@@ -84,9 +88,9 @@ const RENDERERS = {
   "status.bookings":  (body, id) => renderBookingsSubform(body, id),
   "description.main":     (body, id) => renderDescriptionTab(body, id),
   "photos.main":          (body, id) => renderPhotosTab(body, id),
-  "amenities.general":    (body, id) => renderAmenitiesTab(body, id, "general"),
-  "amenities.dining":     (body, id) => renderAmenitiesTab(body, id, "dining"),
-  "amenities.placement":  (body, id) => renderAmenitiesTab(body, id, "placement"),
+  "amenities.general":    (body, id) => renderGeneralSubform(body, id),
+  "amenities.dining":     (body, id) => renderDiningSubform(body, id),
+  "amenities.placement":  (body, id) => renderPlacementSubform(body, id),
 };
 
 const TAB_KEYS = Object.keys(RENDERERS);
