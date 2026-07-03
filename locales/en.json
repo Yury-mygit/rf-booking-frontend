@@ -119,6 +119,8 @@
   "client.photo.remove": "Remove photo",
   "client.photo.upload": "Upload photo",
   "client.saved": "Saved",
+  "client.subforms.chat": "Chat",
+  "client.subforms.info": "Info",
   "client.title": "Client card",
   "clients.bookings_count": "Bookings: {n}",
   "clients.chat_only_badge": "Chat only",

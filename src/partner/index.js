@@ -40,7 +40,13 @@ const ROUTES = [
   { re: /^\/rooms$/, h: () => renderAllRooms(), titleKey: "pageTitle.rooms" },
   { re: /^\/bookings$/, h: () => renderBookings(), titleKey: "pageTitle.bookings" },
   { re: /^\/clients$/, h: () => renderClientsList(), titleKey: "pageTitle.clients" },
-  { re: /^\/client\/([^/]+)$/, h: (m) => renderClientEdit({ clientId: decodeURIComponent(m[1]) }), titleKey: "pageTitle.clientEdit" },
+  // TBB-20 — client hub (info/chat). Flat `/client/{id}` resolve'ится в
+  // default `info` внутри renderClientEdit.
+  {
+    re: /^\/client\/([^/]+)(?:\/(info|chat))?$/,
+    h: (m) => renderClientEdit({ clientId: decodeURIComponent(m[1]), sub: m[2] || null }),
+    titleKey: "pageTitle.clientEdit",
+  },
 
   // TBB-16 — Hotel-hub единая точка входа. Shell (`#hub-body` + nav + title)
   // мау́нтится ОДИН РАЗ при первом заходе; переходы между hub'ами / subform'ами
@@ -132,12 +138,19 @@ function isHotelHubPath(rest) {
   return !!m && m[1] !== "new";
 }
 
+// TBB-20 — client_edit тоже стал hub'ом (subnav info/chat), сам управляет
+// субпанелью. Исключаем из default-teardown в syncTopChrome, чтобы не
+// мигал subnav между default-hide и view-mount'ом.
+function isClientHubPath(rest) {
+  return rest.startsWith("/client/");
+}
+
 function syncTopChrome(rest) {
   mountOwnerSelector();
   const parent = parentPath(rest);
   if (parent === null) showBack(() => navigate("#/"));
   else showBack(() => navigate("#" + parent));
-  if (isHotelHubPath(rest)) return;
+  if (isHotelHubPath(rest) || isClientHubPath(rest)) return;
   // Default state: субпанель скрыта. View сам поднимает через
   // setSubBottomNav (staff_list / audit). Так не дублируем teardown
   // в каждом view.

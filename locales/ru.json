@@ -119,6 +119,8 @@
   "client.photo.remove": "Удалить фото",
   "client.photo.upload": "Загрузить фото",
   "client.saved": "Сохранено",
+  "client.subforms.chat": "Чат",
+  "client.subforms.info": "Данные",
   "client.title": "Карточка клиента",
   "clients.bookings_count": "Бронирований: {n}",
   "clients.chat_only_badge": "Только чат",

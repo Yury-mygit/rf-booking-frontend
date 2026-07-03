@@ -119,6 +119,8 @@
   "client.photo.remove": "Сүрөттү өчүрүү",
   "client.photo.upload": "Сүрөттү жүктөө",
   "client.saved": "Сакталды",
+  "client.subforms.chat": "Чат",
+  "client.subforms.info": "Маалымат",
   "client.title": "Кардардын картасы",
   "clients.bookings_count": "Бронь: {n}",
   "clients.chat_only_badge": "Чат гана",

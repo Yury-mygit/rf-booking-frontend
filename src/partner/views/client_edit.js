@@ -1,14 +1,63 @@
 import { api } from "../../api.js";
 import { t } from "../../i18n.js";
+import { navigate } from "../../router.js";
 import { setTitle } from "../../topbar.js";
 import { escapeHtml } from "../../util.js";
+import { setSubBottomNav } from "../nav.js";
 import { mountClientChat } from "./client_edit_chat.js";
 
 const DOC_KINDS = ["passport", "id_card", "driving_license", "other"];
 
+// TBB-20 — client hub с 2 subform'ами. Локальный HUB_STRUCTURE аналог
+// hotel_edit/index.js (D3 — не extract'им generic hub-primitive). URL:
+// /partner/client/{id}/(info|chat); flat /partner/client/{id} → default info.
+const SUB_DEFAULT = "info";
+const SUBS = ["info", "chat"];
+
+// Placeholder-иконки для Stage 1; финальные (person / chat-bubble)
+// подберём на Stage 5.
+const SVG_ATTR = 'viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
+const SUB_ICONS = {
+  info: `<svg ${SVG_ATTR}><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><circle cx="12" cy="16" r="0.5" fill="currentColor"></circle></svg>`,
+  chat: `<svg ${SVG_ATTR}><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>`,
+};
+
 let _chatUnmount = null;
 
-export async function renderClientEdit({ clientId }) {
+// Teardown при уходе с /partner/client/{id} — снимаем has-subnav и unmount'им
+// чат. Один-разовый listener переустанавливается на каждый вход.
+function armClientHubTeardown() {
+  window.addEventListener("hashchange", function once() {
+    const rest = location.hash.replace(/^#\/partner/, "").replace(/^#/, "").split("?")[0];
+    if (!rest.startsWith("/client/")) {
+      document.body.classList.remove("has-subnav");
+      if (_chatUnmount) { try { _chatUnmount(); } catch {} _chatUnmount = null; }
+      window.removeEventListener("hashchange", once);
+    }
+  });
+}
+
+export async function renderClientEdit({ clientId, sub = null }) {
+  const resolvedSub = SUBS.includes(sub) ? sub : SUB_DEFAULT;
+  mountClientHubSubnav(clientId, resolvedSub);
+  return renderClientBody({ clientId });
+}
+
+function mountClientHubSubnav(clientId, activeSub) {
+  document.body.classList.add("has-subnav");
+  setSubBottomNav(
+    SUBS.map((key) => ({
+      key,
+      label: t("client.subforms." + key),
+      icon: SUB_ICONS[key],
+      active: key === activeSub,
+      onClick: () => navigate(`#/partner/client/${clientId}/${key}`),
+    })),
+  );
+  armClientHubTeardown();
+}
+
+async function renderClientBody({ clientId }) {
   const app = document.getElementById("app");
   app.innerHTML = t("app.loading");
 
@@ -73,10 +122,9 @@ export async function renderClientEdit({ clientId }) {
     client,
     history,
   );
-  window.addEventListener("hashchange", function once() {
-    if (_chatUnmount) { try { _chatUnmount(); } catch {} _chatUnmount = null; }
-    window.removeEventListener("hashchange", once);
-  });
+  // Chat teardown при уходе с /client/ обслуживается armClientHubTeardown
+  // из renderClientEdit; здесь второй listener не нужен (он бы дёргал unmount
+  // при info→chat переключении, а нам нужно unmount ТОЛЬКО за пределами hub'а).
 
   if (!canEdit) return;
 
