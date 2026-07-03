@@ -121,6 +121,7 @@
   "client.saved": "Сохранено",
   "client.title": "Карточка клиента",
   "clients.bookings_count": "Бронирований: {n}",
+  "clients.chat_only_badge": "Только чат",
   "clients.empty": "Клиентов пока нет",
   "clients.last_booking": "Последняя: {date}",
   "clients.no_phone": "—",

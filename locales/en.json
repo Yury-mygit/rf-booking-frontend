@@ -121,6 +121,7 @@
   "client.saved": "Saved",
   "client.title": "Client card",
   "clients.bookings_count": "Bookings: {n}",
+  "clients.chat_only_badge": "Chat only",
   "clients.empty": "No clients yet",
   "clients.last_booking": "Last: {date}",
   "clients.no_phone": "—",

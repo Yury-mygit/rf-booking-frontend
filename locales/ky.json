@@ -121,6 +121,7 @@
   "client.saved": "Сакталды",
   "client.title": "Кардардын картасы",
   "clients.bookings_count": "Бронь: {n}",
+  "clients.chat_only_badge": "Чат гана",
   "clients.empty": "Кардар жок",
   "clients.last_booking": "Акыркы: {date}",
   "clients.no_phone": "—",

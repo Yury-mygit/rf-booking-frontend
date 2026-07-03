@@ -1,7 +1,8 @@
 // Partner client-edit: блок чата под формой/историей.
 //
-// - Список отелей берётся из bookings клиента (уникальные hotel_id). Если у
-//   партнёра один отель — без табов; если >1 — кнопки-табы.
+// - Список отелей берётся из bookings клиента + `client.chat_hotels` (для
+//   prospect-thread'ов в hotel'ях без броней). Если у партнёра один отель —
+//   без табов; если >1 — кнопки-табы.
 // - Walk-in клиент (без user_id) — блок скрыт совсем.
 // - SSE: один EventSource на `/p/chat/events` (все accessible_owners), фильтр
 //   по hotel_id и client_user_id на стороне обработчика.
@@ -85,6 +86,18 @@ export function mountClientChat(container, client, bookings) {
       id: b.hotel_id,
       name_ru: b.hotel_name_ru,
       owner_user_id: b.hotel_owner_user_id,
+    });
+  }
+  // Prospect-hotels: hotel'и, где у клиента есть открытый chat_thread, но нет
+  // броней. Backend отдаёт их в `client.chat_hotels` (уже дедуп'нуто по
+  // hotel_id против bookings — но подстрахуемся `seen`-фильтром).
+  for (const h of client.chat_hotels || []) {
+    if (seen.has(h.id)) continue;
+    seen.add(h.id);
+    hotels.push({
+      id: h.id,
+      name_ru: h.name_ru,
+      owner_user_id: h.owner_user_id,
     });
   }
 
