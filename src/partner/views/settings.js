@@ -1,23 +1,13 @@
-// Settings view — общий для всех блоков. Открывается из шестерёнки в
-// topbar (#settings-btn) через openSettings(); back возвращает на тот
-// hash, с которого пришли.
+// Partner settings — «Общие» (язык) + «Платежи» (QR-код отельера).
 //
-// 2 таба в bottomnav: «Общие» (язык) / «Платежи» (QR-код).
-// QR хранится в localStorage как base64 — для прод нужен backend-endpoint
-// (см. follow-up). Достаточно для single-device теста.
+// 2 таба в bottomnav. QR — per-user endpoint /api/v1/me/qr; owner отеля
+// загружает свой QR-код, клиенты видят его при оплате.
 
-import { api } from "./api.js";
-import { t, LANG_ORDER, getLang, setLang } from "./i18n.js";
-import { run } from "./router.js";
-import { setTitle, showBack } from "./topbar.js";
-import { setBottomNav } from "./bottomnav.js";
-
-// Settings — не появляются в history (replaceState вместо push), чтобы
-// TG-Back не зацикливался между settings и предыдущим view.
-function jumpReplace(hash) {
-  history.replaceState(null, "", hash);
-  run();
-}
+import { api } from "../../api.js";
+import { t } from "../../i18n.js";
+import { setTitle, showBack } from "../../topbar.js";
+import { setBottomNav } from "../../bottomnav.js";
+import { renderGeneralPanel, settingsReturnToPrevious } from "../../settings_shared.js";
 
 const SVG_ATTR = 'viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
 const TAB_ICONS = {
@@ -27,18 +17,8 @@ const TAB_ICONS = {
 const TABS = ["general", "payments"];
 
 let _state = { active: "general" };
-let _returnHash = "#/";
 
-export function openSettings() {
-  const cur = (location.hash || "#/").split("?")[0];
-  // Уже на settings — игнорируем (защита от двойного клика, иначе
-  // _returnHash затрётся на "#/" и back уведёт в hub вместо source view).
-  if (cur === "#/settings") return;
-  _returnHash = location.hash || "#/";
-  jumpReplace("#/settings");
-}
-
-function setSettingsNav() {
+function setNav() {
   setBottomNav(
     TABS.map((name) => ({
       key: name,
@@ -52,56 +32,22 @@ function setSettingsNav() {
 
 function switchTab(name) {
   _state.active = name;
-  setSettingsNav();
+  setNav();
   render();
 }
 
-export function renderSettings() {
-  document.body.dataset.block = "settings";
+export function renderPartnerSettings() {
   setTitle(t("settings.title"));
-  showBack(() => jumpReplace(_returnHash));
-  setSettingsNav();
+  showBack(settingsReturnToPrevious);
+  setNav();
   render();
 }
 
-async function render() {
+function render() {
   const app = document.getElementById("app");
-  if (_state.active === "general") return renderGeneralTab(app);
+  if (_state.active === "general") return renderGeneralPanel(app);
   if (_state.active === "payments") return renderPaymentsTab(app);
 }
-
-// ─── Таб «Общие» ────────────────────────────────────────────────────────────
-
-function renderGeneralTab(app) {
-  app.innerHTML = `
-    <div class="settings-list">
-      <div class="settings-item">
-        <div class="settings-label">${t("settings.language")}</div>
-        <div class="settings-lang-row" id="settings-lang"></div>
-      </div>
-    </div>
-  `;
-  renderLangButtons();
-}
-
-function renderLangButtons() {
-  const row = document.getElementById("settings-lang");
-  if (!row) return;
-  const lang = getLang();
-  row.innerHTML = LANG_ORDER.map((l) => `
-    <button class="settings-lang-btn${l === lang ? " active" : ""}" data-lang="${l}" type="button">${l.toUpperCase()}</button>
-  `).join("");
-  row.querySelectorAll(".settings-lang-btn").forEach((b) => {
-    b.onclick = () => {
-      setLang(b.dataset.lang);
-      // langchange listener в main.js делает run() → re-render формы
-    };
-  });
-}
-
-// ─── Таб «Платежи» — QR-код (серверное хранение) ────────────────────────────
-// Backend: GET/POST/DELETE /api/v1/me/qr; файлы /api/v1/qr/{user_id}/{name}.
-// Per-user, не per-hotel — настройка из «Настройки», у каждого юзера свой QR.
 
 async function renderPaymentsTab(app) {
   app.innerHTML = `<p class="muted">${t("app.loading")}</p>`;

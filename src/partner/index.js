@@ -25,6 +25,7 @@ import { renderAvailability } from "./views/availability.js";
 import { renderStaffList } from "./views/staff_list/index.js";
 import { renderAudit } from "./views/audit.js";
 import { renderPartnerSupportChat } from "./views/support.js";
+import { renderPartnerSettings } from "./views/settings.js";
 
 // rest paths: "/", "/rooms", "/bookings", "/clients", "/client/{id}",
 //   "/hotel/{id}/status/{sub}" (sub ∈ readiness|share|rooms|bookings|delete),
@@ -93,6 +94,7 @@ const ROUTES = [
   { re: /^\/staff$/, h: () => renderStaffList(), titleKey: "pageTitle.staff" },
   { re: /^\/audit$/, h: () => renderAudit(), titleKey: "pageTitle.audit" },
   { re: /^\/support$/, h: () => renderPartnerSupportChat(), titleKey: "pageTitle.support" },
+  { re: /^\/settings$/, h: () => renderPartnerSettings(), titleKey: null },
 ];
 
 // parentPath: куда вести «назад» из текущего partner-пути.
