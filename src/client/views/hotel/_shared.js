@@ -138,15 +138,13 @@ export function setGuestsQuery(qs, guests) {
 }
 
 // Label for `.guests-field` button + summary в book.js.
-// empty/default («1 взрослый, без детей») → «Гости» (Q8).
-// infants ряд скрыт в UI по фидбеку Юрия 2026-06-23 (Stage 6) — в label
-// тоже не показываем, даже если query несёт infants>0 (старая ссылка).
-export function formatGuestsLabel({ adults, children }) {
-  if (adults === 1 && children === 0) {
-    return t("rooms.guests.title");
-  }
+// Всегда показываем adults (для default '1 взр.' вместо 'Гости' — TBB-27);
+// children/infants — условно, если >0. Infants picker row скрыт с 2026-06-23,
+// но infants могут прийти через legacy-query / back-нав от book.js.
+export function formatGuestsLabel({ adults, children, infants }) {
   const parts = [t("rooms.guests.adults_short", { n: adults })];
   if (children > 0) parts.push(t("rooms.guests.children_short", { n: children }));
+  if (infants > 0) parts.push(t("rooms.guests.infants_short", { n: infants }));
   return parts.join(" · ");
 }
 
