@@ -366,23 +366,22 @@ body.has-book-confirm-bar main#app {
   font-weight: 600;
 }
 
-/* Фильтры комнат — sticky-бар над пустым #bottomnav (после TBB-26 клиент
-   везде рендерит пустой bottomnav для единообразия). Sticky не создаёт
-   нового compositing layer, поэтому sticky-topbar глобально работает
-   корректно даже на iOS/Android TG WebView.
-   Offset bottom на bn-h + safe-area — иначе fixed #bottomnav (z:20)
-   перекрывает sticky-бар (z:19). Логика идентична #subbottomnav
-   (base.css). */
+/* Фильтры комнат прижаты к низу через sticky (не fixed) — sticky не
+   создаёт нового compositing layer, поэтому sticky-topbar глобально
+   работает корректно даже на iOS/Android TG WebView.
+   На /rooms #bottomnav скрыт (hideBottomNav) — exception из TBB-26 D1
+   (пустой bottomnav под собственным filter-bar'ом избыточен, TBB-32).
+   Sticky-бар — единственный нижний элемент, прилипает к bottom viewport. */
 .rooms-controls {
   position: sticky;
-  bottom: calc(var(--bn-h) + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
+  bottom: 0;
   z-index: 19;
   /* #app центрирован (max-width: 720px + padding: 14px). Выводим бар
      фильтров за эти границы, чтобы фон тянулся от края до края экрана. */
   width: 100vw;
   margin-left: calc(50% - 50vw);
   margin-right: calc(50% - 50vw);
-  padding: 10px 14px;
+  padding: 10px 14px max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px));
   background: var(--surface);
   border-top: 1px solid var(--text);
 }
@@ -390,9 +389,10 @@ body.has-book-confirm-bar main#app {
    чтобы #rooms-list (flex: 1) толкал .rooms-controls к низу — иначе
    при коротком списке (мало комнат / пустой результат) sticky не
    срабатывает и бар висит сразу под последней карточкой.
-   Глобальный padding-bottom (bn-h + safe) из base.css сохраняем — под
-   пустой #bottomnav; sticky-бар offset'ится над ним в .rooms-controls. */
+   Глобальный padding-bottom (bn-h + safe) обнуляем — bottomnav скрыт,
+   его резерв тут не нужен (даст пустую полосу под sticky-баром). */
 body.has-rooms-controls main#app {
+  padding-bottom: 0;
   display: flex;
   flex-direction: column;
   min-height: calc(100dvh - var(--top-h, 0px));

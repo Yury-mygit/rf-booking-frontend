@@ -4,7 +4,7 @@
 import { getLang, t, tn } from "../../../i18n.js";
 import { navigate, getQuery } from "../../../router.js";
 import { setTitle, showBack } from "../../../topbar.js";
-import { setBottomNav } from "../../../bottomnav.js";
+import { hideBottomNav } from "../../../bottomnav.js";
 import { fmtShort } from "../../../widgets/calendar_utils.js";
 import { showToast } from "../../../widgets/toast.js";
 
@@ -55,7 +55,9 @@ export async function renderHotelRooms({ id }) {
   }
   setTitle(t("client.nav.rooms"));
   showBack(() => navigate(hotelHash(h)));
-  setBottomNav([]);
+  // /rooms — exception из TBB-26 D1: собственный sticky filter-bar внизу,
+  // пустой bottomnav под ним избыточен и добавляет 42px+safe пустоты (TBB-32).
+  hideBottomNav();
   document.body.classList.add("has-rooms-controls");
   app.innerHTML = `<div id="rooms-section"></div>`;
   renderRoomsList(document.getElementById("rooms-section"));
