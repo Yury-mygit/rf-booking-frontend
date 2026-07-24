@@ -27,6 +27,11 @@ export const client = {
   getBooking: (code) => call("GET", `/c/bookings/${code}`),
   getBookingMedia: (code) => call("GET", `/c/bookings/${code}/media`),
   cancelMyBooking: (code) => call("POST", `/c/bookings/${code}/cancel`),
+  requestCancellation: (code, reasons, note) =>
+    call("POST", `/c/bookings/${code}/cancellation-request`, {
+      reasons,
+      note: note || null,
+    }),
   payInit: (code) => call("POST", `/c/bookings/${code}/pay/init`),
   payConfirm: (paymentId) => call("POST", `/c/payments/${paymentId}/mock-confirm`),
 };

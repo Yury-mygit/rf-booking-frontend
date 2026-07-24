@@ -115,6 +115,9 @@ async function load() {
         const postpayPill = b.postpay
           ? `<span class="status-pill postpay">${t("bookings.pill.postpay")}</span>`
           : "";
+        const cancelReqPill = b.has_cancellation_request
+          ? `<span class="status-pill cancellation-requested">${t("bookings.pill.cancellation_requested")}</span>`
+          : "";
 
         return `
           <div class="card">
@@ -123,7 +126,7 @@ async function load() {
             <div class="meta">${t("bookings.dates", { ci: b.check_in, co: b.check_out, n: b.adults + b.children + b.infants })}</div>
             <div class="meta">${t("bookings.client", { name: escapeHtml(b.client_first_name || "—") })}</div>
             <div class="price">${t("bookings.total", { total: b.total_kgs })}</div>
-            <div class="meta">${paidPill} ${confirmedPill} ${postpayPill}</div>
+            <div class="meta">${paidPill} ${confirmedPill} ${postpayPill} ${cancelReqPill}</div>
             ${canTogglePostpay ? `
               <label class="postpay-toggle">
                 <input type="checkbox" data-postpay="${b.code}" ${b.postpay ? "checked" : ""} />

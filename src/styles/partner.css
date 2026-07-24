@@ -124,6 +124,7 @@ button.danger { background: var(--surface); color: var(--error); border: 1px sol
 .status-pill.confirmed { background: var(--pill-published-bg); color: var(--pill-published-text); margin-left: 6px; }
 .status-pill.unconfirmed { background: var(--pill-draft-bg); color: var(--pill-draft-text); margin-left: 6px; }
 .status-pill.unpaid { background: var(--pill-draft-bg); color: var(--pill-draft-text); }
+.status-pill.cancellation-requested { background: var(--pill-blocked-bg); color: var(--pill-blocked-text); margin-left: 6px; font-weight: 600; }
 .status-pill.prospect { background: var(--pill-draft-bg); color: var(--pill-draft-text); }
 .postpay-toggle { display: flex; align-items: center; gap: 6px; margin: 8px 0; font-size: 13px; color: var(--text-muted); cursor: pointer; }
 .postpay-toggle input { margin: 0; }

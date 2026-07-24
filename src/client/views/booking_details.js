@@ -30,7 +30,14 @@ export async function renderBookingDetails({ code }) {
     return;
   }
 
-  app.innerHTML = bookingCardHtml(b, { withDetailsBtn: false, payFrom: "booking_details" });
+  const canRequestCancel =
+    b.confirmed && b.status !== "cancelled" && b.status !== "refunded";
+  const cancelBtnHtml = canRequestCancel
+    ? `<div class="details-actions"><button type="button" class="danger" id="request-cancel-btn">${t("cancel_req.action")}</button></div>`
+    : "";
+  app.innerHTML =
+    bookingCardHtml(b, { withDetailsBtn: false, payFrom: "booking_details" })
+    + cancelBtnHtml;
 
   const chatBtn = app.querySelector("button[data-chat-booking-id]");
   if (chatBtn) chatBtn.addEventListener("click", () => {
@@ -40,5 +47,14 @@ export async function renderBookingDetails({ code }) {
       name: t("my.code", { code: b.code }),
       extra: t("my.dates", { ci: b.check_in, co: b.check_out }),
     });
+  });
+
+  const cancelBtn = app.querySelector("#request-cancel-btn");
+  if (cancelBtn) cancelBtn.addEventListener("click", () => {
+    // replaceState — форма не оседает в history; TG-Back из /cancel
+    // вернёт туда, откуда пришёл в details (обычно /client/bookings).
+    const target = `#/client/bookings/${encodeURIComponent(code)}/cancel`;
+    history.replaceState({}, "", target);
+    window.dispatchEvent(new HashChangeEvent("hashchange"));
   });
 }
