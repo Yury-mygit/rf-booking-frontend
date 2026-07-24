@@ -28,7 +28,7 @@ export function statusText(b) {
 }
 
 export function bookingCardHtml(b, opts = {}) {
-  const { withDetailsBtn = true } = opts;
+  const { withDetailsBtn = true, detailsMode = false } = opts;
   const hotelLine = b.hotel_name_ru
     ? `<div>${escapeHtml(b.hotel_name_ru)}</div>`
     : "";
@@ -40,12 +40,19 @@ export function bookingCardHtml(b, opts = {}) {
   const paid = b.status === "paid";
   const payFrom = opts.payFrom || "bookings";
   const payPill = `<a class="bk-pay-pill ${paid ? "paid" : "unpaid"}" href="#/client/pay/${b.code}?from=${payFrom}" title="${escapeHtml(statusText(b))}" aria-label="${escapeHtml(statusText(b))}">${DOLLAR_ICON_SVG}</a>`;
+  // detailsMode: экшн-иконки уходят на две absolute-кнопки (✕ top-right,
+  // chat bottom-right) — колонка actions выпадает, body тянется на всю
+  // оставшуюся ширину.
   const detailsBtn = withDetailsBtn
     ? `<a class="bk-icon-btn" href="#/client/bookings/${b.code}/details" aria-label="${escapeHtml(t("my.details"))}" title="${escapeHtml(t("my.details"))}">${DETAILS_ICON_SVG}</a>`
     : "";
   const chatBtn = `<button class="bk-icon-btn" type="button" data-chat-booking-hotel="${b.hotel_id}" data-chat-booking-id="${b.id}" aria-label="${escapeHtml(t("chat.write_about_booking"))}" title="${escapeHtml(t("chat.write_about_booking"))}">${CHAT_ICON_SVG}</button>`;
+  const actionsCol = detailsMode
+    ? ""
+    : `<div class="booking-card-actions">${detailsBtn}${chatBtn}</div>`;
+  const cardClass = detailsMode ? "booking-card details-mode" : "booking-card";
   return `
-    <div class="booking-card">
+    <div class="${cardClass}">
       <a class="booking-card-photo" href="${mediaHref}" aria-label="${escapeHtml(t("media.title"))}"${photoStyle}></a>
       <div class="booking-card-body">
         <div class="bk-codeline">
@@ -56,9 +63,6 @@ export function bookingCardHtml(b, opts = {}) {
         <div class="bk-dates">${t("my.dates", { ci: b.check_in, co: b.check_out })}</div>
         <div>${tn("my.guests", b.guests)}</div>
       </div>
-      <div class="booking-card-actions">
-        ${detailsBtn}
-        ${chatBtn}
-      </div>
+      ${actionsCol}
     </div>`;
 }

@@ -31,6 +31,36 @@
   display: flex; flex-direction: column; gap: 8px; align-items: center;
   flex-shrink: 0;
 }
+/* Details view: убираем колонку actions, кладём две corner-кнопки поверх
+   карточки (✕ top-right → cancellation, chat bottom-right). */
+.booking-card.details-mode { position: relative; }
+.booking-card.details-mode .booking-card-body { padding-right: 40px; padding-bottom: 40px; }
+.booking-card-cancel-corner,
+.booking-card-chat-corner {
+  position: absolute;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--surface);
+  cursor: pointer;
+}
+.booking-card-cancel-corner {
+  top: 8px;
+  color: var(--error);
+  border: 1px solid var(--error);
+}
+.booking-card-cancel-corner:active { background: var(--error); color: var(--accent-text); }
+.booking-card-chat-corner {
+  bottom: 8px;
+  color: var(--text);
+  border: 1px solid var(--border-soft);
+}
+.booking-card-chat-corner:active { background: var(--border-soft); }
 .bk-codeline { display: flex; align-items: center; gap: 8px; }
 .bk-dates { font-size: 12px; white-space: nowrap; }
 .bk-pay-pill {
@@ -819,20 +849,7 @@ body.has-rooms-controls #rooms-list {
   margin-top: 0;
 }
 
-/* TBB-31: cancellation request form + details-actions button. */
-.details-actions {
-  margin-top: 12px;
-}
-button.danger {
-  width: 100%;
-  padding: 10px 16px;
-  background: var(--surface);
-  color: var(--error);
-  border: 1px solid var(--error);
-  border-radius: 4px;
-  font-size: 14px;
-  cursor: pointer;
-}
+/* TBB-31: cancellation request form. */
 .cancel-form {
   padding: 4px 0 16px;
 }

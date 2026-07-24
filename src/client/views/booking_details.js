@@ -8,6 +8,7 @@ import { setTitle, showBack } from "../../topbar.js";
 import { setBottomNav } from "../../bottomnav.js";
 import { CHAT_ICON_SVG, openChatWithHotel } from "./chat/open.js";
 import { bookingCardHtml, statusText, escapeHtml } from "./bookings_card.js";
+import { CHAT_ICON_SVG as CHAT_SVG } from "./chat/open.js";
 
 export async function renderBookingDetails({ code }) {
   setTitle(t("my.details_title"));
@@ -32,15 +33,22 @@ export async function renderBookingDetails({ code }) {
 
   const canRequestCancel =
     b.confirmed && b.status !== "cancelled" && b.status !== "refunded";
-  const cancelBtnHtml = canRequestCancel
-    ? `<div class="details-actions"><button type="button" class="danger" id="request-cancel-btn">${t("cancel_req.action")}</button></div>`
-    : "";
-  app.innerHTML =
-    bookingCardHtml(b, { withDetailsBtn: false, payFrom: "booking_details" })
-    + cancelBtnHtml;
 
-  const chatBtn = app.querySelector("button[data-chat-booking-id]");
-  if (chatBtn) chatBtn.addEventListener("click", () => {
+  app.innerHTML = bookingCardHtml(b, {
+    withDetailsBtn: false,
+    detailsMode: true,
+    payFrom: "booking_details",
+  });
+
+  const card = app.querySelector(".booking-card.details-mode");
+
+  // Chat — нижний правый угол карточки.
+  const chatBtnHtml = `
+    <button type="button" class="booking-card-chat-corner" aria-label="${escapeHtml(t("chat.write_about_booking"))}" title="${escapeHtml(t("chat.write_about_booking"))}">
+      ${CHAT_SVG}
+    </button>`;
+  card.insertAdjacentHTML("beforeend", chatBtnHtml);
+  card.querySelector(".booking-card-chat-corner").addEventListener("click", () => {
     openChatWithHotel(b.hotel_id, {
       type: "booking",
       id: b.id,
@@ -49,12 +57,17 @@ export async function renderBookingDetails({ code }) {
     });
   });
 
-  const cancelBtn = app.querySelector("#request-cancel-btn");
-  if (cancelBtn) cancelBtn.addEventListener("click", () => {
-    // replaceState — форма не оседает в history; TG-Back из /cancel
-    // вернёт туда, откуда пришёл в details (обычно /client/bookings).
-    const target = `#/client/bookings/${encodeURIComponent(code)}/cancel`;
-    history.replaceState({}, "", target);
-    window.dispatchEvent(new HashChangeEvent("hashchange"));
-  });
+  // ✕ — верхний правый угол карточки (только для confirmed && не отменённых).
+  if (canRequestCancel) {
+    const cancelBtnHtml = `
+      <button type="button" class="booking-card-cancel-corner" aria-label="${escapeHtml(t("cancel_req.action"))}" title="${escapeHtml(t("cancel_req.action"))}">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>`;
+    card.insertAdjacentHTML("beforeend", cancelBtnHtml);
+    card.querySelector(".booking-card-cancel-corner").addEventListener("click", () => {
+      const target = `#/client/bookings/${encodeURIComponent(code)}/cancel`;
+      history.replaceState({}, "", target);
+      window.dispatchEvent(new HashChangeEvent("hashchange"));
+    });
+  }
 }
