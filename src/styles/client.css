@@ -116,7 +116,24 @@
 .bk-icon-btn:hover, .bk-icon-btn:focus-visible { background: var(--border-soft); }
 .bk-actions { margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
 
-.pay-card { max-width: 480px; margin: 16px auto; }
+.pay-card { max-width: 480px; margin: 16px auto; position: relative; }
+.pay-close-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+  color: var(--error);
+  border: 1px solid var(--error);
+  border-radius: 50%;
+  cursor: pointer;
+}
+.pay-close-btn:active { background: var(--error); color: var(--accent-text); }
 .pay-amount { font-size: 20px; margin: 12px 0; }
 .pay-methods { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
 .pay-method { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border: 1px solid var(--border-soft); border-radius: 6px; cursor: pointer; }

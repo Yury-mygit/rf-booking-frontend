@@ -50,30 +50,17 @@ export async function renderPay({ code }) {
 
   if (booking.status === "paid") {
     app.innerHTML = `
-      <div class="card">
+      <div class="card pay-card">
+        <button type="button" class="pay-close-btn" id="pay-cancel-x" aria-label="${t("cancel_req.action")}" title="${t("cancel_req.action")}">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
         <div class="success">${t("pay.already_paid")}</div>
         <div class="meta">${t("my.code", { code })}</div>
         <div class="meta">${t("my.dates", { ci: booking.check_in, co: booking.check_out })} · ${tn("my.guests", booking.guests)}</div>
         <div class="price">${t("my.total", { total: booking.total_kgs })}</div>
-        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
-          <a class="primary" href="#/client/hotel/${booking.hotel_id}">${t("pay.back_to_hotel")}</a>
-          <button class="danger" id="cancel-booking-btn" type="button">${t("my.cancel_booking")}</button>
-        </div>
-        <div id="cancel-err" class="error"></div>
       </div>`;
-    document.getElementById("cancel-booking-btn").onclick = async () => {
-      if (!confirm(t("my.cancel_confirm"))) return;
-      const btn = document.getElementById("cancel-booking-btn");
-      const err = document.getElementById("cancel-err");
-      btn.disabled = true;
-      err.textContent = "";
-      try {
-        await api.cancelMyBooking(code);
-        navigate("#/client/bookings");
-      } catch (e) {
-        err.textContent = t("common.error", { msg: e.message });
-        btn.disabled = false;
-      }
+    document.getElementById("pay-cancel-x").onclick = () => {
+      navigate(`#/client/bookings/${encodeURIComponent(code)}/cancel`);
     };
     return;
   }
