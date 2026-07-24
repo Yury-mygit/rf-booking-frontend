@@ -101,14 +101,82 @@ export async function renderPay({ code }) {
       <div class="meta">${t("my.dates", { ci: booking.check_in, co: booking.check_out })} · ${tn("my.guests", booking.guests)}</div>
       <div class="price pay-amount">${t("pay.amount", { total: initData.amount_kgs })}</div>
       <div class="pay-methods">${methodsHtml}</div>
+      <div id="qr-panel" class="qr-panel" hidden></div>
       <button id="pay-submit" class="primary pay-submit">${t("pay.submit")}</button>
       <div id="pay-err" class="error"></div>
     </div>`;
 
-  document.getElementById("pay-submit").onclick = async () => {
-    const btn = document.getElementById("pay-submit");
+  const qrMethod = initData.methods.find((m) => m.key === "qr");
+  const qrPanel = document.getElementById("qr-panel");
+  const paySubmit = document.getElementById("pay-submit");
+
+  function renderMode() {
+    const sel = document.querySelector('input[name="pay-method"]:checked')?.value;
+    if (sel === "qr" && qrMethod) {
+      qrPanel.hidden = false;
+      qrPanel.innerHTML = `
+        <img class="qr-panel-img" src="${qrMethod.qr_image_url}" alt="${t("pay.method.qr")}" />
+        <button type="button" class="primary" id="qr-pay-btn">${t("pay.qr.button")}</button>`;
+      document.getElementById("qr-pay-btn").onclick = handleQrPay;
+      paySubmit.hidden = true;
+    } else {
+      qrPanel.hidden = true;
+      qrPanel.innerHTML = "";
+      paySubmit.hidden = false;
+    }
+  }
+  document.querySelectorAll('input[name="pay-method"]').forEach((r) =>
+    r.addEventListener("change", renderMode),
+  );
+  renderMode();
+
+  async function decodeQrUrl(imageUrl) {
+    const { default: jsQR } = await import("jsqr");
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = () => reject(new Error("image_load_failed"));
+      img.src = imageUrl;
+    });
+    const canvas = document.createElement("canvas");
+    canvas.width = img.naturalWidth;
+    canvas.height = img.naturalHeight;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(img, 0, 0);
+    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const code = jsQR(imgData.data, imgData.width, imgData.height);
+    if (!code || !code.data) return null;
+    return code.data;
+  }
+
+  async function handleQrPay() {
+    const btn = document.getElementById("qr-pay-btn");
     const err = document.getElementById("pay-err");
+    err.textContent = "";
     btn.disabled = true;
+    try {
+      const payload = await decodeQrUrl(qrMethod.qr_image_url);
+      if (!payload || !/^https?:\/\//i.test(payload)) {
+        err.textContent = t("pay.qr.decode_failed");
+        btn.disabled = false;
+        return;
+      }
+      if (inTelegram && tg?.openLink) {
+        tg.openLink(payload);
+      } else {
+        window.open(payload, "_blank", "noopener");
+      }
+      btn.disabled = false;
+    } catch (e) {
+      err.textContent = t("pay.qr.decode_failed");
+      btn.disabled = false;
+    }
+  }
+
+  paySubmit.onclick = async () => {
+    const err = document.getElementById("pay-err");
+    paySubmit.disabled = true;
     err.textContent = "";
     try {
       const res = await api.payConfirm(initData.payment_id);
@@ -116,11 +184,11 @@ export async function renderPay({ code }) {
         navigate(`#/client/pay/${code}`);  // re-render — попадёт в already_paid ветку
       } else {
         err.textContent = t("pay.unexpected_status", { status: res.booking_status });
-        btn.disabled = false;
+        paySubmit.disabled = false;
       }
     } catch (e) {
       err.textContent = t("common.error", { msg: e.message });
-      btn.disabled = false;
+      paySubmit.disabled = false;
     }
   };
 }
