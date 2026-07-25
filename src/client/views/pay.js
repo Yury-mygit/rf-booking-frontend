@@ -68,17 +68,6 @@ export async function renderPay({ code }) {
     app.innerHTML = `<div class="error">${t("pay.bad_status", { status: t("my.status." + booking.status) })}</div>`;
     return;
   }
-  if (booking.postpay) {
-    app.innerHTML = `
-      <div class="card pay-card">
-        <div class="meta">${t("pay.for_booking", { code: booking.code })}</div>
-        <div class="meta">${t("my.dates", { ci: booking.check_in, co: booking.check_out })} · ${tn("my.guests", booking.guests)}</div>
-        <div class="price pay-amount">${t("pay.amount", { total: booking.total_kgs })}</div>
-        <div class="success">${t("pay.postpay_note")}</div>
-        <div style="margin-top:12px"><a class="primary" href="#/client/hotel/${booking.hotel_id}">${t("pay.back_to_hotel")}</a></div>
-      </div>`;
-    return;
-  }
 
   let initData;
   try {

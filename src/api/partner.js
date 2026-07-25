@@ -86,12 +86,7 @@ export const partner = {
     return call("GET", "/p/bookings" + (s ? `?${s}` : ""));
   },
   confirmBooking: (code) => call("POST", `/p/bookings/${code}/confirm`),
-  markPaid: (code) => call("POST", `/p/bookings/${code}/mark-paid`),
   cancelBooking: (code) => call("POST", `/p/bookings/${code}/cancel`),
-  setPostpay: (code, postpay) => call("POST", `/p/bookings/${code}/postpay`, { postpay }),
-
-  // ─── Walk-in ───────────────────────────────────────────────────────────
-  createWalkinBooking: (payload) => call("POST", "/p/walkin-bookings", payload),
 
   // ─── Flat rooms (across all my hotels) ─────────────────────────────────
   listAllRooms: (opts = {}) => {

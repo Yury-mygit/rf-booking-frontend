@@ -2,7 +2,6 @@ import { api } from "../../api.js";
 import { t } from "../../i18n.js";
 import { setTitle } from "../../topbar.js";
 import { todayPlus } from "../../util.js";
-import { openWalkinModal } from "./walkin_modal.js";
 
 const DAYS_AHEAD = 28;
 
@@ -80,8 +79,6 @@ function openEditor(date, row, room, hotelId, roomId) {
           <button class="secondary" id="m-cancel">${t("app.cancel")}</button>
           <button class="primary" id="m-save">${t("app.save")}</button>
         </div>
-        <hr style="margin:14px 0;border:none;border-top:1px solid var(--border)">
-        <button class="primary" id="m-walkin" style="width:100%">${t("walkin.btn")}</button>
         <div id="m-err" class="error"></div>
       </div>
     </div>
@@ -101,15 +98,5 @@ function openEditor(date, row, room, hotelId, roomId) {
     } catch (e) {
       document.getElementById("m-err").textContent = t("app.error", { msg: e.message });
     }
-  };
-  document.getElementById("m-walkin").onclick = () => {
-    mount.innerHTML = "";
-    openWalkinModal({
-      hotelId,
-      roomId,
-      room,
-      initialDate: date,
-      onSuccess: () => renderAvailability({ hotelId, roomId }),
-    });
   };
 }

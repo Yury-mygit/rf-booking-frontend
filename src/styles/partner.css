@@ -120,14 +120,11 @@ button.danger { background: var(--surface); color: var(--error); border: 1px sol
 .status-pill.pending { background: var(--pill-draft-bg); color: var(--pill-draft-text); }
 .status-pill.paid { background: var(--pill-published-bg); color: var(--pill-published-text); }
 .status-pill.cancelled, .status-pill.refunded { background: var(--pill-blocked-bg); color: var(--pill-blocked-text); }
-.status-pill.postpay { background: var(--pill-draft-bg); color: var(--pill-draft-text); border: 1px dashed var(--text-muted); margin-left: 6px; }
 .status-pill.confirmed { background: var(--pill-published-bg); color: var(--pill-published-text); margin-left: 6px; }
 .status-pill.unconfirmed { background: var(--pill-draft-bg); color: var(--pill-draft-text); margin-left: 6px; }
 .status-pill.unpaid { background: var(--pill-draft-bg); color: var(--pill-draft-text); }
 .status-pill.cancellation-requested { background: var(--pill-blocked-bg); color: var(--pill-blocked-text); margin-left: 6px; font-weight: 600; }
 .status-pill.prospect { background: var(--pill-draft-bg); color: var(--pill-draft-text); }
-.postpay-toggle { display: flex; align-items: center; gap: 6px; margin: 8px 0; font-size: 13px; color: var(--text-muted); cursor: pointer; }
-.postpay-toggle input { margin: 0; }
 
 .status-header { display: flex; align-items: center; gap: 12px; justify-content: space-between; padding: 14px; margin-bottom: 14px; border: 1px solid var(--border-soft); border-left: 4px solid var(--border-soft); border-radius: 6px; background: var(--surface); flex-wrap: wrap; }
 .status-header.published { border-left-color: var(--pill-published-text); }
@@ -227,13 +224,6 @@ button.link:disabled { opacity: 0.5; cursor: not-allowed; }
 .client-photo-block { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 12px; }
 .client-photo { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; background: var(--surface-soft); flex-shrink: 0; }
 .client-photo-empty { background: linear-gradient(135deg, var(--surface-soft), var(--border-soft)); }
-
-/* Walk-in modal calendar (compact) */
-.walkin-cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; margin: 8px 0; }
-.walkin-cal .wd { aspect-ratio: 1 / 1; border: 1px solid var(--border); border-radius: 4px; font-size: 11px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: var(--cal-free); color: var(--text); }
-.walkin-cal .wd.blocked, .walkin-cal .wd.booked { background: var(--cal-blocked); cursor: not-allowed; color: var(--text-faint); }
-.walkin-cal .wd.in-range { background: var(--accent); color: var(--accent-text); }
-.walkin-cal .wd.endpoint { outline: 2px solid var(--accent); }
 
 /* ─── Chat в карточке клиента ───────────────────────────────────────── */
 
