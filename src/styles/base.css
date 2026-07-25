@@ -337,3 +337,19 @@ button.secondary {
 
 a { color: var(--accent); }
 a:hover { text-decoration: underline; }
+
+/* TBB-25: единый scrollbar-стиль на всех overflow-элементах SPA.
+   Firefox — scrollbar-width/color. Chromium/WebKit — ::-webkit-scrollbar.
+   Mobile (iOS/Android WebView) — браузер сам скрывает overlay при отсутствии
+   скролла; width применяется только когда scrollbar реально видим.
+   Элементы, сознательно скрывающие scrollbar (.tabs, .room-photos-carousel),
+   переопределяют собственные scrollbar-width: none / display: none и остаются
+   как есть. */
+* { scrollbar-width: thin; scrollbar-color: var(--border-soft) transparent; }
+*::-webkit-scrollbar { width: 6px; height: 6px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  background: var(--border-soft);
+  border-radius: 3px;
+}
+*::-webkit-scrollbar-thumb:hover { background: var(--muted); }
