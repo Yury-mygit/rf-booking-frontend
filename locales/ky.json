@@ -272,8 +272,6 @@
   "my.status.cancelled": "жокко чыгарылган",
   "my.status.paid": "төлөнгөн",
   "my.status.pending": "төлөмдү күтөт",
-  "my.status.pending_confirmed": "өнөктөш ырастаган, төлөмдү күтөт",
-  "my.status.pending_unconfirmed": "ырасталган эмес, төлөмдү күтөт",
   "my.status.refunded": "кайтарылган",
   "my.total": "{total} сом",
   "my.write": "Жазуу",

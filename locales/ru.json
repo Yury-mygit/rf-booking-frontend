@@ -272,8 +272,6 @@
   "my.status.cancelled": "отменена",
   "my.status.paid": "оплачена",
   "my.status.pending": "ожидает оплаты",
-  "my.status.pending_confirmed": "подтверждена партнёром, ожидает оплаты",
-  "my.status.pending_unconfirmed": "не подтверждена, ожидает оплаты",
   "my.status.refunded": "возвращена",
   "my.total": "{total} сом",
   "my.write": "Написать",

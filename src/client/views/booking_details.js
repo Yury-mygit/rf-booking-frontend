@@ -7,7 +7,7 @@ import { navigate } from "../../router.js";
 import { setTitle, showBack } from "../../topbar.js";
 import { setBottomNav } from "../../bottomnav.js";
 import { CHAT_ICON_SVG, openChatWithHotel } from "./chat/open.js";
-import { bookingCardHtml, statusText, escapeHtml } from "./bookings_card.js";
+import { bookingCardHtml, escapeHtml } from "./bookings_card.js";
 import { CHAT_ICON_SVG as CHAT_SVG } from "./chat/open.js";
 
 export async function renderBookingDetails({ code }) {
@@ -37,7 +37,6 @@ export async function renderBookingDetails({ code }) {
   app.innerHTML = bookingCardHtml(b, {
     withDetailsBtn: false,
     detailsMode: true,
-    payFrom: "booking_details",
   });
 
   const card = app.querySelector(".booking-card.details-mode");

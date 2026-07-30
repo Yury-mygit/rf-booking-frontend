@@ -7,8 +7,6 @@ import { CHAT_ICON_SVG } from "./chat/open.js";
 
 const DETAILS_ICON_SVG = `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
 
-export const DOLLAR_ICON_SVG = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>`;
-
 export function escapeHtml(s) {
   if (s == null) return "";
   return String(s).replace(
@@ -16,15 +14,6 @@ export function escapeHtml(s) {
     (c) =>
       ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c],
   );
-}
-
-export function statusText(b) {
-  if (b.status === "pending") {
-    return b.confirmed
-      ? t("my.status.pending_confirmed")
-      : t("my.status.pending_unconfirmed");
-  }
-  return t("my.status." + b.status);
 }
 
 export function bookingCardHtml(b, opts = {}) {
@@ -37,9 +26,6 @@ export function bookingCardHtml(b, opts = {}) {
     ? ` style="background-image:url('${escapeHtml(photo)}')"`
     : "";
   const mediaHref = `#/client/bookings/${b.code}/media`;
-  const paid = b.status === "paid";
-  const payFrom = opts.payFrom || "bookings";
-  const payPill = `<a class="bk-pay-pill ${paid ? "paid" : "unpaid"}" href="#/client/pay/${b.code}?from=${payFrom}" title="${escapeHtml(statusText(b))}" aria-label="${escapeHtml(statusText(b))}">${DOLLAR_ICON_SVG}</a>`;
   // detailsMode: экшн-иконки уходят на две absolute-кнопки (✕ top-right,
   // chat bottom-right) — колонка actions выпадает, body тянется на всю
   // оставшуюся ширину.
@@ -57,7 +43,6 @@ export function bookingCardHtml(b, opts = {}) {
       <div class="booking-card-body">
         <div class="bk-codeline">
           <span class="meta">${t("my.code", { code: b.code })}</span>
-          ${payPill}
         </div>
         ${hotelLine}
         <div class="bk-dates">${t("my.dates", { ci: b.check_in, co: b.check_out })}</div>

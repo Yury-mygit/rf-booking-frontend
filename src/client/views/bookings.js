@@ -6,9 +6,7 @@ import { setBottomNav } from "../../bottomnav.js";
 import { setFilterBar } from "../../filterbar.js";
 import { clientNavItems } from "../nav.js";
 import { openChatWithHotel } from "./chat/open.js";
-import { bookingCardHtml, DOLLAR_ICON_SVG } from "./bookings_card.js";
-
-const PAY_CYCLE = ["all", "paid", "unpaid"];
+import { bookingCardHtml } from "./bookings_card.js";
 
 export async function renderBookings() {
   setTitle(t("client.nav.bookings"));
@@ -32,7 +30,6 @@ export async function renderBookings() {
   }
 
   let scope = "all";       // all | actual
-  let payFilter = "all";   // all | paid | unpaid
 
   const renderFilter = () => {
     setFilterBar([
@@ -48,17 +45,6 @@ export async function renderBookings() {
         onClick: () => { scope = "actual"; renderFilter(); renderList(); },
         active: scope === "actual",
       },
-      {
-        key: "pay",
-        icon: DOLLAR_ICON_SVG,
-        onClick: () => {
-          const i = PAY_CYCLE.indexOf(payFilter);
-          payFilter = PAY_CYCLE[(i + 1) % PAY_CYCLE.length];
-          renderFilter();
-          renderList();
-        },
-        variant: `pay-${payFilter}`,
-      },
     ]);
   };
 
@@ -66,8 +52,6 @@ export async function renderBookings() {
     const today = new Date().toISOString().slice(0, 10);
     const filtered = items.filter((b) => {
       if (scope === "actual" && b.check_out < today) return false;
-      if (payFilter === "paid" && b.status !== "paid") return false;
-      if (payFilter === "unpaid" && b.status === "paid") return false;
       return true;
     });
     if (!filtered.length) {

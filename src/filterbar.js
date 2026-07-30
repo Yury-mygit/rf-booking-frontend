@@ -5,7 +5,7 @@
 //
 // Item: { key, label?, icon?, onClick, active?, variant? }.
 // variant — суффикс CSS-класса для специальных стилей (например,
-// `pay-all` / `pay-paid` / `pay-unpaid` — окрашивают рамку и иконку).
+// цветовые токены статуса — окрашивают рамку и иконку).
 
 export function setFilterBar(items, opts = {}) {
   const fb = document.getElementById("filterbar");

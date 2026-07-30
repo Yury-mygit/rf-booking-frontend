@@ -272,8 +272,6 @@
   "my.status.cancelled": "cancelled",
   "my.status.paid": "paid",
   "my.status.pending": "awaiting payment",
-  "my.status.pending_confirmed": "confirmed by partner, awaiting payment",
-  "my.status.pending_unconfirmed": "unconfirmed, awaiting payment",
   "my.status.refunded": "refunded",
   "my.total": "{total} KGS",
   "my.write": "Message",
