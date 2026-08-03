@@ -14,6 +14,9 @@ export const AMENITY_ICONS = {
   elevator: `<svg ${A}><rect x="4" y="3" width="16" height="18" rx="1"></rect><path d="M9 9l3-3 3 3"></path><path d="M9 15l3 3 3-3"></path></svg>`,
   press: `<svg ${A}><rect x="3" y="5" width="18" height="14" rx="1"></rect><path d="M7 9h6M7 13h10M7 17h7"></path></svg>`,
   express_checkin: `<svg ${A}><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"></path></svg>`,
+  wifi: `<svg ${A}><path d="M2 8.5a15 15 0 0 1 20 0"></path><path d="M5 12a10 10 0 0 1 14 0"></path><path d="M8.5 15.5a5 5 0 0 1 7 0"></path><circle cx="12" cy="19" r="1"></circle></svg>`,
+  parking: `<svg ${A}><rect x="3" y="3" width="18" height="18" rx="3"></rect><path d="M9 17V7h4a3 3 0 0 1 0 6H9"></path></svg>`,
+  heating: `<svg ${A}><rect x="5" y="4" width="14" height="16" rx="1"></rect><path d="M9 4v16M12 4v16M15 4v16"></path></svg>`,
   // hotel dining
   bar: `<svg ${A}><path d="M5 4h14l-7 8-7-8z"></path><path d="M12 12v8"></path><path d="M8 20h8"></path></svg>`,
   free_tea_coffee: `<svg ${A}><path d="M4 8h12v6a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V8z"></path><path d="M16 10h2a2 2 0 0 1 0 4h-2"></path><path d="M8 4c0 1 1 1 1 2s-1 1-1 2"></path><path d="M12 4c0 1 1 1 1 2s-1 1-1 2"></path></svg>`,

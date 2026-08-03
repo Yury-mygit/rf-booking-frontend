@@ -10,7 +10,7 @@
 export const HOTEL_AMENITIES_BY_SECTION = [
   {
     section: "general",
-    kinds: ["atm", "reception_24h", "elevator", "press", "express_checkin"],
+    kinds: ["atm", "reception_24h", "elevator", "press", "express_checkin", "wifi", "parking", "heating"],
   },
   {
     section: "dining",
@@ -21,7 +21,7 @@ export const HOTEL_AMENITIES_BY_SECTION = [
 export const ROOM_AMENITIES_BY_SECTION = [
   {
     section: "in_room",
-    kinds: ["air_conditioning", "non_smoking", "room_service", "tv", "bathrobe", "safe", "toiletries"],
+    kinds: ["air_conditioning", "non_smoking", "room_service", "tv", "bathrobe", "wifi", "heating", "safe", "toiletries"],
   },
   {
     section: "services",
