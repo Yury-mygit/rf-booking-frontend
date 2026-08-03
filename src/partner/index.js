@@ -36,7 +36,7 @@ import { renderPartnerSettings } from "./views/settings.js";
 // Legacy `/hotel/{id}` и `/hotel/{id}/rooms` — редирект на новые URL
 // (TBB-16, чтобы старые ссылки из бота продолжали работать).
 const ROUTES = [
-  { re: /^\/?$/, h: (_m) => renderHotelsList(), titleKey: "pageTitle.hotels" },
+  { re: /^\/?$/, h: (_m) => renderHotelsList(), titleKey: "partner.pageTitle.hotels" },
   { re: /^\/login$/, h: () => renderPartnerLogin(), titleKey: "pageTitle.devLogin" },
   { re: /^\/rooms$/, h: () => renderAllRooms(), titleKey: "pageTitle.rooms" },
   { re: /^\/bookings$/, h: () => renderBookings(), titleKey: "pageTitle.bookings" },

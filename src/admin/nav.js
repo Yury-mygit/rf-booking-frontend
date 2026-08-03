@@ -19,7 +19,7 @@ const ICONS = {
 const MAIN_ITEMS = [
   { key: "metrics", labelKey: "nav.metrics", icon: ICONS.metrics, href: "/admin/" },
   { key: "users", labelKey: "nav.users", icon: ICONS.users, href: "/admin/users" },
-  { key: "hotels", labelKey: "nav.hotels", icon: ICONS.hotels, href: "/admin/hotels" },
+  { key: "hotels", labelKey: "partner.nav.hotels", icon: ICONS.hotels, href: "/admin/hotels" },
   { key: "bookings", labelKey: "nav.bookings", icon: ICONS.bookings, href: "/admin/bookings" },
   { key: "support", labelKey: "nav.support", icon: ICONS.support, href: "/admin/support" },
 ];

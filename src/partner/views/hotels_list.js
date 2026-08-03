@@ -3,7 +3,7 @@ import { t } from "../../i18n.js";
 import { assetThumbUrl, escapeHtml } from "../../util.js";
 
 const createBarHtml = () =>
-  `<div class="create-bar"><button class="primary" id="hotels-create-btn">${t("hotels.new")}</button></div>`;
+  `<div class="create-bar"><button class="primary" id="hotels-create-btn">${t("partner.hotels.new")}</button></div>`;
 
 // body.has-create-bar держит padding-bottom на main#app, чтобы
 // последняя карточка не уходила под fixed-bar. Снимаем при уходе
@@ -30,7 +30,7 @@ function cardHtml(h) {
         <span class="status-pill ${h.status}">${t("hotels.status." + h.status)}</span>
       </div>
       <div class="hotel-actions">
-        <a class="hotel-edit-btn" href="#/partner/hotel/${h.id}/status/rooms" title="${t("hotels.rooms_btn")}" aria-label="${t("hotels.rooms_btn")}">🛏</a>
+        <a class="hotel-edit-btn" href="#/partner/hotel/${h.id}/status/rooms" title="${t("partner.hotels.rooms_btn")}" aria-label="${t("partner.hotels.rooms_btn")}">🛏</a>
       </div>
     </div>`;
 }
@@ -71,7 +71,7 @@ export async function renderHotelsList() {
     const hotels = await api.listHotels();
     const list = document.getElementById("list");
     if (!hotels.length) {
-      list.innerHTML = `<p class="muted">${t("hotels.empty")}</p>`;
+      list.innerHTML = `<p class="muted">${t("partner.hotels.empty")}</p>`;
       return;
     }
     list.innerHTML = hotels.map(cardHtml).join("");

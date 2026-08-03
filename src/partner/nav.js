@@ -17,7 +17,7 @@ const ICONS = {
 };
 
 const MAIN_ITEMS = [
-  { key: "hotels", labelKey: "nav.hotels", icon: ICONS.hotels, href: "/partner/" },
+  { key: "hotels", labelKey: "partner.nav.hotels", icon: ICONS.hotels, href: "/partner/" },
   { key: "rooms", labelKey: "nav.rooms", icon: ICONS.rooms, href: "/partner/rooms" },
   { key: "bookings", labelKey: "nav.bookings", icon: ICONS.bookings, href: "/partner/bookings" },
   { key: "clients", labelKey: "nav.clients", icon: ICONS.clients, href: "/partner/clients" },
