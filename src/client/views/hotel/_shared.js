@@ -5,8 +5,9 @@
 // передают q (даты/гости), что вызывает re-fetch и обновляет _state.hotel.
 //
 // EventSource подписан на /public/hotels/{slug}/events; debounced 300ms
-// refresh hotelDetails при push'е сервера. Закрывается при уходе с
-// /client/hotel/<slug>/rooms (hashchange listener ниже).
+// refresh hotelDetails при push'е сервера. Живёт пока пользователь в
+// любом /client/hotel/<slug>/* view; закрывается при уходе (hashchange
+// listener ниже).
 
 import { api } from "../../../api.js";
 import { t } from "../../../i18n.js";
@@ -81,13 +82,15 @@ export function ensureEventSource(hotelSlugOrId, onRefresh) {
   };
 }
 
-// SSE закрываем при уходе с любого /client/hotel/<slug>/rooms.
+// SSE закрываем при уходе из hotel-семейства views (/client/hotel/<slug>/*).
 // body-классы фиксированных нижних панелей снимаем сразу же, чтобы
 // padding-bottom не висел на других view.
 window.addEventListener("hashchange", () => {
   const hash = location.hash.replace(/^#/, "").split("?")[0];
-  if (!/^\/client\/hotel\/[^/]+\/rooms$/.test(hash)) {
+  if (!/^\/client\/hotel\/[^/]+(\/.*)?$/.test(hash)) {
     closeEventSource();
+  }
+  if (!/^\/client\/hotel\/[^/]+\/rooms$/.test(hash)) {
     document.body.classList.remove("has-rooms-controls");
   }
   if (!/^\/client\/hotel\/[^/]+\/book\/\d+$/.test(hash)) {

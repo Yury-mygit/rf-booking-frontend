@@ -8,7 +8,7 @@ import { setBottomNav } from "../../../bottomnav.js";
 import { clientNavItems } from "../../nav.js";
 import { CHAT_ICON_SVG, openChatWithHotel } from "../chat/open.js";
 
-import { ensureHotel, escapeHtml, hotelAccentsHtml, hotelHash, PIN_SVG } from "./_shared.js";
+import { ensureEventSource, ensureHotel, escapeHtml, hotelAccentsHtml, hotelHash, PIN_SVG } from "./_shared.js";
 
 export async function renderHotelDetail({ id }) {
   const app = document.getElementById("app");
@@ -55,4 +55,5 @@ export async function renderHotelDetail({ id }) {
   const chatBtn = document.getElementById("hotel-chat-btn");
   if (chatBtn) chatBtn.onclick = () => openChatWithHotel(h.id, null);
   document.getElementById("hotel-rooms-btn").onclick = () => navigate(hotelHash(h, "/rooms"));
+  ensureEventSource(h.slug || h.id, () => renderHotelDetail({ id }));
 }
