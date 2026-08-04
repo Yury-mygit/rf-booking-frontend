@@ -1,4 +1,4 @@
-// Description tab — форма редактирования полей отеля (name_*, description_*,
+// Description tab — форма редактирования русских name/description,
 // city, address, lat, lng, photos URL list). Используется также для isNew
 // flow в index.js (renderNewHotelForm — та же форма без вкладок).
 
@@ -11,11 +11,7 @@ import { state } from "./index.js";
 
 const FIELDS = [
   ["name_ru", "hotel.name_ru", "input"],
-  ["name_ky", "hotel.name_ky", "input"],
-  ["name_en", "hotel.name_en", "input"],
   ["description_ru", "hotel.description_ru", "textarea"],
-  ["description_ky", "hotel.description_ky", "textarea"],
-  ["description_en", "hotel.description_en", "textarea"],
   ["city", "hotel.city", "input"],
   ["address", "hotel.address", "input"],
   ["lat", "hotel.lat", "input-number"],

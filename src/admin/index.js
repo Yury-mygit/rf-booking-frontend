@@ -18,7 +18,6 @@ import { renderBookings } from "./views/bookings.js";
 import { renderAdminLogin } from "./views/login.js";
 import { renderAdminSupportList } from "./views/support/list.js";
 import { renderAdminSupportThread } from "./views/support/thread.js";
-import { renderAdminSettings } from "./views/settings.js";
 
 const ROUTES = [
   { re: /^\/?$/, h: () => renderMetrics(), titleKey: "pageTitle.adminMetrics" },
@@ -29,7 +28,6 @@ const ROUTES = [
   { re: /^\/support$/, h: () => renderAdminSupportList(), titleKey: "pageTitle.adminSupport" },
   { re: /^\/support\/(\d+)$/, h: (m) => renderAdminSupportThread(m[1]), titleKey: "pageTitle.adminSupport" },
   { re: /^\/login$/, h: () => renderAdminLogin(), titleKey: "pageTitle.adminLogin" },
-  { re: /^\/settings$/, h: () => renderAdminSettings(), titleKey: null },
 ];
 
 function syncTopChrome(rest) {

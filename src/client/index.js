@@ -28,7 +28,6 @@ import { renderChatThread } from "./views/chat/thread.js";
 import { renderPay } from "./views/pay.js";
 import { renderClientLogin } from "./views/login.js";
 import { renderClientSupportChat } from "./views/support.js";
-import { renderClientSettings } from "./views/settings.js";
 
 // rest:
 //   /hotel/<slug>              → Отель (фото+описание)
@@ -57,7 +56,6 @@ const ROUTES = [
   { re: /^\/pay\/([^/]+)$/, handler: (m) => renderPay({ code: decodeURIComponent(m[1]) }) },
   { re: /^\/support$/, handler: () => renderClientSupportChat() },
   { re: /^\/login$/, handler: () => renderClientLogin() },
-  { re: /^\/settings$/, handler: () => renderClientSettings() },
 ];
 
 // parentPath: куда вести «назад» из текущего client-пути. null — в hub (#/).

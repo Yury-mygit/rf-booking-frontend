@@ -27,7 +27,6 @@ installSupportTopbar();
 // Маршруты. Блоки регистрируются через dynamic import — код блока скачивается
 // только при первом входе. Bundle entry остаётся компактным.
 route("/", renderEntry);
-route("/settings-entry", async () => (await import("./entry/views/settings.js")).renderEntrySettings());
 route("/client/*", async (params) => (await import("./client/index.js")).render(params));
 route("/partner/*", async (params) => (await import("./partner/index.js")).render(params));
 route("/admin/*", async (params) => (await import("./admin/index.js")).render(params));
@@ -52,7 +51,3 @@ initRouter();
 })();
 
 window.addEventListener("ownerchange", () => run());
-window.addEventListener("langchange", () => {
-  applyStaticI18n();
-  run();
-});

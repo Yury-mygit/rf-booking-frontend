@@ -3,16 +3,11 @@
 // (loading/error/back/cancel) убраны в `common.*`.
 
 import ru from "../locales/ru.json";
-import ky from "../locales/ky.json";
-import en from "../locales/en.json";
 
-const dicts = { ru, ky, en };
-export const LANG_ORDER = ["ru", "ky", "en"];
-
-let lang = localStorage.getItem("rfbook_lang") || "ru";
+export const LANG_ORDER = ["ru"];
 
 export function t(key, vars = {}) {
-  const tmpl = dicts[lang][key] ?? dicts.ru[key] ?? key;
+  const tmpl = ru[key] ?? key;
   return tmpl.replace(/\{(\w+)\}/g, (_, k) => (vars[k] != null ? vars[k] : ""));
 }
 
@@ -21,12 +16,11 @@ export function t(key, vars = {}) {
 // Используй базовый ключ без суффикса, напр. tn("hotel.guests", n) →
 // hotel.guests_one / _few / _many.
 export function tn(baseKey, n, vars = {}) {
-  const suffix = pluralSuffix(lang, n);
+  const suffix = pluralSuffix(n);
   return t(`${baseKey}_${suffix}`, { ...vars, n });
 }
 
-function pluralSuffix(lng, n) {
-  if (lng !== "ru") return "one";
+function pluralSuffix(n) {
   const abs = Math.abs(n);
   const mod10 = abs % 10;
   const mod100 = abs % 100;
@@ -37,25 +31,11 @@ function pluralSuffix(lng, n) {
 }
 
 export function getLang() {
-  return lang;
-}
-
-export function setLang(l) {
-  if (!dicts[l]) return;
-  lang = l;
-  localStorage.setItem("rfbook_lang", l);
-  window.dispatchEvent(new CustomEvent("langchange"));
-}
-
-export function cycleLang() {
-  const i = LANG_ORDER.indexOf(lang);
-  setLang(LANG_ORDER[(i + 1) % LANG_ORDER.length]);
+  return "ru";
 }
 
 export function applyStaticI18n() {
   document.querySelectorAll("[data-i18n]").forEach((el) => {
     el.textContent = t(el.getAttribute("data-i18n"));
   });
-  const btn = document.getElementById("lang-cycle");
-  if (btn) btn.textContent = lang.toUpperCase();
 }
