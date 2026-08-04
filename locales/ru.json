@@ -342,7 +342,7 @@
   "room.floor": "Этаж",
   "room.name_en": "Название (англ)",
   "room.name_ky": "Название (кырг)",
-  "room.name_ru": "Название (рус)",
+  "room.name_ru": "Название",
   "room.price_kgs": "Цена за ночь (сом)",
   "room.publish_action": "Опубликовать",
   "room.publish_hint": "Не виден клиентам, пока не опубликован",
@@ -604,5 +604,9 @@
   "amenity.shoe_cleaning": "Чистка обуви",
   "amenity.luggage_storage": "Хранение багажа",
   "amenity.phone": "Телефон",
-  "amenity.iron": "Утюг"
+  "amenity.iron": "Утюг",
+  "validation.invalid": "Некорректно заполнено поле «{field}»",
+  "validation.required": "Заполните обязательное поле «{field}»",
+  "validation.range": "Поле «{field}»: укажите значение от {min} до {max}",
+  "validation.min": "Поле «{field}»: укажите значение не меньше {min}"
 }

@@ -43,3 +43,29 @@ export function showHint(msg) {
   if (el._hideTimer) clearTimeout(el._hideTimer);
   el._hideTimer = setTimeout(() => el.classList.remove("show"), 1800);
 }
+
+// Немодальный feedback для коротких результатов form-actions. В отличие от
+// showToast() никогда не вызывает tg.showAlert: сообщение само исчезает и не
+// блокирует Telegram WebApp. Повторный вызов переиспользует node и timer.
+export function showFloatingToast(message, { variant = "success", duration } = {}) {
+  let el = document.getElementById("app-floating-toast");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "app-floating-toast";
+    el.className = "app-floating-toast";
+    document.body.appendChild(el);
+  }
+
+  const resolvedVariant = variant === "error" ? "error" : "success";
+  el.className = `app-floating-toast ${resolvedVariant}`;
+  el.setAttribute("role", resolvedVariant === "error" ? "alert" : "status");
+  el.setAttribute("aria-live", resolvedVariant === "error" ? "assertive" : "polite");
+  el.textContent = message;
+
+  // Force a frame between resetting the class and showing it so a toast that
+  // replaces an already-visible one still restarts its transition and timer.
+  requestAnimationFrame(() => el.classList.add("show"));
+  if (el._hideTimer) clearTimeout(el._hideTimer);
+  const timeout = duration ?? (resolvedVariant === "error" ? 3000 : 1800);
+  el._hideTimer = setTimeout(() => el.classList.remove("show"), timeout);
+}

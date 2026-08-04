@@ -324,6 +324,35 @@ button.primary.is-disabled { background: var(--disabled-bg); cursor: not-allowed
   transition: opacity 0.2s;
 }
 .app-toast.show { opacity: 1; }
+
+/* Немодальный form-feedback. Всегда выше основной и секционной нижней
+   навигации, включая Telegram fullscreen и Android system inset. */
+.app-floating-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(
+    var(--bn-h, 56px) + var(--sn-h, 0px) +
+    max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)) + 12px
+  );
+  transform: translate(-50%, 8px);
+  max-width: min(80vw, 360px);
+  padding: 10px 16px;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  line-height: 1.3;
+  text-align: center;
+  z-index: 120;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+}
+.app-floating-toast.success { background: rgba(24, 126, 68, 0.94); }
+.app-floating-toast.error { background: rgba(180, 42, 42, 0.94); }
+.app-floating-toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
 button.secondary {
   background: var(--surface);
   color: var(--accent);

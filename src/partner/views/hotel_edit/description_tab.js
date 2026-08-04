@@ -6,13 +6,14 @@ import { api } from "../../../api.js";
 import { t } from "../../../i18n.js";
 import { navigate } from "../../../router.js";
 import { escapeHtml } from "../../../util.js";
+import { showFloatingToast } from "../../../widgets/toast.js";
 
 import { state } from "./index.js";
 
 const FIELDS = [
-  ["name_ru", "hotel.name_ru", "input"],
+  ["name_ru", "hotel.name_ru", "input", null, true],
   ["description_ru", "hotel.description_ru", "textarea"],
-  ["city", "hotel.city", "input"],
+  ["city", "hotel.city", "input", null, true],
   ["address", "hotel.address", "input"],
   ["lat", "hotel.lat", "input-number"],
   ["lng", "hotel.lng", "input-number"],
@@ -23,7 +24,9 @@ function descriptionFormHtml(hotel, canEdit = true) {
   const ro = canEdit ? "" : "readonly";
   return `
     <form id="form">
-      ${FIELDS.map(([k, key, kind, opts]) => {
+      ${FIELDS.map(([k, key, kind, opts, required]) => {
+        const requiredAttr = required ? "required" : "";
+        const label = `${t(key)}${required ? ' <span aria-hidden="true">*</span>' : ""}`;
         if (kind === "checkbox") {
           const checked = hotel?.[k] ? "checked" : "";
           const disabled = canEdit ? "" : "disabled";
@@ -34,27 +37,58 @@ function descriptionFormHtml(hotel, canEdit = true) {
         if (kind === "select") {
           const cur = hotel?.[k] ?? opts[0];
           const disabled = canEdit ? "" : "disabled";
-          return `<div class="form-row"><label>${t(key)}</label>
+          return `<div class="form-row"><label>${label}</label>
             <select name="${k}" ${disabled}>
               ${opts.map((o) => `<option value="${o}" ${o === cur ? "selected" : ""}>${t(`${key}_${o}`)}</option>`).join("")}
             </select></div>`;
         }
         const v = hotel?.[k] ?? "";
         if (kind === "textarea") {
-          return `<div class="form-row"><label>${t(key)}</label>
-            <textarea name="${k}" ${ro}>${escapeHtml(v)}</textarea></div>`;
+          return `<div class="form-row"><label>${label}</label>
+            <textarea name="${k}" ${requiredAttr} ${ro}>${escapeHtml(v)}</textarea></div>`;
         }
         const inputType = kind === "input-number" ? "number" : "text";
         const step = kind === "input-number" ? 'step="any"' : "";
-        return `<div class="form-row"><label>${t(key)}</label>
-          <input type="${inputType}" ${step} name="${k}" value="${escapeHtml(v)}" ${ro} /></div>`;
+        return `<div class="form-row"><label>${label}</label>
+          <input type="${inputType}" ${step} name="${k}" value="${escapeHtml(v)}" ${requiredAttr} ${ro} /></div>`;
       }).join("")}
       <div class="form-row"><label>${t("hotel.photos_urls")}</label>
         <input name="photos" value="${escapeHtml((hotel?.photos || []).join(", "))}" ${ro} /></div>
       ${canEdit ? `<button class="primary full" id="btn-save">${t("app.save")}</button>` : ""}
-      <div id="form-err" class="error"></div>
     </form>
   `;
+}
+
+const REQUIRED_FIELDS = FIELDS.filter(([, , , , required]) => required);
+
+function validateRequiredFields(form) {
+  for (const [name, key] of REQUIRED_FIELDS) {
+    const input = form.elements[name];
+    const missing = !input.value.trim();
+    input.setCustomValidity(missing ? t("validation.required", { field: t(key) }) : "");
+    if (missing) {
+      input.reportValidity();
+      input.focus();
+      return false;
+    }
+  }
+  return form.reportValidity();
+}
+
+function hotelValidationMessage(error) {
+  const labels = new Map(FIELDS.map(([name, key]) => [name, t(key)]));
+  if (Array.isArray(error.detail)) {
+    const item = error.detail.find((entry) => Array.isArray(entry?.loc));
+    const field = item?.loc?.at(-1);
+    const label = labels.get(field);
+    if (label) {
+      if (item.type === "missing" || item.type === "string_too_short") {
+        return t("validation.required", { field: label });
+      }
+      return t("validation.invalid", { field: label });
+    }
+  }
+  return t("app.error", { msg: error.message });
 }
 
 export function renderDescriptionTab(body, id) {
@@ -72,6 +106,7 @@ function wireSaveHandler(isNew, id) {
   document.getElementById("btn-save").onclick = async (e) => {
     e.preventDefault();
     const form = document.getElementById("form");
+    if (!validateRequiredFields(form)) return;
     const payload = {};
     for (const [k, , kind] of FIELDS) {
       if (kind === "checkbox") {
@@ -101,10 +136,10 @@ function wireSaveHandler(isNew, id) {
       } else {
         const updated = await api.updateHotel(id, payload);
         state.hotel = updated;
-        document.getElementById("form-err").innerHTML = `<span class="success">${t("avail.saved")}</span>`;
+        showFloatingToast(t("avail.saved"));
       }
     } catch (e) {
-      document.getElementById("form-err").textContent = t("app.error", { msg: e.message });
+      showFloatingToast(hotelValidationMessage(e), { variant: "error" });
     }
   };
 }

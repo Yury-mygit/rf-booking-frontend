@@ -342,7 +342,7 @@
   "room.floor": "Floor",
   "room.name_en": "Name (en)",
   "room.name_ky": "Name (ky)",
-  "room.name_ru": "Name (ru)",
+  "room.name_ru": "Name",
   "room.price_kgs": "Price per night (KGS)",
   "room.publish_action": "Publish",
   "room.publish_hint": "Not visible to clients until published",
@@ -604,5 +604,9 @@
   "amenity.shoe_cleaning": "Shoe shine",
   "amenity.luggage_storage": "Luggage storage",
   "amenity.phone": "Telephone",
-  "amenity.iron": "Iron"
+  "amenity.iron": "Iron",
+  "validation.invalid": "Invalid value in “{field}”",
+  "validation.required": "Fill in the required field “{field}”",
+  "validation.range": "Field “{field}”: enter a value from {min} to {max}",
+  "validation.min": "Field “{field}”: enter a value of at least {min}"
 }

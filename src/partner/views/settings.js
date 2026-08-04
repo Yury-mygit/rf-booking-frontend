@@ -6,6 +6,7 @@ import { t } from "../../i18n.js";
 import { setTitle, showBack } from "../../topbar.js";
 import { setBottomNav } from "../../bottomnav.js";
 import { settingsReturnToPrevious } from "../../settings_shared.js";
+import { showFloatingToast } from "../../widgets/toast.js";
 
 export function renderPartnerSettings() {
   setTitle(t("settings.title"));
@@ -40,7 +41,6 @@ async function renderPaymentsTab(app) {
         <button class="primary" id="qr-save" disabled>${cur ? t("settings.qr.replace") : t("settings.qr.save")}</button>
         ${cur ? `<button class="secondary" id="qr-clear" style="margin-top:8px;width:100%">${t("settings.qr.delete")}</button>` : ""}
         <div id="qr-err" class="error" style="display:none"></div>
-        <div id="qr-ok" class="success" style="display:none"></div>
       </div>
     </div>
   `;
@@ -72,18 +72,13 @@ async function renderPaymentsTab(app) {
     if (!pendingFile) return;
     saveBtn.disabled = true;
     document.getElementById("qr-err").style.display = "none";
-    document.getElementById("qr-ok").style.display = "none";
     try {
       await api.uploadMyQr(pendingFile);
-      const okBox = document.getElementById("qr-ok");
-      okBox.textContent = t("settings.qr.saved");
-      okBox.style.display = "block";
+      showFloatingToast(t("settings.qr.saved"));
       // Re-render — подтянет URL нового файла и обновит preview/кнопки.
       setTimeout(() => renderPaymentsTab(app), 500);
     } catch (e) {
-      const err = document.getElementById("qr-err");
-      err.textContent = t("app.error", { msg: e.message });
-      err.style.display = "block";
+      showFloatingToast(t("app.error", { msg: e.message }), { variant: "error" });
       saveBtn.disabled = false;
     }
   };

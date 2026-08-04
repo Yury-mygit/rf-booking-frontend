@@ -7,6 +7,7 @@
 import { api } from "../../../api.js";
 import { t } from "../../../i18n.js";
 import { escapeHtml } from "../../../util.js";
+import { showFloatingToast } from "../../../widgets/toast.js";
 
 import { ownerCanManage, render } from "./index.js";
 
@@ -46,8 +47,6 @@ export async function renderAddTab(app, ownerId) {
         </div>
 
         <button class="primary" type="submit">${t("staff.add_btn")}</button>
-        <div id="staff-add-err" class="error" style="display:none"></div>
-        <div id="staff-add-ok" class="success" style="display:none"></div>
       </form>
     </section>
 
@@ -74,10 +73,6 @@ export async function renderAddTab(app, ownerId) {
   const form = document.getElementById("staff-add-form");
   form.onsubmit = async (e) => {
     e.preventDefault();
-    const errBox = document.getElementById("staff-add-err");
-    const okBox = document.getElementById("staff-add-ok");
-    errBox.style.display = "none";
-    okBox.style.display = "none";
     const tgId = Number(document.getElementById("staff-tg-id").value);
     const lastName = document.getElementById("staff-last").value.trim() || null;
     const firstName = document.getElementById("staff-first").value.trim() || null;
@@ -92,12 +87,10 @@ export async function renderAddTab(app, ownerId) {
         },
         { ownerId },
       );
-      okBox.textContent = t("staff.add_ok");
-      okBox.style.display = "block";
+      showFloatingToast(t("staff.add_ok"));
       form.reset();
     } catch (err) {
-      errBox.textContent = t("app.error", { msg: err.message });
-      errBox.style.display = "block";
+      showFloatingToast(t("app.error", { msg: err.message }), { variant: "error" });
     }
   };
 

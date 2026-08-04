@@ -7,13 +7,14 @@ import {
   ROOM_AMENITIES_BY_SECTION,
   ROOM_PAID_ALLOWED,
 } from "../../widgets/amenities_spec.js";
+import { showFloatingToast } from "../../widgets/toast.js";
 
 const MAIN_FIELDS = [
-  ["name_ru", "room.name_ru", "input"],
-  ["capacity", "room.capacity", "input-number"],
+  ["name_ru", "room.name_ru", "input", { required: true }],
+  ["capacity", "room.capacity", "input-number", { required: true, min: 1, max: 20 }],
   ["single_beds", "room.single_beds", "input-number"],
   ["double_beds", "room.double_beds", "input-number"],
-  ["price_kgs", "room.price_kgs", "input-number"],
+  ["price_kgs", "room.price_kgs", "input-number", { required: true, min: 0 }],
   ["floor", "room.floor", "input-number"],
 ];
 
@@ -29,14 +30,68 @@ const TABS = ["main", "description", "photos", "amenities"];
 
 let _state = { hotelId: null, roomId: null, isNew: false, room: null, active: "main" };
 
-function fieldHtml([k, key, kind], value) {
+const ROOM_FIELDS = [...MAIN_FIELDS, ...DESCRIPTION_FIELDS];
+const ROOM_FIELD_BY_NAME = new Map(ROOM_FIELDS.map((field) => [field[0], field]));
+
+function fieldHtml([k, key, kind, rules = {}], value) {
+  const required = rules.required ? "required" : "";
+  const marker = rules.required ? " *" : "";
   if (kind === "textarea") {
-    return `<div class="form-row"><label>${t(key)}</label>
-      <textarea name="${k}">${escapeHtml(value)}</textarea></div>`;
+    return `<div class="form-row"><label>${t(key)}${marker}</label>
+      <textarea name="${k}" ${required}>${escapeHtml(value)}</textarea></div>`;
   }
   const inputType = kind === "input-number" ? "number" : "text";
-  return `<div class="form-row"><label>${t(key)}</label>
-    <input type="${inputType}" name="${k}" value="${escapeHtml(value)}" /></div>`;
+  const min = rules.min === undefined ? "" : `min="${rules.min}"`;
+  const max = rules.max === undefined ? "" : `max="${rules.max}"`;
+  return `<div class="form-row"><label>${t(key)}${marker}</label>
+    <input type="${inputType}" name="${k}" value="${escapeHtml(value)}" ${required} ${min} ${max} /></div>`;
+}
+
+function fieldValidationMessage(field, raw) {
+  const [, key, kind, rules = {}] = field;
+  const label = t(key);
+  if (rules.required && raw === "") return t("validation.required", { field: label });
+  if (kind !== "input-number" || raw === "") return "";
+  const value = Number(raw);
+  if (!Number.isFinite(value)) return t("validation.invalid", { field: label });
+  if (rules.min !== undefined && rules.max !== undefined && (value < rules.min || value > rules.max)) {
+    return t("validation.range", { field: label, min: rules.min, max: rules.max });
+  }
+  if (rules.min !== undefined && value < rules.min) {
+    return t("validation.min", { field: label, min: rules.min });
+  }
+  return "";
+}
+
+function validateRoomForm(form, fields) {
+  for (const field of fields) {
+    const input = form.elements[field[0]];
+    const message = fieldValidationMessage(field, input.value.trim());
+    input.setCustomValidity(message);
+    if (message) {
+      input.reportValidity();
+      input.focus();
+      return false;
+    }
+  }
+  return form.reportValidity();
+}
+
+function roomValidationMessage(error) {
+  if (!Array.isArray(error?.detail)) return t("app.error", { msg: error.message });
+  const issue = error.detail.find((item) => ROOM_FIELD_BY_NAME.has(item?.loc?.at(-1)));
+  if (!issue) return t("app.error", { msg: error.message });
+  const field = ROOM_FIELD_BY_NAME.get(issue.loc.at(-1));
+  const [, key, , rules = {}] = field;
+  const label = t(key);
+  if (issue.type === "missing" || issue.type === "string_too_short") {
+    return t("validation.required", { field: label });
+  }
+  if (rules.min !== undefined && rules.max !== undefined) {
+    return t("validation.range", { field: label, min: rules.min, max: rules.max });
+  }
+  if (rules.min !== undefined) return t("validation.min", { field: label, min: rules.min });
+  return t("validation.invalid", { field: label });
 }
 
 export async function renderRoomEdit({ hotelId, roomId }) {
@@ -152,9 +207,11 @@ function renderAmenitiesTab(body) {
     try {
       const updated = await api.updateRoom(_state.hotelId, _state.roomId, { amenities });
       _state.room = updated;
-      document.getElementById("err").innerHTML = `<span class="success">${t("avail.saved")}</span>`;
+      document.getElementById("err").textContent = "";
+      showFloatingToast(t("avail.saved"));
     } catch (err) {
-      document.getElementById("err").textContent = t("app.error", { msg: err.message });
+      document.getElementById("err").textContent = "";
+      showFloatingToast(t("app.error", { msg: err.message }), { variant: "error" });
     }
   };
 }
@@ -183,8 +240,8 @@ function mainFormHtml(room) {
   const canEdit = canManageRooms();
   return `
     <form id="form">
-      ${MAIN_FIELDS.map(([k, key, kind]) =>
-        fieldHtml([k, key, kind], room?.[k] ?? "")
+      ${MAIN_FIELDS.map((field) =>
+        fieldHtml(field, room?.[field[0]] ?? "")
       ).join("")}
       ${canEdit ? `<button class="primary full" id="btn-save">${t("app.save")}</button>` : ""}
       ${publishBlockHtml(room)}
@@ -199,8 +256,8 @@ function descriptionFormHtml(room) {
   const canEdit = canManageRooms();
   return `
     <form id="form">
-      ${DESCRIPTION_FIELDS.map(([k, key, kind]) =>
-        fieldHtml([k, key, kind], room?.[k] ?? "")
+      ${DESCRIPTION_FIELDS.map((field) =>
+        fieldHtml(field, room?.[field[0]] ?? "")
       ).join("")}
       ${canEdit ? `<button class="primary full" id="btn-save">${t("app.save")}</button>` : ""}
       <div id="err" class="error"></div>
@@ -308,6 +365,7 @@ function wireSaveHandler() {
     const form = document.getElementById("form");
     const payload = {};
     const activeFields = _state.active === "description" ? DESCRIPTION_FIELDS : MAIN_FIELDS;
+    if (!validateRoomForm(form, activeFields)) return;
     for (const [k, , kind] of activeFields) {
       const raw = form[k].value.trim();
       if (raw === "" && !_state.isNew) { payload[k] = null; continue; }
@@ -321,10 +379,12 @@ function wireSaveHandler() {
       } else {
         const updated = await api.updateRoom(_state.hotelId, _state.roomId, payload);
         _state.room = updated;
-        document.getElementById("err").innerHTML = `<span class="success">${t("avail.saved")}</span>`;
+        document.getElementById("err").textContent = "";
+        showFloatingToast(t("avail.saved"));
       }
     } catch (e) {
-      document.getElementById("err").textContent = t("app.error", { msg: e.message });
+      document.getElementById("err").textContent = "";
+      showFloatingToast(roomValidationMessage(e), { variant: "error" });
     }
   };
 

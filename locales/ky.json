@@ -342,7 +342,7 @@
   "room.floor": "Кабат",
   "room.name_en": "Аты (англ)",
   "room.name_ky": "Аты (кырг)",
-  "room.name_ru": "Аты (рус)",
+  "room.name_ru": "Аты",
   "room.price_kgs": "Түнгө баасы (сом)",
   "room.publish_action": "Жарыялоо",
   "room.publish_hint": "Жарыялангыча кардарларга көрүнбөйт",
@@ -604,5 +604,9 @@
   "amenity.shoe_cleaning": "Бут кийим тазалоо",
   "amenity.luggage_storage": "Жүк сактоо",
   "amenity.phone": "Телефон",
-  "amenity.iron": "Үтүк"
+  "amenity.iron": "Үтүк",
+  "validation.invalid": "«{field}» талаасы туура эмес толтурулган",
+  "validation.required": "Милдеттүү «{field}» талаасын толтуруңуз",
+  "validation.range": "«{field}» талаасы: {min}–{max} аралыгындагы маанини киргизиңиз",
+  "validation.min": "«{field}» талаасы: {min} же андан чоң маанини киргизиңиз"
 }
