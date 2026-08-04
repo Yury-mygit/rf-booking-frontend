@@ -45,7 +45,7 @@ function descriptionFormHtml(hotel, canEdit = true) {
         const v = hotel?.[k] ?? "";
         if (kind === "textarea") {
           return `<div class="form-row"><label>${label}</label>
-            <textarea name="${k}" ${requiredAttr} ${ro}>${escapeHtml(v)}</textarea></div>`;
+            <textarea class="hotel-description-autogrow" name="${k}" ${requiredAttr} ${ro}>${escapeHtml(v)}</textarea></div>`;
         }
         const inputType = kind === "input-number" ? "number" : "text";
         const step = kind === "input-number" ? 'step="any"' : "";
@@ -94,12 +94,25 @@ function hotelValidationMessage(error) {
 export function renderDescriptionTab(body, id) {
   const canEdit = api.canDo("manage_hotel", state.hotel?.owner_user_id);
   body.innerHTML = descriptionFormHtml(state.hotel, canEdit);
+  initDescriptionAutoGrow(body);
   if (canEdit) wireSaveHandler(false, id);
 }
 
 export function renderNewHotelForm(app) {
   app.innerHTML = descriptionFormHtml(null);
+  initDescriptionAutoGrow(app);
   wireSaveHandler(true, null);
+}
+
+function initDescriptionAutoGrow(root) {
+  root.querySelectorAll("textarea.hotel-description-autogrow").forEach((textarea) => {
+    const resize = () => {
+      textarea.style.height = "auto";
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    };
+    textarea.addEventListener("input", resize);
+    resize();
+  });
 }
 
 function wireSaveHandler(isNew, id) {

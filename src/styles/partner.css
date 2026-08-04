@@ -30,6 +30,7 @@
 button.primary.full { width: 100%; }
 button.danger { background: var(--surface); color: var(--error); border: 1px solid var(--error); padding: 6px 10px; border-radius: 4px; font-size: 12px; cursor: pointer; }
 .form-row textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 4px; font-size: 14px; font-family: inherit; min-height: 60px; resize: vertical; }
+.form-row textarea.hotel-description-autogrow { max-height: 60vh; overflow-y: auto; resize: none; }
 .form-row--inline { display: flex; align-items: center; }
 .form-row--inline label { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; }
 .form-row--inline input[type="checkbox"] { margin: 0; }
