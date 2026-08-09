@@ -309,7 +309,7 @@
   "pay.amount": "К оплате: {total} сом",
   "pay.bad_status": "Бронь нельзя оплатить (статус: {status})",
   "pay.for_booking": "Бронь {code}",
-  "pay.method.mock": "Тестовая оплата (mock)",
+  "pay.method.devpay": "Оплатить картой",
   "pay.method.qr": "По QR-коду",
   "pay.qr.button": "Оплатить",
   "pay.qr.decode_failed": "Не удалось распознать ссылку в QR. Отсканируйте камерой.",

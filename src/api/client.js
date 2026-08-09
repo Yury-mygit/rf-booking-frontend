@@ -33,5 +33,4 @@ export const client = {
       note: note || null,
     }),
   payInit: (code) => call("POST", `/c/bookings/${code}/pay/init`),
-  payConfirm: (paymentId) => call("POST", `/c/payments/${paymentId}/mock-confirm`),
 };
