@@ -108,6 +108,37 @@ export async function renderPay({ code }) {
     }
   }
 
+  async function retryDevpay() {
+    errBox.textContent = "";
+    try {
+      const fresh = await api.payInit(code);
+      const nextMethod = fresh.methods.find((m) => m.key === "devpay");
+      if (!nextMethod) {
+        navigate(`#/client/pay/${encodeURIComponent(code)}`);
+        return;
+      }
+      devpayMethod.checkout_url = nextMethod.checkout_url;
+      renderDevpay();
+    } catch (e) {
+      errBox.textContent = t("common.error", { msg: e.message });
+    }
+  }
+
+  function showDevpayFailure(kind, reason) {
+    detachListener();
+    let msgKey = "pay.cancelled";
+    if (kind === "declined") {
+      msgKey = reason && `pay.declined_reason.${reason}`;
+      if (!msgKey || !t(msgKey)) msgKey = "pay.declined_reason.user_declined";
+    }
+    panel.innerHTML = `
+      <div class="devpay-failure">
+        <div class="devpay-failure-msg">${t(msgKey)}</div>
+        <button type="button" class="primary" id="devpay-retry">${t("pay.retry")}</button>
+      </div>`;
+    document.getElementById("devpay-retry").onclick = retryDevpay;
+  }
+
   function renderDevpay() {
     panel.innerHTML = `
       <iframe id="devpay-frame"
@@ -122,8 +153,11 @@ export async function renderPay({ code }) {
       if (data.event === "devpay:paid") {
         detachListener();
         navigate(`#/client/pay/${encodeURIComponent(code)}`);
+      } else if (data.event === "devpay:declined") {
+        showDevpayFailure("declined", data.reason);
+      } else if (data.event === "devpay:cancelled") {
+        showDevpayFailure("cancelled", null);
       }
-      // devpay:declined / devpay:cancelled — Slice 3.
     };
     window.addEventListener("message", messageHandler);
   }
