@@ -158,6 +158,7 @@
   "hotel.add_room": "+ Добавить номер",
   "hotel.address": "Адрес",
   "hotel.book": "Забронировать",
+  "hotel.enter_dates": "Введите даты",
   "hotel.booked_ok": "Бронь создана: {code}",
   "hotel.city": "Город",
   "hotel.delete_confirm": "Удалить объект? (только если нет броней)",

@@ -6,7 +6,6 @@ import { navigate, getQuery } from "../../../router.js";
 import { setTitle, showBack } from "../../../topbar.js";
 import { hideBottomNav } from "../../../bottomnav.js";
 import { fmtShort } from "../../../widgets/calendar_utils.js";
-import { showToast } from "../../../widgets/toast.js";
 
 import {
   _state,
@@ -134,13 +133,10 @@ function renderRoomsList(body) {
     navigate(hotelHash(h, "/guests?" + qs.toString()));
   };
   body.querySelectorAll("button[data-book-room]").forEach((b) => {
-    b.onclick = () => {
-      if (!hasDates) {
-        showToast(t("rooms.dates_required"));
-        return;
-      }
-      navigateToBook(h, Number(b.dataset.bookRoom));
-    };
+    b.onclick = () => navigateToBook(h, Number(b.dataset.bookRoom));
+  });
+  body.querySelectorAll("button[data-need-dates]").forEach((b) => {
+    b.onclick = () => openDates("checkin", "f-checkin-clear")({ target: b });
   });
   body.querySelectorAll("button[data-chat-room]").forEach((b) => {
     b.onclick = () => {
@@ -180,6 +176,9 @@ function roomCardHtml(r, hasDates) {
   if (r.single_beds > 0) metaParts.push(tn("hotel.single_beds", r.single_beds));
   if (r.double_beds > 0) metaParts.push(tn("hotel.double_beds", r.double_beds));
   if (r.floor != null) metaParts.push(t("hotel.floor", { n: r.floor }));
+  const cta = hasDates
+    ? `<button class="primary" data-book-room="${r.id}">${t("hotel.book")}</button>`
+    : `<button class="secondary" data-need-dates="1">${t("hotel.enter_dates")}</button>`;
   return `
     <div class="room">
       <div class="room-photo"${photoStyle}></div>
@@ -191,7 +190,7 @@ function roomCardHtml(r, hasDates) {
         <div class="meta">${metaParts.join(" · ")}</div>
         <div class="price">${t("hotel.price_per_night", { price: r.price_kgs })}</div>
         ${hasDates && r.total_kgs_for_dates != null ? `<div class="meta">${t("hotel.total", { total: r.total_kgs_for_dates })}</div>` : ""}
-        <button class="primary ${hasDates ? "" : "is-disabled"}" data-book-room="${r.id}">${t("hotel.book")}</button>
+        ${cta}
       </div>
     </div>
   `;
