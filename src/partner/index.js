@@ -15,8 +15,6 @@ import { renderMainNav, activeNavKey, setBottomNav, hideSubBottomNav } from "./n
 import { renderPending } from "./views/pending.js";
 import { renderPartnerLogin } from "./views/login.js";
 import { renderHotelsList } from "./views/hotels_list.js";
-import { renderAllRooms } from "./views/all_rooms.js";
-import { renderBookings } from "./views/bookings.js";
 import { renderClientsList } from "./views/clients_list.js";
 import { renderClientEdit } from "./views/client_edit.js";
 import { renderHotelHub } from "./views/hotel_edit/index.js";
@@ -27,7 +25,7 @@ import { renderAudit } from "./views/audit.js";
 import { renderPartnerSupportChat } from "./views/support.js";
 import { renderPartnerSettings } from "./views/settings.js";
 
-// rest paths: "/", "/rooms", "/bookings", "/clients", "/client/{id}",
+// rest paths: "/", "/clients", "/client/{id}",
 //   "/hotel/{id}/status/{sub}" (sub ∈ readiness|share|rooms|bookings|delete),
 //   "/hotel/{id}/{hub}" (hub ∈ description|photos|amenities),
 //   "/room/{hid}/{rid}", "/room/{hid}/{rid}/availability",
@@ -38,8 +36,6 @@ import { renderPartnerSettings } from "./views/settings.js";
 const ROUTES = [
   { re: /^\/?$/, h: (_m) => renderHotelsList(), titleKey: "partner.pageTitle.hotels" },
   { re: /^\/login$/, h: () => renderPartnerLogin(), titleKey: "pageTitle.devLogin" },
-  { re: /^\/rooms$/, h: () => renderAllRooms(), titleKey: "pageTitle.rooms" },
-  { re: /^\/bookings$/, h: () => renderBookings(), titleKey: "pageTitle.bookings" },
   { re: /^\/clients$/, h: () => renderClientsList(), titleKey: "pageTitle.clients" },
   // TBB-20 — client hub (info/chat). Flat `/client/{id}` resolve'ится в
   // default `info` внутри renderClientEdit.
@@ -99,7 +95,7 @@ const ROUTES = [
 
 // parentPath: куда вести «назад» из текущего partner-пути.
 // null — вернуться в hub (#/). Иначе вернёт partner-абсолютный путь без `#`.
-const ROOT_PATHS = new Set(["/", "", "/rooms", "/bookings", "/clients", "/staff"]);
+const ROOT_PATHS = new Set(["/", "", "/clients", "/staff"]);
 
 export function parentPath(rest) {
   if (ROOT_PATHS.has(rest)) return null;
@@ -132,7 +128,7 @@ function armPendingListener() {
 // setHotelTabsNav + mountHubSubnav или их аналог hide). Если бы
 // syncTopChrome тут по умолчанию сбрасывал в partner main nav + hide
 // sub, между этой строкой и view-рендером на долю секунды мелькала бы
-// главная 5-табная панель (Отели/Номера/Брони/…), потом обратно 4
+// главная 3-табная панель (Отели/Клиенты/Персонал), потом обратно 4
 // hub'а — визуально это flash. Исключаем `/hotel/{id}/*` (кроме "new"
 // — там view = renderNewHotelForm без hub-nav, нужен main nav).
 function isHotelHubPath(rest) {

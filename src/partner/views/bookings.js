@@ -1,13 +1,9 @@
-// Partner bookings view — используется в двух режимах:
-// A. Standalone `/partner/bookings` (renderBookings) — все брони по всем
-//    отелям текущего owner'а, пишет в `#app`.
-// B. Per-hotel subform `/partner/hotel/{id}/status/bookings`
-//    (renderBookingsSubform) — брони одного отеля, пишет в переданный body
-//    внутри hotel-hub shell'а. Nav / title поднимает `renderHotelHub`.
+// Partner bookings view — per-hotel subform `/partner/hotel/{id}/status/bookings`
+// (renderBookingsSubform) — брони одного отеля, пишет в переданный body
+// внутри hotel-hub shell'а. Nav / title поднимает `renderHotelHub`.
 //
 // SSE-подписки на изменения броней открыты, пока пользователь находится
-// на любом из bookings-view; hashchange listener закрывает поток при
-// уходе на другой раздел.
+// на bookings-subform; hashchange listener закрывает поток при уходе.
 
 import { api } from "../../api.js";
 import { t } from "../../i18n.js";
@@ -15,8 +11,6 @@ import { escapeHtml } from "../../util.js";
 
 let _eventSources = [];
 let _refreshTimer = null;
-// Если задан — list-запрос уходит с фильтром `hotel_id`; иначе брони
-// показываются по всем отелям владельца.
 let _hotelId = null;
 
 function closeStreams() {
@@ -55,19 +49,9 @@ async function openStreams() {
 
 window.addEventListener("hashchange", () => {
   const hash = location.hash.replace(/^#/, "").split("?")[0];
-  const isBookingsView =
-    hash === "/partner/bookings"
-    || /^\/partner\/hotel\/[^/]+\/status\/bookings$/.test(hash);
+  const isBookingsView = /^\/partner\/hotel\/[^/]+\/status\/bookings$/.test(hash);
   if (!isBookingsView) closeStreams();
 });
-
-export async function renderBookings() {
-  _hotelId = null;
-  const app = document.getElementById("app");
-  app.innerHTML = `<div id="list">${t("app.loading")}</div>`;
-  await load();
-  openStreams();
-}
 
 // Body-oriented режим: пишет только в body, без трогания #app. Используется
 // renderHotelHub'ом для `.../status/bookings`.
@@ -83,7 +67,7 @@ async function load() {
   if (!list) return;
   list.innerHTML = t("app.loading");
   try {
-    const items = await api.listBookings(null, _hotelId ? { hotelId: _hotelId } : {});
+    const items = await api.listBookings(null, { hotelId: _hotelId });
     if (!items.length) {
       list.innerHTML = `<p class="muted">${t("bookings.empty")}</p>`;
       return;
