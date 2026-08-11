@@ -1,6 +1,7 @@
 import { api } from "../../api.js";
 import { t } from "../../i18n.js";
 import { escapeHtml } from "../../util.js";
+import { initialsAvatarAttrs } from "../../widgets/avatar.js";
 
 let _es = null;
 let _refetchTimer = null;
@@ -63,9 +64,13 @@ export async function renderClientsList() {
 }
 
 function cardHtml(c) {
-  const photo = c.photo_url
-    ? `<div class="hotel-thumb" style="background-image:url('${escapeHtml(c.photo_url)}')"></div>`
-    : `<div class="hotel-thumb hotel-thumb-empty"></div>`;
+  let photo;
+  if (c.photo_url) {
+    photo = `<div class="hotel-thumb" style="background-image:url('${escapeHtml(c.photo_url)}')"></div>`;
+  } else {
+    const a = initialsAvatarAttrs(c.first_name, c.last_name);
+    photo = `<div class="hotel-thumb ${a.className}" style="${a.style}">${a.initials}</div>`;
+  }
   const name = [c.first_name, c.last_name].filter(Boolean).map(escapeHtml).join(" ");
   const contact = c.phone || c.email || t("clients.no_phone");
   const badge = c.has_unread_chat

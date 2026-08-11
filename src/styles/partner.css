@@ -94,6 +94,9 @@ button.danger { background: var(--surface); color: var(--error); border: 1px sol
   background-color: var(--surface-soft);
 }
 .hotel-thumb-empty { background-image: linear-gradient(135deg, var(--surface-soft) 0%, var(--border-soft) 100%); }
+.avatar-initials { display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+.hotel-thumb.avatar-initials { font-size: 22px; }
+.client-photo.avatar-initials { font-size: 32px; }
 .hotel-row-body { flex: 1; min-width: 0; padding-right: 44px; }
 .hotel-row-body h3 { margin: 0 0 4px; }
 .hotel-actions { position: absolute; top: 8px; right: 8px; display: flex; flex-direction: column; gap: 4px; }

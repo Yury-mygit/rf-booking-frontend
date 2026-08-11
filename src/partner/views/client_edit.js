@@ -3,6 +3,7 @@ import { t } from "../../i18n.js";
 import { navigate } from "../../router.js";
 import { setTitle } from "../../topbar.js";
 import { escapeHtml } from "../../util.js";
+import { initialsAvatarAttrs } from "../../widgets/avatar.js";
 import { showToast } from "../../widgets/toast.js";
 import { setSubBottomNav } from "../nav.js";
 import { mountClientChat } from "./client_edit_chat.js";
@@ -137,7 +138,10 @@ function renderInfoSubform(body, clientId) {
       <div class="client-photo-block">
         ${client.photo_url
           ? `<img class="client-photo" src="${escapeHtml(client.photo_url)}" alt="photo">`
-          : `<div class="client-photo client-photo-empty"></div>`}
+          : (() => {
+              const a = initialsAvatarAttrs(client.first_name, client.last_name);
+              return `<div class="client-photo ${a.className}" style="${a.style}">${a.initials}</div>`;
+            })()}
         ${canEdit ? `<div>
           <input type="file" id="photo-file" accept="image/*" style="display:block;margin-bottom:6px">
           <button id="photo-upload" class="secondary">${t("client.photo.upload")}</button>
