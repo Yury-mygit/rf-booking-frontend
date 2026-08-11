@@ -52,13 +52,16 @@ export async function render(params) {
         const r = await api.authTg(tg.initData);
         api.setSession(r.token, r.user, r.accessible_owners);
       } catch (e) {
+        // authTg fail в TG (обычно init_data expired при переоткрытии из фона)
+        // — направляем на переоткрытие через бота вместо raw backend-текста.
+        api.clearSession();
         document.getElementById("app").innerHTML =
-          `<div class="error">${t("common.error", { msg: e.message })}</div>`;
+          `<p class="muted">${t("app.session_stale", { bot: "@rforge_stay_bot" })}</p>`;
         return;
       }
     } else {
       document.getElementById("app").innerHTML =
-        `<p class="muted">${t("app.no_session", { bot: "rforge_stay_bot" })}</p>`;
+        `<p class="muted">${t("app.no_session", { bot: "@rforge_stay_bot" })}</p>`;
       return;
     }
   }

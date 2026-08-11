@@ -42,8 +42,10 @@ initRouter();
       const r = await api.authTg(tg.initData);
       api.setSession(r.token, r.user, r.accessible_owners);
     } catch (e) {
-      // Не валим bootstrap — entry view покажет fallback (dev-login или
-      // сообщение «откройте через бота»).
+      // Bootstrap = opportunistic upgrade. При fail'е (обычно stale initData
+      // при переоткрытии WebApp из фона >1h) НЕ трогаем существующий token —
+      // пусть whoami попробует, а recovery pipeline в http.js (retry authTg
+      // на 401) + γ (session_stale message) обработают.
       console.warn("authTg failed:", e.message);
     }
   }

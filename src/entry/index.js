@@ -68,9 +68,10 @@ export async function renderEntry() {
   const app = document.getElementById("app");
   app.innerHTML = `<div class="hint">${t("common.loading")}</div>`;
 
+  const botLink = `<a href="https://t.me/${BOT_USERNAME}">@${BOT_USERNAME}</a>`;
+
   if (!api.hasToken()) {
-    const bot = `<a href="https://t.me/${BOT_USERNAME}">@${BOT_USERNAME}</a>`;
-    app.innerHTML = `<p class="muted">${t("app.no_session", { bot })}</p>`;
+    app.innerHTML = `<p class="muted">${t("app.no_session", { bot: botLink })}</p>`;
     return;
   }
 
@@ -78,7 +79,12 @@ export async function renderEntry() {
   try {
     me = await api.whoami();
   } catch (e) {
-    app.innerHTML = `<p class="error">${t("common.error", { msg: e.message })}</p>`;
+    if (e.code === "token_expired" || e.status === 401) {
+      api.clearSession();
+      app.innerHTML = `<p class="muted">${t("app.session_stale", { bot: botLink })}</p>`;
+    } else {
+      app.innerHTML = `<p class="error">${t("common.error", { msg: e.message })}</p>`;
+    }
     return;
   }
 
