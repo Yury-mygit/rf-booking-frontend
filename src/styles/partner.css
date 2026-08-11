@@ -100,11 +100,6 @@ button.danger { background: var(--surface); color: var(--error); border: 1px sol
 .hotel-edit-btn { width: 32px; height: 32px; border-radius: 50%; background: var(--surface); border: 1px solid var(--border); color: var(--text-muted); display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 16px; line-height: 1; }
 .hotel-edit-btn:hover { color: var(--accent); border-color: var(--accent); }
 
-.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 14px; overflow-x: auto; scrollbar-width: none; }
-.tabs::-webkit-scrollbar { display: none; }
-.tab { background: transparent; border: 0; border-bottom: 2px solid transparent; padding: 10px 12px; font-size: 13px; color: var(--text-muted); cursor: pointer; font-family: inherit; white-space: nowrap; flex-shrink: 0; }
-.tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
-
 .photo-row { display: flex; align-items: center; gap: 10px; padding: 8px; background: var(--surface); border: 1px solid var(--border-soft); border-radius: 6px; margin-bottom: 8px; }
 .photo-thumb { width: 64px; height: 64px; object-fit: cover; border-radius: 4px; flex-shrink: 0; background: var(--surface-soft); }
 .photo-meta { flex: 1; min-width: 0; font-size: 12px; }

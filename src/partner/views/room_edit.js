@@ -8,6 +8,7 @@ import {
   ROOM_PAID_ALLOWED,
 } from "../../widgets/amenities_spec.js";
 import { showFloatingToast } from "../../widgets/toast.js";
+import { setSubBottomNav } from "../nav.js";
 
 const MAIN_FIELDS = [
   ["name_ru", "room.name_ru", "input", { required: true }],
@@ -26,9 +27,30 @@ const DESCRIPTION_FIELDS = [
   ["description_en", "room.description_en", "textarea"],
 ];
 
-const TABS = ["main", "description", "photos", "amenities"];
+const TAB_KEYS = ["main", "description", "photos", "amenities"];
+
+const SVG_ATTR = 'viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
+const SUB_ICONS = {
+  main: `<svg ${SVG_ATTR}><rect x="4" y="4" width="16" height="16" rx="2"></rect><path d="M8 9h8M8 13h8M8 17h5"></path></svg>`,
+  description: `<svg ${SVG_ATTR}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M8 13h8M8 17h6M8 9h2"></path></svg>`,
+  photos: `<svg ${SVG_ATTR}><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`,
+  amenities: `<svg ${SVG_ATTR}><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>`,
+};
 
 let _state = { hotelId: null, roomId: null, isNew: false, room: null, active: "main" };
+
+function mountRoomEditSubnav() {
+  setSubBottomNav(
+    TAB_KEYS.map((name) => ({
+      key: name,
+      label: t("edit.section." + name),
+      icon: SUB_ICONS[name],
+      active: name === _state.active,
+      onClick: () => switchTab(name),
+    })),
+  );
+  document.body.classList.add("has-subnav");
+}
 
 const ROOM_FIELDS = [...MAIN_FIELDS, ...DESCRIPTION_FIELDS];
 const ROOM_FIELD_BY_NAME = new Map(ROOM_FIELDS.map((field) => [field[0], field]));
@@ -116,25 +138,14 @@ export async function renderRoomEdit({ hotelId, roomId }) {
   }
 
   setTitle(`${t("pageTitle.roomEdit")} / ${t("room.title.edit")}`);
-  app.innerHTML = `
-    <div class="tabs">
-      ${TABS.map((name) =>
-        `<button class="tab" data-tab="${name}">${t("edit.section." + name)}</button>`
-      ).join("")}
-    </div>
-    <div id="tab-body"></div>
-  `;
-  document.querySelectorAll(".tab").forEach((b) => {
-    b.onclick = () => switchTab(b.dataset.tab);
-  });
+  app.innerHTML = `<div id="tab-body"></div>`;
+  mountRoomEditSubnav();
   switchTab(_state.active);
 }
 
 function switchTab(name) {
   _state.active = name;
-  document.querySelectorAll(".tab").forEach((b) =>
-    b.classList.toggle("active", b.dataset.tab === name),
-  );
+  mountRoomEditSubnav();
   const body = document.getElementById("tab-body");
   if (name === "main") body.innerHTML = mainFormHtml(_state.room);
   else if (name === "description") body.innerHTML = descriptionFormHtml(_state.room);
