@@ -12,6 +12,7 @@ import { setSubBottomNav } from "../nav.js";
 
 const MAIN_FIELDS = [
   ["name_ru", "room.name_ru", "input", { required: true }],
+  ["description_ru", "room.description_ru", "textarea"],
   ["capacity", "room.capacity", "input-number", { required: true, min: 1, max: 20 }],
   ["single_beds", "room.single_beds", "input-number"],
   ["double_beds", "room.double_beds", "input-number"],
@@ -19,20 +20,11 @@ const MAIN_FIELDS = [
   ["floor", "room.floor", "input-number"],
 ];
 
-const DESCRIPTION_FIELDS = [
-  ["name_ky", "room.name_ky", "input"],
-  ["name_en", "room.name_en", "input"],
-  ["description_ru", "room.description_ru", "textarea"],
-  ["description_ky", "room.description_ky", "textarea"],
-  ["description_en", "room.description_en", "textarea"],
-];
-
-const TAB_KEYS = ["main", "description", "photos", "amenities"];
+const TAB_KEYS = ["main", "photos", "amenities"];
 
 const SVG_ATTR = 'viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
 const SUB_ICONS = {
   main: `<svg ${SVG_ATTR}><rect x="4" y="4" width="16" height="16" rx="2"></rect><path d="M8 9h8M8 13h8M8 17h5"></path></svg>`,
-  description: `<svg ${SVG_ATTR}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M8 13h8M8 17h6M8 9h2"></path></svg>`,
   photos: `<svg ${SVG_ATTR}><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`,
   amenities: `<svg ${SVG_ATTR}><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>`,
 };
@@ -43,7 +35,7 @@ function mountRoomEditSubnav() {
   setSubBottomNav(
     TAB_KEYS.map((name) => ({
       key: name,
-      label: t("edit.section." + name),
+      label: t("room.tab." + name),
       icon: SUB_ICONS[name],
       active: name === _state.active,
       onClick: () => switchTab(name),
@@ -52,8 +44,7 @@ function mountRoomEditSubnav() {
   document.body.classList.add("has-subnav");
 }
 
-const ROOM_FIELDS = [...MAIN_FIELDS, ...DESCRIPTION_FIELDS];
-const ROOM_FIELD_BY_NAME = new Map(ROOM_FIELDS.map((field) => [field[0], field]));
+const ROOM_FIELD_BY_NAME = new Map(MAIN_FIELDS.map((field) => [field[0], field]));
 
 function fieldHtml([k, key, kind, rules = {}], value) {
   const required = rules.required ? "required" : "";
@@ -137,7 +128,6 @@ export async function renderRoomEdit({ hotelId, roomId }) {
     return;
   }
 
-  setTitle(`${t("pageTitle.roomEdit")} / ${t("room.title.edit")}`);
   app.innerHTML = `<div id="tab-body"></div>`;
   mountRoomEditSubnav();
   switchTab(_state.active);
@@ -146,9 +136,9 @@ export async function renderRoomEdit({ hotelId, roomId }) {
 function switchTab(name) {
   _state.active = name;
   mountRoomEditSubnav();
+  setTitle(`${t("pageTitle.roomEdit")} / ${t("room.title.edit")} / ${t("room.tab." + name)}`);
   const body = document.getElementById("tab-body");
   if (name === "main") body.innerHTML = mainFormHtml(_state.room);
-  else if (name === "description") body.innerHTML = descriptionFormHtml(_state.room);
   else if (name === "photos") return renderPhotosTab(body);
   else if (name === "amenities") return renderAmenitiesTab(body);
   wireSaveHandler();
@@ -263,19 +253,6 @@ function mainFormHtml(room) {
   `;
 }
 
-function descriptionFormHtml(room) {
-  const canEdit = canManageRooms();
-  return `
-    <form id="form">
-      ${DESCRIPTION_FIELDS.map((field) =>
-        fieldHtml(field, room?.[field[0]] ?? "")
-      ).join("")}
-      ${canEdit ? `<button class="primary full" id="btn-save">${t("app.save")}</button>` : ""}
-      <div id="err" class="error"></div>
-    </form>
-  `;
-}
-
 function renderPhotosTab(body) {
   const photos = _state.room.photos || [];
   const canEdit = canManageRooms();
@@ -375,9 +352,8 @@ function wireSaveHandler() {
     e.preventDefault();
     const form = document.getElementById("form");
     const payload = {};
-    const activeFields = _state.active === "description" ? DESCRIPTION_FIELDS : MAIN_FIELDS;
-    if (!validateRoomForm(form, activeFields)) return;
-    for (const [k, , kind] of activeFields) {
+    if (!validateRoomForm(form, MAIN_FIELDS)) return;
+    for (const [k, , kind] of MAIN_FIELDS) {
       const raw = form[k].value.trim();
       if (raw === "" && !_state.isNew) { payload[k] = null; continue; }
       if (raw === "") continue;
