@@ -10,7 +10,7 @@ import { t } from "../i18n.js";
 import { navigate } from "../router.js";
 import { setTitle, hideBack } from "../topbar.js";
 import { hideBottomNav, setBottomNav } from "../bottomnav.js";
-import { tg } from "../tg.js";
+import { tg, inTelegram } from "../tg.js";
 
 const BOT_USERNAME = "rforge_stay_bot";
 
@@ -70,9 +70,23 @@ export async function renderEntry() {
 
   const botLink = `<a href="https://t.me/${BOT_USERNAME}">@${BOT_USERNAME}</a>`;
 
+  // Symmetric с partner/admin (см. partner/index.js:174-195): в TG с
+  // валидным initData даём entry inline второй шанс на authTg (bootstrap
+  // мог упасть на stale initData). Иначе — реально нет token'а и мы в
+  // браузере, показываем no_session.
   if (!api.hasToken()) {
-    app.innerHTML = `<p class="muted">${t("app.no_session", { bot: botLink })}</p>`;
-    return;
+    if (inTelegram && tg?.initData) {
+      try {
+        const r = await api.authTg(tg.initData);
+        api.setSession(r.token, r.user, r.accessible_owners);
+      } catch (_) {
+        app.innerHTML = `<p class="muted">${t("app.session_stale", { bot: botLink })}</p>`;
+        return;
+      }
+    } else {
+      app.innerHTML = `<p class="muted">${t("app.no_session", { bot: botLink })}</p>`;
+      return;
+    }
   }
 
   let me;
