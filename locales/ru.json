@@ -212,6 +212,7 @@
   "hotels.filter.status": "Статус",
   "hotels.filter.status_any": "Любой",
   "hotels.new": "+ Новый отель",
+  "hotels.price_from": "от {amount} KGS за сутки",
   "hotels.owner": "Владелец: {name} (uid={uid})",
   "hotels.rooms_btn": "Номера",
   "hotels.set_status": "Изменить статус",

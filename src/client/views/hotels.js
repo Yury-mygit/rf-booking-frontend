@@ -4,7 +4,7 @@ import { navigate } from "../../router.js";
 import { setTitle, showBack } from "../../topbar.js";
 import { setBottomNav } from "../../bottomnav.js";
 import { clientNavItems } from "../nav.js";
-import { hotelAccentsHtml } from "./hotel/_shared.js";
+import { PIN_SVG } from "./hotel/_shared.js";
 
 function escapeHtml(s) {
   if (s == null) return "";
@@ -13,6 +13,10 @@ function escapeHtml(s) {
     (c) =>
       ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c],
   );
+}
+
+function formatPriceKgs(n) {
+  return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 }
 
 export async function renderHotels() {
@@ -43,16 +47,20 @@ export async function renderHotels() {
       const photoStyle = photo
         ? `style="background-image:url('${escapeHtml(photo)}')"`
         : "";
-      const descLine = h.description_ru
-        ? `<p class="hcr-desc">${escapeHtml(h.description_ru)}</p>`
+      const addressText = [h.city, h.address].filter(Boolean).map(escapeHtml).join(" · ");
+      const locLine = addressText
+        ? `<p class="hcr-loc">${PIN_SVG}<span class="hcr-loc-text">${addressText}</span></p>`
+        : "";
+      const priceLine = h.min_price_kgs != null
+        ? `<p class="hcr-price">${t("hotels.price_from", { amount: formatPriceKgs(h.min_price_kgs) })}</p>`
         : "";
       return `
         <a class="hotel-card-row" href="${target}">
           <div class="hcr-photo" ${photoStyle}></div>
           <div class="hcr-body">
             <h3>${escapeHtml(h.name_ru)}</h3>
-            ${hotelAccentsHtml(h)}
-            ${descLine}
+            ${locLine}
+            ${priceLine}
           </div>
         </a>`;
     })
