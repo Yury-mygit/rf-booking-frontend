@@ -86,6 +86,15 @@ export async function renderHotelBookConfirm({ id, roomId }) {
     guests.adults = Math.min(guests.adults, r.capacity);
     guests.children = Math.max(0, r.capacity - guests.adults);
   }
+  // TBB-63: safety net против stale URL с сроком < min_stay_nights.
+  // Основная защита — clamp в dates picker (dates.js); здесь блокируем
+  // submit при попадании через legacy-ссылку.
+  const minStay = h.min_stay_nights || 1;
+  const stayNights = datesPicked
+    ? Math.round((Date.parse(q.check_out) - Date.parse(q.check_in)) / 86400000)
+    : 0;
+  const stayTooShort = datesPicked && stayNights < minStay;
+  const canSubmit = datesPicked && !stayTooShort;
   const lang = getLang();
   const datesLine = datesPicked
     ? `${fmtShort(q.check_in, lang)} → ${fmtShort(q.check_out, lang)}`
@@ -105,13 +114,13 @@ export async function renderHotelBookConfirm({ id, roomId }) {
     </div>
     ${hotelCheckinCheckoutHtml(h)}
     ${amenitiesSectionsHtml(h, r)}
-    <div id="m-err" class="error"></div>
+    <div id="m-err" class="error">${stayTooShort ? escapeHtml(t("book.stay_too_short_error", { n: minStay })) : ""}</div>
     <div class="book-confirm-bar">
-      <button class="primary full ${datesPicked ? "" : "is-disabled"}" id="m-ok">${t("rooms.confirm")}</button>
+      <button class="primary full ${canSubmit ? "" : "is-disabled"}" id="m-ok">${t("rooms.confirm")}</button>
     </div>
   `;
   document.getElementById("m-ok").onclick = () =>
-    submitBookConfirm(h, r, q, guests, datesPicked);
+    submitBookConfirm(h, r, q, guests, canSubmit);
   bindChipTooltips(app);
 }
 

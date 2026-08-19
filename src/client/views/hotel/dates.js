@@ -10,6 +10,7 @@ import { navigate, getQuery } from "../../../router.js";
 import { setTitle, showBack } from "../../../topbar.js";
 import { setBottomNav } from "../../../bottomnav.js";
 import {
+  addDays,
   addMonths,
   buildMonthGrid,
   fmtMonthTitle,
@@ -45,6 +46,14 @@ export async function renderHotelDates({ id }) {
   // для checkout = q.check_in (exclusive). null = bound отсутствует.
   const upperExcl = field === "checkin" ? (q.check_out || null) : null;
   const lowerExcl = field === "checkout" ? (q.check_in || null) : null;
+  // TBB-63: minimum check_out = check_in + min_stay_nights (inclusive).
+  // Более ранние даты становятся disabled ниже. Для field=checkin bound
+  // не действует; там min_stay соблюдётся при выборе check_out потом.
+  const minStay = h.min_stay_nights || 1;
+  const minCheckoutISO =
+    field === "checkout" && q.check_in && minStay > 1
+      ? toISO(addDays(fromISO(q.check_in), minStay))
+      : null;
 
   const anchorISO = picked || (field === "checkout" && q.check_in) || (field === "checkin" && q.check_out) || todayISO();
   let monthAnchor = startOfMonth(fromISO(anchorISO));
@@ -69,6 +78,7 @@ export async function renderHotelDates({ id }) {
     if (iso < minISO) return true;
     if (upperExcl && iso >= upperExcl) return true;
     if (lowerExcl && iso <= lowerExcl) return true;
+    if (minCheckoutISO && iso < minCheckoutISO) return true;
     return false;
   }
 

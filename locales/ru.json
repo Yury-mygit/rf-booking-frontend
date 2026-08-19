@@ -47,6 +47,7 @@
   "book.need_telegram": "Для бронирования откройте этот отель в Telegram-боте",
   "book.open_in_telegram": "Открыть в Telegram",
   "book.room_not_found": "Номер не найден",
+  "book.stay_too_short_error": "Минимальный срок — {n} ноч.",
   "bookings.btn_cancel": "Отменить",
   "bookings.cancel": "Отменить",
   "bookings.cancel_confirm": "Отменить бронь {code}?",
