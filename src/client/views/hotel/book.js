@@ -161,6 +161,7 @@ function amenitiesSectionsHtml(h, r) {
           const label = escapeHtml(t("amenity." + c.kind) + (c.paid ? " · " + t("amenity.paid") : ""));
           return `<span class="chip-icon ${c.paid ? "is-paid" : ""}" data-kind="${c.kind}" title="${label}" aria-label="${label}">
             ${amenityIconHtml(c.kind)}
+            <span class="chip-label">${label}</span>
             ${c.paid ? `<span class="chip-paid">₽</span>` : ""}
           </span>`;
         }).join("")}

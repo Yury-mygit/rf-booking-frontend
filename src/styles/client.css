@@ -186,18 +186,19 @@
 .chip--accent { background: var(--accent); color: var(--accent-text); }
 .chip--paid { background: var(--surface-soft); color: var(--text); border: 1px solid var(--border); }
 
-/* Icon-only amenity chip: 22×22 SVG в квадрате, опциональный ₽ справа. */
+/* Amenity chip: 22×22 SVG + текстовый label, опциональный ₽ справа. */
 .chip-icon {
-  display: inline-flex; align-items: center; gap: 4px;
+  display: inline-flex; align-items: center; gap: 6px;
   background: var(--border-soft);
   color: var(--text);
   padding: 6px 10px;
   border-radius: 8px;
-  line-height: 0;
+  line-height: 1;
   cursor: pointer;
   user-select: none;
 }
-.chip-icon svg { display: block; width: 22px; height: 22px; }
+.chip-icon svg { display: block; width: 20px; height: 20px; flex-shrink: 0; }
+.chip-icon .chip-label { font-size: 13px; }
 .chip-icon .chip-paid {
   font-size: 13px; font-weight: 700; color: var(--accent);
   line-height: 1;

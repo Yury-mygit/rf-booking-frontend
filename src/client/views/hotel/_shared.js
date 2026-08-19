@@ -178,7 +178,7 @@ export function hotelAmenitiesChipsHtml(h) {
       <div class="amenities-chips">
         ${sec.kinds.map((k) => {
           const label = escapeHtml(t("amenity." + k));
-          return `<span class="chip-icon" data-kind="${k}" title="${label}" aria-label="${label}">${amenityIconHtml(k)}</span>`;
+          return `<span class="chip-icon" data-kind="${k}" title="${label}" aria-label="${label}">${amenityIconHtml(k)}<span class="chip-label">${label}</span></span>`;
         }).join("")}
       </div>
     </div>
