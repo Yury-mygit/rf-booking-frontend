@@ -225,6 +225,17 @@ body.has-hotel-actions main#app {
   padding-bottom: calc(var(--bn-h) + var(--sn-h, 0px) + 64px + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
 }
 
+/* nav-hidden: bottom-nav спрятан (hideBottomNav или setBottomNav([])).
+   #bottomnav занимает 0px — фиксированные бары над nav (hotel-quick-
+   actions, book-confirm-bar) прижимаются к низу без 42px зазора,
+   main#app теряет ненужный padding под nav. */
+body.nav-hidden main#app {
+  padding-bottom: max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px));
+}
+body.nav-hidden.has-hotel-actions main#app {
+  padding-bottom: calc(64px + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
+}
+
 /* Quick-actions панель над bottom-nav на view «Отель» (комнаты).
    Кнопка занимает всю площадь панели — без surface-рамки вокруг
    accent-фона. */
@@ -235,6 +246,9 @@ body.has-hotel-actions main#app {
   z-index: 19;
   display: flex;
   padding: 0;
+}
+body.nav-hidden .hotel-quick-actions {
+  bottom: max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px));
 }
 .hotel-quick-actions .qa-btn {
   flex: 1;

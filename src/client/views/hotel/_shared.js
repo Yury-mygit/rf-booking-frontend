@@ -11,7 +11,6 @@
 
 import { api } from "../../../api.js";
 import { t } from "../../../i18n.js";
-import { setLastHotel } from "../../state.js";
 
 export const _state = {
   hotel: null,
@@ -44,7 +43,6 @@ export async function ensureHotel(slugOrId, q = {}) {
     return _state.hotel;
   }
   _state.hotel = await api.hotelDetails(slugOrId, q);
-  setLastHotel(_state.hotel);
   return _state.hotel;
 }
 
@@ -73,7 +71,6 @@ export function ensureEventSource(hotelSlugOrId, onRefresh) {
       _state.refreshTimer = null;
       try {
         _state.hotel = await api.hotelDetails(_state.hotel.id, _state.query);
-        setLastHotel(_state.hotel);
         onRefresh();
       } catch {
         // network blip — EventSource will reconnect; ignore.

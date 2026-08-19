@@ -1,21 +1,13 @@
-// Shared client state — последний открытый отель + pending subject для чата.
+// Shared client state — pending subject для чата и hash-возврата.
 //
 // `pendingSubject` сетится в момент тапа по иконке чата с контекстом
 // (карточка комнаты / карточка брони) и автоматически прикрепляется к
 // первому отправленному сообщению, после чего сбрасывается. На reload
 // теряется — это намеренно: после релоада это уже не «о комнате», а
 // просто переписка.
-let _lastHotel = null;
+
 let _pendingSubject = null;
 let _chatReturnHash = null;
-
-export function setLastHotel(h) {
-  _lastHotel = h;
-}
-
-export function getLastHotel() {
-  return _lastHotel;
-}
 
 export function setPendingSubject(subj) {
   _pendingSubject = subj;

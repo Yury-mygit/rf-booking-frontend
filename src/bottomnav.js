@@ -79,7 +79,11 @@ function setNav(nav, items, opts) {
 }
 
 export function setBottomNav(items, opts = {}) {
-  setNav(document.getElementById("bottomnav"), items, opts);
+  const nav = document.getElementById("bottomnav");
+  setNav(nav, items, opts);
+  const empty = !items || items.length === 0;
+  if (nav && empty) nav.hidden = true;
+  document.body.classList.toggle("nav-hidden", empty);
 }
 
 export function hideBottomNav() {
@@ -88,6 +92,7 @@ export function hideBottomNav() {
   nav.hidden = true;
   nav.innerHTML = "";
   delete nav.dataset.bnShape;
+  document.body.classList.add("nav-hidden");
 }
 
 // Sub-bottomnav — секционная панель табов, рендерится над главным #bottomnav.

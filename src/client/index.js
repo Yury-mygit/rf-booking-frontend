@@ -67,6 +67,7 @@ function parentPath(rest) {
   if ((m = rest.match(/^\/bookings\/([^/]+)\/media$/))) return `/client/bookings/${m[1]}/details`;
   if (rest.match(/^\/bookings\/[^/]+\/cancel$/)) return `/client/bookings`;
   if ((m = rest.match(/^\/hotel\/([^/]+)\/book\/[^/]+$/))) return `/client/hotel/${m[1]}/rooms`;
+  if (rest.match(/^\/hotel\/[^/]+$/)) return `/client/hotels`;
   if (rest.match(/^\/chat\/thread\/\d+$/)) return null; // back через history
   return null;
 }

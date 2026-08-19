@@ -4,8 +4,7 @@
 import { t } from "../../../i18n.js";
 import { navigate } from "../../../router.js";
 import { setTitle, showBack } from "../../../topbar.js";
-import { setBottomNav } from "../../../bottomnav.js";
-import { clientNavItems } from "../../nav.js";
+import { hideBottomNav } from "../../../bottomnav.js";
 import { CHAT_ICON_SVG, openChatWithHotel } from "../chat/open.js";
 
 import { ensureEventSource, ensureHotel, escapeHtml, hotelAccentsHtml, hotelHash, PIN_SVG } from "./_shared.js";
@@ -22,8 +21,8 @@ export async function renderHotelDetail({ id }) {
   }
   const titled = t("hotel.title_prefix") + h.name_ru;
   setTitle(titled);
-  showBack(() => navigate("#/"));
-  setBottomNav(clientNavItems("hotel"));
+  showBack(() => navigate("#/client/hotels"));
+  hideBottomNav();
   document.body.classList.add("has-hotel-actions");
   const photo = (h.photos && h.photos[0]) || "";
   const addressText = [h.city, h.address].filter(Boolean).map(escapeHtml).join(" · ");

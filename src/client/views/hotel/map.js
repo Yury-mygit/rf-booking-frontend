@@ -5,7 +5,6 @@ import { api } from "../../../api.js";
 import { t } from "../../../i18n.js";
 import { navigate } from "../../../router.js";
 import { setTitle, showBack } from "../../../topbar.js";
-import { setLastHotel } from "../../state.js";
 
 import { _state, matchesCached, escapeHtml, hotelHash } from "./_shared.js";
 
@@ -17,7 +16,6 @@ export async function renderHotelMap({ id }) {
     try {
       h = await api.hotelDetails(id, {});
       _state.hotel = h;
-      setLastHotel(h);
     } catch (e) {
       app.innerHTML = `<div class="error">${t("common.error", { msg: e.message })}</div>`;
       return;

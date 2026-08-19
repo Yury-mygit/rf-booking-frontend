@@ -300,6 +300,12 @@
 body.has-book-confirm-bar main#app {
   padding-bottom: calc(var(--bn-h) + 70px + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
 }
+body.nav-hidden .book-confirm-bar {
+  bottom: max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px));
+}
+body.nav-hidden.has-book-confirm-bar main#app {
+  padding-bottom: calc(70px + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
+}
 
 /* Partner amenities form: fieldset + 2-column grid of toggles */
 .amenities-section {

@@ -9,7 +9,7 @@ import { api } from "../../../api.js";
 import { getLang, t } from "../../../i18n.js";
 import { navigate, getQuery } from "../../../router.js";
 import { setTitle, showBack } from "../../../topbar.js";
-import { setBottomNav } from "../../../bottomnav.js";
+import { hideBottomNav } from "../../../bottomnav.js";
 import { inTelegram, tg } from "../../../tg.js";
 import { fmtShort } from "../../../widgets/calendar_utils.js";
 import { showToast } from "../../../widgets/toast.js";
@@ -19,7 +19,6 @@ import {
   ROOM_PAID_ALLOWED,
 } from "../../../widgets/amenities_spec.js";
 import { amenityIconHtml } from "../../../widgets/amenities_icons.js";
-import { clientNavItems } from "../../nav.js";
 
 import {
   ensureHotel,
@@ -69,7 +68,7 @@ export async function renderHotelBookConfirm({ id, roomId }) {
   if (q.beds) backQs.set("beds", q.beds);
   const backTail = backQs.toString() ? "/rooms?" + backQs.toString() : "/rooms";
   showBack(() => navigate(hotelHash(h, backTail)));
-  setBottomNav(clientNavItems("rooms"));
+  hideBottomNav();
   document.body.classList.add("has-book-confirm-bar");
 
   const r = (h.rooms || []).find((x) => x.id === Number(roomId));
