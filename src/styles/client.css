@@ -287,6 +287,9 @@
 }
 .amenities-times .amenities-section-title { margin-bottom: 4px; }
 .amenities-times > div + div { margin-top: 2px; }
+/* Выравниваем «С 14:00» / «До 12:00» друг под другом за счёт
+   фиксированной ширины лейблов «Заселение:» / «Выезд:». */
+.amenities-times > div > .muted { display: inline-block; min-width: 90px; }
 
 /* Confirm-bar на book.js: прижата к bottom-nav, кнопка во весь ряд. */
 .book-confirm-bar {
