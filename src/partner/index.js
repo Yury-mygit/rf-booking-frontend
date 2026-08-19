@@ -66,7 +66,7 @@ const ROUTES = [
   // TBB-19 — amenities поднялся с 1 subform до 3, sub-сегмент опционален
   // (flat `/amenities` резолвится в default `general` внутри renderHotelHub).
   {
-    re: /^\/hotel\/([^/]+)\/amenities(?:\/(general|dining|placement))?$/,
+    re: /^\/hotel\/([^/]+)\/amenities(?:\/(general|dining|placement|rules))?$/,
     h: (m) => renderHotelHub({
       id: decodeURIComponent(m[1]), hub: "amenities", sub: m[2] || null,
     }),
