@@ -578,15 +578,6 @@ body.has-rooms-controls #rooms-list {
 }
 .guests-apply-bar .primary { width: 100%; }
 
-.address-line { display: inline-flex; align-items: center; gap: 6px; }
-.map-pin-btn {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 22px; height: 22px; padding: 0;
-  border: 0; background: transparent; color: var(--accent);
-  cursor: pointer; border-radius: 4px;
-}
-.map-pin-btn:hover { background: var(--border-soft); }
-
 .back-btn {
   display: inline-flex; align-items: center; justify-content: center;
   width: 28px; height: 28px; padding: 0; margin-right: 6px;
@@ -596,10 +587,11 @@ body.has-rooms-controls #rooms-list {
 .back-btn:hover { background: var(--border-soft); }
 #topbar-title .topbar-text { vertical-align: middle; }
 
-.map-screen { display: flex; flex-direction: column; gap: 10px; }
+/* Блок «Местоположение» на detail.js: заголовок + адрес + iframe + 2GIS. */
+.hotel-location-block { display: flex; flex-direction: column; gap: 8px; margin: 14px 0; }
 .map-address { margin: 0; }
 .map-frame {
-  width: 100%; height: 60vh; min-height: 320px;
+  width: 100%; height: 40vh; min-height: 240px;
   border: 1px solid var(--border-soft); border-radius: 6px;
   background: var(--surface-soft);
 }

@@ -15,7 +15,6 @@ import {
   renderHotelRooms,
   renderHotelServices,
   renderHotelBookConfirm,
-  renderHotelMap,
   renderHotelDates,
   renderHotelGuests,
 } from "./views/hotel/index.js";
@@ -40,7 +39,6 @@ import { renderClientSupportChat } from "./views/support.js";
 //   /pay/<code>                → оплата
 //   /login                     → dev-логин
 const ROUTES = [
-  { re: /^\/hotel\/([^/]+)\/map$/, handler: (m) => renderHotelMap({ id: decodeURIComponent(m[1]) }) },
   { re: /^\/hotel\/([^/]+)\/rooms$/, handler: (m) => renderHotelRooms({ id: decodeURIComponent(m[1]) }) },
   { re: /^\/hotel\/([^/]+)\/dates$/, handler: (m) => renderHotelDates({ id: decodeURIComponent(m[1]) }) },
   { re: /^\/hotel\/([^/]+)\/guests$/, handler: (m) => renderHotelGuests({ id: decodeURIComponent(m[1]) }) },
@@ -61,7 +59,7 @@ const ROUTES = [
 // parentPath: куда вести «назад» из текущего client-пути. null — в hub (#/).
 function parentPath(rest) {
   let m;
-  if ((m = rest.match(/^\/hotel\/([^/]+)\/(map|rooms|services)$/))) return `/client/hotel/${m[1]}`;
+  if ((m = rest.match(/^\/hotel\/([^/]+)\/(rooms|services)$/))) return `/client/hotel/${m[1]}`;
   if ((m = rest.match(/^\/hotel\/([^/]+)\/dates$/))) return `/client/hotel/${m[1]}/rooms`;
   if (rest.match(/^\/bookings\/[^/]+\/details$/)) return `/client/bookings`;
   if ((m = rest.match(/^\/bookings\/([^/]+)\/media$/))) return `/client/bookings/${m[1]}/details`;

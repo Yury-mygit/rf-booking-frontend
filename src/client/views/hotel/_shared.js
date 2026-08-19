@@ -229,3 +229,29 @@ export function bindChipTooltips(root) {
     });
   });
 }
+
+// Блок «Местоположение»: заголовок + адрес + OSM iframe + кнопка «Открыть в 2GIS».
+// Silent на пустоте (нет lat/lng — блок не рендерится, адрес и так виден в шапке).
+export function hotelLocationHtml(h) {
+  if (h.lat == null || h.lng == null) return "";
+  const lat = Number(h.lat);
+  const lng = Number(h.lng);
+  const d = 0.005;
+  const bbox = `${lng - d},${lat - d},${lng + d},${lat + d}`;
+  const osmSrc = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat},${lng}`;
+  const dgisHref = `https://2gis.kg/?m=${lng}%2C${lat}%2F17&pt=${lng},${lat}`;
+  const addressLine = [h.city, h.address].filter(Boolean).map(escapeHtml).join(" · ");
+  return `
+    <div class="hotel-location-block">
+      <div class="amenities-section-title">${escapeHtml(t("hotel.location_title"))}</div>
+      ${addressLine ? `<div class="meta map-address">${addressLine}</div>` : ""}
+      <iframe class="map-frame" src="${osmSrc}" loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"></iframe>
+      <div class="map-actions">
+        <a class="primary" href="${dgisHref}" target="_blank" rel="noopener">
+          ${escapeHtml(t("hotel.open_in_2gis"))}
+        </a>
+      </div>
+    </div>
+  `;
+}

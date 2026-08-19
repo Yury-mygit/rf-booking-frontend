@@ -1,5 +1,5 @@
 // Detail screen — карточка отеля: фото + название + адрес + описание +
-// (опционально) map-pin кнопка которая ведёт на /map.
+// удобства чипсами + блок «Местоположение» (embedded OSM + 2GIS).
 
 import { t } from "../../../i18n.js";
 import { navigate } from "../../../router.js";
@@ -7,7 +7,7 @@ import { setTitle, showBack } from "../../../topbar.js";
 import { hideBottomNav } from "../../../bottomnav.js";
 import { CHAT_ICON_SVG, openChatWithHotel } from "../chat/open.js";
 
-import { bindChipTooltips, ensureEventSource, ensureHotel, escapeHtml, hotelAccentsHtml, hotelAmenitiesChipsHtml, hotelHash, PIN_SVG } from "./_shared.js";
+import { bindChipTooltips, ensureEventSource, ensureHotel, escapeHtml, hotelAccentsHtml, hotelAmenitiesChipsHtml, hotelHash, hotelLocationHtml } from "./_shared.js";
 
 export async function renderHotelDetail({ id }) {
   const app = document.getElementById("app");
@@ -26,10 +26,6 @@ export async function renderHotelDetail({ id }) {
   document.body.classList.add("has-hotel-actions");
   const photo = (h.photos && h.photos[0]) || "";
   const addressText = [h.city, h.address].filter(Boolean).map(escapeHtml).join(" · ");
-  const hasCoords = h.lat != null && h.lng != null;
-  const pinBtn = hasCoords
-    ? `<button class="map-pin-btn" id="hotel-map-btn" type="button" aria-label="${t("hotel.location_title")}" title="${t("hotel.location_title")}">${PIN_SVG}</button>`
-    : "";
   app.innerHTML = `
     <div class="hotel-head-card">
       ${photo ? `<div class="hotel-head-photo" style="background-image:url('${escapeHtml(photo)}')"></div>` : ""}
@@ -40,18 +36,17 @@ export async function renderHotelDetail({ id }) {
             aria-label="${escapeHtml(t("chat.write_to_hotel"))}"
             title="${escapeHtml(t("chat.write_to_hotel"))}">${CHAT_ICON_SVG}</button>
         </div>
-        <div class="meta address-line">${addressText}${pinBtn}</div>
+        <div class="meta">${addressText}</div>
         ${hotelAccentsHtml(h)}
         ${h.description_ru ? `<p>${escapeHtml(h.description_ru)}</p>` : ""}
       </div>
     </div>
     ${hotelAmenitiesChipsHtml(h)}
+    ${hotelLocationHtml(h)}
     <div class="hotel-quick-actions">
       <button class="primary qa-btn" id="hotel-rooms-btn" type="button">${escapeHtml(t("client.nav.rooms"))}</button>
     </div>
   `;
-  const mapBtn = document.getElementById("hotel-map-btn");
-  if (mapBtn) mapBtn.onclick = () => navigate(hotelHash(h, "/map"));
   const chatBtn = document.getElementById("hotel-chat-btn");
   if (chatBtn) chatBtn.onclick = () => openChatWithHotel(h.id, null);
   document.getElementById("hotel-rooms-btn").onclick = () => navigate(hotelHash(h, "/rooms"));
