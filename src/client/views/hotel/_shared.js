@@ -250,6 +250,36 @@ export function hotelCheckinCheckoutHtml(h) {
   </div>`;
 }
 
+// Блок «Правила бронирования» (TBB-62): min_stay + booking_mode +
+// cancel_policy. Silent если все правила = default (min=1, mode=instant,
+// policy=free) — семантически «нет особых правил». Если хотя бы одно
+// != default — рендерим все 3 строки (клиент видит полный контекст).
+export function hotelRulesHtml(h) {
+  const minStay = h.min_stay_nights ?? 1;
+  const mode = h.booking_mode ?? "instant";
+  const policy = h.cancel_policy ?? "free";
+  const allDefault =
+    minStay === 1 && mode === "instant" && policy === "free";
+  if (allDefault) return "";
+
+  const minStayLine = escapeHtml(t("hotel.rules.min_stay", { n: minStay }));
+  const modeLine = escapeHtml(t("hotel.rules.booking_mode." + mode));
+  let cancelLine;
+  if (policy === "free") {
+    cancelLine = escapeHtml(t("hotel.rules.cancel.free"));
+  } else {
+    const days = h.cancel_days_threshold ?? 0;
+    const pct = h.cancel_penalty_pct ?? 0;
+    cancelLine = escapeHtml(t("hotel.rules.cancel.hold", { days, pct }));
+  }
+  return `<div class="amenities-times">
+    <div class="amenities-section-title">${escapeHtml(t("hotel.rules.title"))}</div>
+    <div><span class="muted">${escapeHtml(t("hotel.rules.min_stay_label"))}</span> ${minStayLine}</div>
+    <div><span class="muted">${escapeHtml(t("hotel.rules.booking_mode_label"))}</span> ${modeLine}</div>
+    <div><span class="muted">${escapeHtml(t("hotel.rules.cancel_label"))}</span> ${cancelLine}</div>
+  </div>`;
+}
+
 // Блок «Местоположение»: заголовок + адрес + OSM iframe + кнопка «Открыть в 2GIS».
 // Silent на пустоте (нет lat/lng — блок не рендерится, адрес и так виден в шапке).
 export function hotelLocationHtml(h) {

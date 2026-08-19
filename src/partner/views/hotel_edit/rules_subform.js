@@ -1,0 +1,165 @@
+// Rules subform (TBB-62): 3 правила отеля — минимальный срок, способ
+// бронирования, отмена. Auto-save per-field через savePartial (паттерн
+// renderPlacementSubform). Ошибка → rollback UI + showToast.
+
+import { api } from "../../../api.js";
+import { t } from "../../../i18n.js";
+import { escapeHtml } from "../../../util.js";
+import { showToast } from "../../../widgets/toast.js";
+
+import { state } from "./index.js";
+
+async function savePartial(id, payload, rollback) {
+  try {
+    const updated = await api.updateHotel(id, payload);
+    state.hotel = updated;
+  } catch {
+    rollback();
+    showToast(t("amenity.save_error"));
+  }
+}
+
+export function renderRulesSubform(body, id) {
+  const h = state.hotel;
+  const canEdit = api.canDo("manage_hotel", h?.owner_user_id);
+  const disabled = canEdit ? "disabled" : "disabled";
+  const readonlyAttr = canEdit ? "" : "disabled";
+
+  const minStay = h?.min_stay_nights ?? 1;
+  const bookingMode = h?.booking_mode ?? "instant";
+  const cancelPolicy = h?.cancel_policy ?? "free";
+  const cancelDays = h?.cancel_days_threshold ?? "";
+  const cancelPct = h?.cancel_penalty_pct ?? "";
+  const holdEnabled = cancelPolicy === "hold_after_days";
+
+  body.innerHTML = `
+    <fieldset class="amenities-section">
+      <legend>${escapeHtml(t("rules.min_stay.label"))}</legend>
+      <label class="amenity-row">
+        <input type="number" name="min_stay_nights" min="1" max="30"
+               value="${escapeHtml(String(minStay))}" ${readonlyAttr} />
+        <span class="muted">${escapeHtml(t("rules.min_stay.hint"))}</span>
+      </label>
+    </fieldset>
+
+    <fieldset class="amenities-section">
+      <legend>${escapeHtml(t("rules.booking_mode.label"))}</legend>
+      <label class="amenity-row">
+        <input type="radio" name="booking_mode" value="instant"
+               ${bookingMode === "instant" ? "checked" : ""} ${readonlyAttr} />
+        <span>${escapeHtml(t("rules.booking_mode.instant"))}</span>
+      </label>
+      <label class="amenity-row">
+        <input type="radio" name="booking_mode" value="with_confirmation"
+               ${bookingMode === "with_confirmation" ? "checked" : ""} ${readonlyAttr} />
+        <span>${escapeHtml(t("rules.booking_mode.with_confirmation"))}</span>
+      </label>
+    </fieldset>
+
+    <fieldset class="amenities-section">
+      <legend>${escapeHtml(t("rules.cancel.label"))}</legend>
+      <label class="amenity-row">
+        <input type="radio" name="cancel_policy" value="free"
+               ${cancelPolicy === "free" ? "checked" : ""} ${readonlyAttr} />
+        <span>${escapeHtml(t("rules.cancel.free"))}</span>
+      </label>
+      <label class="amenity-row">
+        <input type="radio" name="cancel_policy" value="hold_after_days"
+               ${cancelPolicy === "hold_after_days" ? "checked" : ""} ${readonlyAttr} />
+        <span>${escapeHtml(t("rules.cancel.hold"))}</span>
+      </label>
+      <div class="rules-cancel-params" ${holdEnabled ? "" : "hidden"}>
+        <label class="amenity-row">
+          <span>${escapeHtml(t("rules.cancel.days_label"))}</span>
+          <input type="number" name="cancel_days_threshold" min="0" max="365"
+                 value="${escapeHtml(String(cancelDays))}" ${readonlyAttr} />
+        </label>
+        <label class="amenity-row">
+          <span>${escapeHtml(t("rules.cancel.pct_label"))}</span>
+          <input type="number" name="cancel_penalty_pct" min="0" max="100"
+                 value="${escapeHtml(String(cancelPct))}" ${readonlyAttr} />
+        </label>
+      </div>
+    </fieldset>
+  `;
+
+  if (!canEdit) return;
+
+  const minStayInput = body.querySelector('input[name="min_stay_nights"]');
+  minStayInput.onblur = () => {
+    const v = parseInt(minStayInput.value, 10);
+    if (!Number.isFinite(v) || v < 1 || v > 30) {
+      minStayInput.value = String(state.hotel?.min_stay_nights ?? 1);
+      return;
+    }
+    if (v === (state.hotel?.min_stay_nights ?? 1)) return;
+    const prev = state.hotel?.min_stay_nights ?? 1;
+    savePartial(id, { min_stay_nights: v }, () => {
+      minStayInput.value = String(prev);
+    });
+  };
+
+  body.querySelectorAll('input[name="booking_mode"]').forEach((rb) => {
+    rb.onchange = () => {
+      const value = rb.value;
+      const prev = state.hotel?.booking_mode ?? "instant";
+      if (value === prev) return;
+      savePartial(id, { booking_mode: value }, () => {
+        const prevRb = body.querySelector(`input[name="booking_mode"][value="${prev}"]`);
+        if (prevRb) prevRb.checked = true;
+      });
+    };
+  });
+
+  const cancelParams = body.querySelector(".rules-cancel-params");
+  body.querySelectorAll('input[name="cancel_policy"]').forEach((rb) => {
+    rb.onchange = () => {
+      const value = rb.value;
+      const prev = state.hotel?.cancel_policy ?? "free";
+      if (value === prev) return;
+      // Показать/скрыть params сразу (без ожидания save).
+      cancelParams.hidden = value !== "hold_after_days";
+      // При переходе в free — сбросить threshold/pct.
+      const payload = { cancel_policy: value };
+      if (value === "free") {
+        payload.cancel_days_threshold = null;
+        payload.cancel_penalty_pct = null;
+      }
+      savePartial(id, payload, () => {
+        const prevRb = body.querySelector(`input[name="cancel_policy"][value="${prev}"]`);
+        if (prevRb) prevRb.checked = true;
+        cancelParams.hidden = prev !== "hold_after_days";
+      });
+    };
+  });
+
+  const daysInput = body.querySelector('input[name="cancel_days_threshold"]');
+  daysInput.onblur = () => {
+    const raw = daysInput.value.trim();
+    const v = raw === "" ? null : parseInt(raw, 10);
+    if (v !== null && (!Number.isFinite(v) || v < 0 || v > 365)) {
+      daysInput.value = state.hotel?.cancel_days_threshold ?? "";
+      return;
+    }
+    if (v === (state.hotel?.cancel_days_threshold ?? null)) return;
+    const prev = state.hotel?.cancel_days_threshold ?? null;
+    savePartial(id, { cancel_days_threshold: v }, () => {
+      daysInput.value = prev == null ? "" : String(prev);
+    });
+  };
+
+  const pctInput = body.querySelector('input[name="cancel_penalty_pct"]');
+  pctInput.onblur = () => {
+    const raw = pctInput.value.trim();
+    const v = raw === "" ? null : parseInt(raw, 10);
+    if (v !== null && (!Number.isFinite(v) || v < 0 || v > 100)) {
+      pctInput.value = state.hotel?.cancel_penalty_pct ?? "";
+      return;
+    }
+    if (v === (state.hotel?.cancel_penalty_pct ?? null)) return;
+    const prev = state.hotel?.cancel_penalty_pct ?? null;
+    savePartial(id, { cancel_penalty_pct: v }, () => {
+      pctInput.value = prev == null ? "" : String(prev);
+    });
+  };
+}
