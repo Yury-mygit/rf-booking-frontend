@@ -251,16 +251,12 @@ export function hotelCheckinCheckoutHtml(h) {
 }
 
 // Блок «Правила бронирования» (TBB-62): min_stay + booking_mode +
-// cancel_policy. Silent если все правила = default (min=1, mode=instant,
-// policy=free) — семантически «нет особых правил». Если хотя бы одно
-// != default — рендерим все 3 строки (клиент видит полный контекст).
+// cancel_policy. Показывается всегда — клиент видит договор до брони,
+// даже если правила = default (короткий срок, мгновенно, без штрафа).
 export function hotelRulesHtml(h) {
   const minStay = h.min_stay_nights ?? 1;
   const mode = h.booking_mode ?? "instant";
   const policy = h.cancel_policy ?? "free";
-  const allDefault =
-    minStay === 1 && mode === "instant" && policy === "free";
-  if (allDefault) return "";
 
   const minStayLine = escapeHtml(t("hotel.rules.min_stay", { n: minStay }));
   const modeLine = escapeHtml(t("hotel.rules.booking_mode." + mode));
