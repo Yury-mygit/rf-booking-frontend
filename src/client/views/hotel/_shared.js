@@ -230,6 +230,26 @@ export function bindChipTooltips(root) {
   });
 }
 
+// Блок «Условия размещения»: время заезда / выезда, заполняются партнёром
+// в подформе «Объект / Удобства / Размещение» (partner backend backfill'ит
+// 14:00 / 12:00 при первом просмотре). Silent если оба поля пустые.
+function fmtTime(v) {
+  if (!v) return "";
+  return v.slice(0, 5); // "HH:MM:SS" → "HH:MM"
+}
+export function hotelCheckinCheckoutHtml(h) {
+  const ci = fmtTime(h.checkin_time);
+  const co = fmtTime(h.checkout_time);
+  if (!ci && !co) return "";
+  const parts = [];
+  if (ci) parts.push(`<div><span class="muted">${escapeHtml(t("amenity.section.checkin_label"))}</span> ${escapeHtml(t("amenity.checkin_from", { time: ci }))}</div>`);
+  if (co) parts.push(`<div><span class="muted">${escapeHtml(t("amenity.section.checkout_label"))}</span> ${escapeHtml(t("amenity.checkout_until", { time: co }))}</div>`);
+  return `<div class="amenities-times">
+    <div class="amenities-section-title">${escapeHtml(t("amenity.section.checkin_checkout"))}</div>
+    ${parts.join("")}
+  </div>`;
+}
+
 // Блок «Местоположение»: заголовок + адрес + OSM iframe + кнопка «Открыть в 2GIS».
 // Silent на пустоте (нет lat/lng — блок не рендерится, адрес и так виден в шапке).
 export function hotelLocationHtml(h) {

@@ -7,7 +7,7 @@ import { setTitle, showBack } from "../../../topbar.js";
 import { hideBottomNav } from "../../../bottomnav.js";
 import { CHAT_ICON_SVG, openChatWithHotel } from "../chat/open.js";
 
-import { bindChipTooltips, ensureEventSource, ensureHotel, escapeHtml, hotelAccentsHtml, hotelAmenitiesChipsHtml, hotelHash, hotelLocationHtml } from "./_shared.js";
+import { bindChipTooltips, ensureEventSource, ensureHotel, escapeHtml, hotelAccentsHtml, hotelAmenitiesChipsHtml, hotelCheckinCheckoutHtml, hotelHash, hotelLocationHtml } from "./_shared.js";
 
 export async function renderHotelDetail({ id }) {
   const app = document.getElementById("app");
@@ -43,6 +43,7 @@ export async function renderHotelDetail({ id }) {
     </div>
     ${hotelAmenitiesChipsHtml(h)}
     ${hotelLocationHtml(h)}
+    ${hotelCheckinCheckoutHtml(h)}
     <div class="hotel-quick-actions">
       <button class="primary qa-btn" id="hotel-rooms-btn" type="button">${escapeHtml(t("client.nav.rooms"))}</button>
     </div>

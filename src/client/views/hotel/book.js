@@ -25,6 +25,7 @@ import {
   escapeHtml,
   formatGuestsLabel,
   hotelAmenitiesChipsHtml,
+  hotelCheckinCheckoutHtml,
   hotelHash,
   preserveGuestsQuery,
   readGuestsFromQuery,
@@ -102,7 +103,7 @@ export async function renderHotelBookConfirm({ id, roomId }) {
       <div>${escapeHtml(datesLine)}</div>
       <div>${escapeHtml(formatGuestsLabel(guests))}</div>
     </div>
-    ${checkinCheckoutHtml(h)}
+    ${hotelCheckinCheckoutHtml(h)}
     ${amenitiesSectionsHtml(h, r)}
     <div id="m-err" class="error"></div>
     <div class="book-confirm-bar">
@@ -119,24 +120,6 @@ function roomPhotosHtml(r) {
   if (!photos.length) return "";
   return `<div class="room-photos-carousel">
     ${photos.map((p) => `<img class="room-photo-slide" src="${escapeHtml(p)}" alt="" />`).join("")}
-  </div>`;
-}
-
-function fmtTime(v) {
-  if (!v) return "";
-  return v.slice(0, 5); // "HH:MM:SS" → "HH:MM"
-}
-
-function checkinCheckoutHtml(h) {
-  const ci = fmtTime(h.checkin_time);
-  const co = fmtTime(h.checkout_time);
-  if (!ci && !co) return "";
-  const parts = [];
-  if (ci) parts.push(`<div><span class="muted">${escapeHtml(t("amenity.section.checkin_label"))}</span> ${escapeHtml(t("amenity.checkin_from", { time: ci }))}</div>`);
-  if (co) parts.push(`<div><span class="muted">${escapeHtml(t("amenity.section.checkout_label"))}</span> ${escapeHtml(t("amenity.checkout_until", { time: co }))}</div>`);
-  return `<div class="amenities-times">
-    <div class="amenities-section-title">${escapeHtml(t("amenity.section.checkin_checkout"))}</div>
-    ${parts.join("")}
   </div>`;
 }
 
