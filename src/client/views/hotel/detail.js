@@ -7,7 +7,7 @@ import { setTitle, showBack } from "../../../topbar.js";
 import { hideBottomNav } from "../../../bottomnav.js";
 import { CHAT_ICON_SVG, openChatWithHotel } from "../chat/open.js";
 
-import { ensureEventSource, ensureHotel, escapeHtml, hotelAccentsHtml, hotelHash, PIN_SVG } from "./_shared.js";
+import { bindChipTooltips, ensureEventSource, ensureHotel, escapeHtml, hotelAccentsHtml, hotelAmenitiesChipsHtml, hotelHash, PIN_SVG } from "./_shared.js";
 
 export async function renderHotelDetail({ id }) {
   const app = document.getElementById("app");
@@ -45,6 +45,7 @@ export async function renderHotelDetail({ id }) {
         ${h.description_ru ? `<p>${escapeHtml(h.description_ru)}</p>` : ""}
       </div>
     </div>
+    ${hotelAmenitiesChipsHtml(h)}
     <div class="hotel-quick-actions">
       <button class="primary qa-btn" id="hotel-rooms-btn" type="button">${escapeHtml(t("client.nav.rooms"))}</button>
     </div>
@@ -54,5 +55,6 @@ export async function renderHotelDetail({ id }) {
   const chatBtn = document.getElementById("hotel-chat-btn");
   if (chatBtn) chatBtn.onclick = () => openChatWithHotel(h.id, null);
   document.getElementById("hotel-rooms-btn").onclick = () => navigate(hotelHash(h, "/rooms"));
+  bindChipTooltips(app);
   ensureEventSource(h.slug || h.id, () => renderHotelDetail({ id }));
 }

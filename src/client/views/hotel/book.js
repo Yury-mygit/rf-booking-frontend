@@ -14,16 +14,17 @@ import { inTelegram, tg } from "../../../tg.js";
 import { fmtShort } from "../../../widgets/calendar_utils.js";
 import { showToast } from "../../../widgets/toast.js";
 import {
-  HOTEL_AMENITIES_BY_SECTION,
   ROOM_AMENITIES_BY_SECTION,
   ROOM_PAID_ALLOWED,
 } from "../../../widgets/amenities_spec.js";
 import { amenityIconHtml } from "../../../widgets/amenities_icons.js";
 
 import {
+  bindChipTooltips,
   ensureHotel,
   escapeHtml,
   formatGuestsLabel,
+  hotelAmenitiesChipsHtml,
   hotelHash,
   preserveGuestsQuery,
   readGuestsFromQuery,
@@ -110,47 +111,7 @@ export async function renderHotelBookConfirm({ id, roomId }) {
   `;
   document.getElementById("m-ok").onclick = () =>
     submitBookConfirm(h, r, q, guests, datesPicked);
-  app.querySelectorAll(".chip-icon[data-kind]").forEach((el) => {
-    el.addEventListener("click", () => {
-      const label = el.getAttribute("aria-label") || el.getAttribute("title") || "";
-      if (label) showChipTip(el, label);
-    });
-  });
-}
-
-let _tipEl = null;
-function ensureTip() {
-  if (_tipEl) return _tipEl;
-  _tipEl = document.createElement("div");
-  _tipEl.className = "chip-tooltip";
-  document.body.appendChild(_tipEl);
-  return _tipEl;
-}
-
-function showChipTip(chipEl, text) {
-  const tip = ensureTip();
-  tip.textContent = text;
-  tip.classList.remove("below");
-  tip.classList.add("show");
-  requestAnimationFrame(() => {
-    const chipRect = chipEl.getBoundingClientRect();
-    const tipRect = tip.getBoundingClientRect();
-    const margin = 8;
-    let left = chipRect.left + chipRect.width / 2 - tipRect.width / 2;
-    if (left < margin) left = margin;
-    if (left + tipRect.width > window.innerWidth - margin) {
-      left = window.innerWidth - tipRect.width - margin;
-    }
-    let top = chipRect.top - tipRect.height - 8;
-    if (top < margin) {
-      top = chipRect.bottom + 8;
-      tip.classList.add("below");
-    }
-    tip.style.left = left + "px";
-    tip.style.top = top + window.scrollY + "px";
-  });
-  if (tip._timer) clearTimeout(tip._timer);
-  tip._timer = setTimeout(() => tip.classList.remove("show"), 1800);
+  bindChipTooltips(app);
 }
 
 function roomPhotosHtml(r) {
@@ -180,26 +141,19 @@ function checkinCheckoutHtml(h) {
 }
 
 function amenitiesSectionsHtml(h, r) {
-  const hotelKinds = new Set(h.amenities || []);
   const roomItems = r.amenities || [];
   const roomByKind = new Map(roomItems.map((it) => [it.kind, it]));
 
-  const sections = [];
-  // Hotel-level
-  for (const sec of HOTEL_AMENITIES_BY_SECTION) {
-    const picked = sec.kinds.filter((k) => hotelKinds.has(k));
-    if (picked.length) sections.push({ key: sec.section, chips: picked.map((k) => ({ kind: k })) });
-  }
-  // Room-level
+  // Room-level секции — hotel-часть выведена в helper (_shared.js).
+  const roomSections = [];
   for (const sec of ROOM_AMENITIES_BY_SECTION) {
     const picked = sec.kinds.filter((k) => roomByKind.has(k));
-    if (picked.length) sections.push({
+    if (picked.length) roomSections.push({
       key: sec.section,
       chips: picked.map((k) => ({ kind: k, paid: roomByKind.get(k).paid === true && ROOM_PAID_ALLOWED.has(k) })),
     });
   }
-  if (!sections.length) return "";
-  return sections.map((s) => `
+  const roomHtml = roomSections.map((s) => `
     <div class="amenities-block">
       <div class="amenities-section-title">${escapeHtml(t("amenity.section." + s.key))}</div>
       <div class="amenities-chips">
@@ -213,6 +167,7 @@ function amenitiesSectionsHtml(h, r) {
       </div>
     </div>
   `).join("");
+  return hotelAmenitiesChipsHtml(h) + roomHtml;
 }
 
 async function submitBookConfirm(h, r, q, guests, datesPicked) {

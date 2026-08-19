@@ -11,6 +11,8 @@
 
 import { api } from "../../../api.js";
 import { t } from "../../../i18n.js";
+import { HOTEL_AMENITIES_BY_SECTION } from "../../../widgets/amenities_spec.js";
+import { amenityIconHtml } from "../../../widgets/amenities_icons.js";
 
 export const _state = {
   hotel: null,
@@ -159,4 +161,71 @@ export function hotelAccentsHtml(h) {
     chips.push(`<span class="chip chip--accent">${escapeHtml(t(`hotel.meals_${h.meals}`))}</span>`);
   }
   return chips.length ? `<div class="hotel-accents">${chips.join("")}</div>` : "";
+}
+
+// Hotel-level amenities: чипсы с иконками, сгруппированные по секциям
+// (general/dining). Пустые секции пропускаются; если ни одна секция
+// не заполнена — возвращает "" (detail.js не рисует пустой блок).
+export function hotelAmenitiesChipsHtml(h) {
+  const picked = new Set(h.amenities || []);
+  const sections = HOTEL_AMENITIES_BY_SECTION
+    .map((sec) => ({ key: sec.section, kinds: sec.kinds.filter((k) => picked.has(k)) }))
+    .filter((sec) => sec.kinds.length > 0);
+  if (!sections.length) return "";
+  return sections.map((sec) => `
+    <div class="amenities-block">
+      <div class="amenities-section-title">${escapeHtml(t("amenity.section." + sec.key))}</div>
+      <div class="amenities-chips">
+        ${sec.kinds.map((k) => {
+          const label = escapeHtml(t("amenity." + k));
+          return `<span class="chip-icon" data-kind="${k}" title="${label}" aria-label="${label}">${amenityIconHtml(k)}</span>`;
+        }).join("")}
+      </div>
+    </div>
+  `).join("");
+}
+
+// Chip → tap показывает tooltip с полным лейблом (иконка без подписи —
+// не понятно что означает). Работает для всех `.chip-icon[data-kind]`
+// внутри root'а. Используется detail.js и book.js.
+let _tipEl = null;
+function ensureTip() {
+  if (_tipEl) return _tipEl;
+  _tipEl = document.createElement("div");
+  _tipEl.className = "chip-tooltip";
+  document.body.appendChild(_tipEl);
+  return _tipEl;
+}
+function showChipTip(chipEl, text) {
+  const tip = ensureTip();
+  tip.textContent = text;
+  tip.classList.remove("below");
+  tip.classList.add("show");
+  requestAnimationFrame(() => {
+    const chipRect = chipEl.getBoundingClientRect();
+    const tipRect = tip.getBoundingClientRect();
+    const margin = 8;
+    let left = chipRect.left + chipRect.width / 2 - tipRect.width / 2;
+    if (left < margin) left = margin;
+    if (left + tipRect.width > window.innerWidth - margin) {
+      left = window.innerWidth - tipRect.width - margin;
+    }
+    let top = chipRect.top - tipRect.height - 8;
+    if (top < margin) {
+      top = chipRect.bottom + 8;
+      tip.classList.add("below");
+    }
+    tip.style.left = left + "px";
+    tip.style.top = top + window.scrollY + "px";
+  });
+  if (tip._timer) clearTimeout(tip._timer);
+  tip._timer = setTimeout(() => tip.classList.remove("show"), 1800);
+}
+export function bindChipTooltips(root) {
+  root.querySelectorAll(".chip-icon[data-kind]").forEach((el) => {
+    el.addEventListener("click", () => {
+      const label = el.getAttribute("aria-label") || el.getAttribute("title") || "";
+      if (label) showChipTip(el, label);
+    });
+  });
 }
