@@ -272,9 +272,9 @@ export function hotelRulesHtml(h) {
   }
   return `<div class="amenities-times amenities-times--wide">
     <div class="amenities-section-title">${escapeHtml(t("hotel.rules.title"))}</div>
-    <div><span class="muted">${escapeHtml(t("hotel.rules.min_stay_label"))}</span> ${minStayLine}</div>
-    <div><span class="muted">${escapeHtml(t("hotel.rules.booking_mode_label"))}</span> ${modeLine}</div>
-    <div><span class="muted">${escapeHtml(t("hotel.rules.cancel_label"))}</span> ${cancelLine}</div>
+    <div><span class="muted">${escapeHtml(t("hotel.rules.min_stay_label"))}</span><span class="rule-value">${minStayLine}</span></div>
+    <div><span class="muted">${escapeHtml(t("hotel.rules.booking_mode_label"))}</span><span class="rule-value">${modeLine}</span></div>
+    <div><span class="muted">${escapeHtml(t("hotel.rules.cancel_label"))}</span><span class="rule-value">${cancelLine}</span></div>
   </div>`;
 }
 
