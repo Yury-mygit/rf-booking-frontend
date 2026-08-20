@@ -1,6 +1,7 @@
-// Rules subform (TBB-62): 3 правила отеля — минимальный срок, способ
-// бронирования, отмена. Auto-save per-field через savePartial (паттерн
-// renderPlacementSubform). Ошибка → rollback UI + showToast.
+// Rules subform (TBB-62/TBB-64): 3 правила отеля — минимальный срок,
+// способ бронирования, отмена. Auto-save per-field через savePartial.
+// Радио заменены на select (TBB-64) с 4 вариантами каждый. Ошибка →
+// rollback UI + showToast.
 
 import { api } from "../../../api.js";
 import { t } from "../../../i18n.js";
@@ -8,6 +9,9 @@ import { escapeHtml } from "../../../util.js";
 import { showToast } from "../../../widgets/toast.js";
 
 import { state } from "./index.js";
+
+const BOOKING_MODES = ["instant", "manual_confirmation", "phone_confirmation", "advance_payment"];
+const CANCEL_POLICIES = ["free", "hold_after_days", "non_refundable", "first_night_only"];
 
 async function savePartial(id, payload, rollback) {
   try {
@@ -19,10 +23,14 @@ async function savePartial(id, payload, rollback) {
   }
 }
 
+function optionHtml(value, selectedValue, labelKey) {
+  const sel = value === selectedValue ? "selected" : "";
+  return `<option value="${value}" ${sel}>${escapeHtml(t(labelKey + value))}</option>`;
+}
+
 export function renderRulesSubform(body, id) {
   const h = state.hotel;
   const canEdit = api.canDo("manage_hotel", h?.owner_user_id);
-  const disabled = canEdit ? "disabled" : "disabled";
   const readonlyAttr = canEdit ? "" : "disabled";
 
   const minStay = h?.min_stay_nights ?? 1;
@@ -31,6 +39,13 @@ export function renderRulesSubform(body, id) {
   const cancelDays = h?.cancel_days_threshold ?? "";
   const cancelPct = h?.cancel_penalty_pct ?? "";
   const holdEnabled = cancelPolicy === "hold_after_days";
+
+  const bookingModeOpts = BOOKING_MODES
+    .map((v) => optionHtml(v, bookingMode, "rules.booking_mode."))
+    .join("");
+  const cancelPolicyOpts = CANCEL_POLICIES
+    .map((v) => optionHtml(v, cancelPolicy, "rules.cancel."))
+    .join("");
 
   body.innerHTML = `
     <fieldset class="amenities-section">
@@ -45,28 +60,14 @@ export function renderRulesSubform(body, id) {
     <fieldset class="amenities-section">
       <legend>${escapeHtml(t("rules.booking_mode.label"))}</legend>
       <label class="amenity-row">
-        <input type="radio" name="booking_mode" value="instant"
-               ${bookingMode === "instant" ? "checked" : ""} ${readonlyAttr} />
-        <span>${escapeHtml(t("rules.booking_mode.instant"))}</span>
-      </label>
-      <label class="amenity-row">
-        <input type="radio" name="booking_mode" value="with_confirmation"
-               ${bookingMode === "with_confirmation" ? "checked" : ""} ${readonlyAttr} />
-        <span>${escapeHtml(t("rules.booking_mode.with_confirmation"))}</span>
+        <select name="booking_mode" ${readonlyAttr}>${bookingModeOpts}</select>
       </label>
     </fieldset>
 
     <fieldset class="amenities-section">
       <legend>${escapeHtml(t("rules.cancel.label"))}</legend>
       <label class="amenity-row">
-        <input type="radio" name="cancel_policy" value="free"
-               ${cancelPolicy === "free" ? "checked" : ""} ${readonlyAttr} />
-        <span>${escapeHtml(t("rules.cancel.free"))}</span>
-      </label>
-      <label class="amenity-row">
-        <input type="radio" name="cancel_policy" value="hold_after_days"
-               ${cancelPolicy === "hold_after_days" ? "checked" : ""} ${readonlyAttr} />
-        <span>${escapeHtml(t("rules.cancel.hold"))}</span>
+        <select name="cancel_policy" ${readonlyAttr}>${cancelPolicyOpts}</select>
       </label>
       <div class="rules-cancel-params" ${holdEnabled ? "" : "hidden"}>
         <label class="amenity-row">
@@ -99,39 +100,36 @@ export function renderRulesSubform(body, id) {
     });
   };
 
-  body.querySelectorAll('input[name="booking_mode"]').forEach((rb) => {
-    rb.onchange = () => {
-      const value = rb.value;
-      const prev = state.hotel?.booking_mode ?? "instant";
-      if (value === prev) return;
-      savePartial(id, { booking_mode: value }, () => {
-        const prevRb = body.querySelector(`input[name="booking_mode"][value="${prev}"]`);
-        if (prevRb) prevRb.checked = true;
-      });
-    };
-  });
+  const bookingModeSelect = body.querySelector('select[name="booking_mode"]');
+  bookingModeSelect.onchange = () => {
+    const value = bookingModeSelect.value;
+    const prev = state.hotel?.booking_mode ?? "instant";
+    if (value === prev) return;
+    savePartial(id, { booking_mode: value }, () => {
+      bookingModeSelect.value = prev;
+    });
+  };
 
+  const cancelPolicySelect = body.querySelector('select[name="cancel_policy"]');
   const cancelParams = body.querySelector(".rules-cancel-params");
-  body.querySelectorAll('input[name="cancel_policy"]').forEach((rb) => {
-    rb.onchange = () => {
-      const value = rb.value;
-      const prev = state.hotel?.cancel_policy ?? "free";
-      if (value === prev) return;
-      // Показать/скрыть params сразу (без ожидания save).
-      cancelParams.hidden = value !== "hold_after_days";
-      // При переходе в free — сбросить threshold/pct.
-      const payload = { cancel_policy: value };
-      if (value === "free") {
-        payload.cancel_days_threshold = null;
-        payload.cancel_penalty_pct = null;
-      }
-      savePartial(id, payload, () => {
-        const prevRb = body.querySelector(`input[name="cancel_policy"][value="${prev}"]`);
-        if (prevRb) prevRb.checked = true;
-        cancelParams.hidden = prev !== "hold_after_days";
-      });
-    };
-  });
+  cancelPolicySelect.onchange = () => {
+    const value = cancelPolicySelect.value;
+    const prev = state.hotel?.cancel_policy ?? "free";
+    if (value === prev) return;
+    // Показать/скрыть params сразу (без ожидания save).
+    cancelParams.hidden = value !== "hold_after_days";
+    // При переходе на любой не-hold policy — очистить threshold/pct
+    // (иначе в БД останутся устаревшие params для отображения клиенту).
+    const payload = { cancel_policy: value };
+    if (value !== "hold_after_days") {
+      payload.cancel_days_threshold = null;
+      payload.cancel_penalty_pct = null;
+    }
+    savePartial(id, payload, () => {
+      cancelPolicySelect.value = prev;
+      cancelParams.hidden = prev !== "hold_after_days";
+    });
+  };
 
   const daysInput = body.querySelector('input[name="cancel_days_threshold"]');
   daysInput.onblur = () => {

@@ -250,9 +250,10 @@ export function hotelCheckinCheckoutHtml(h) {
   </div>`;
 }
 
-// Блок «Правила бронирования» (TBB-62): min_stay + booking_mode +
+// Блок «Правила бронирования» (TBB-62/TBB-64): min_stay + booking_mode +
 // cancel_policy. Показывается всегда — клиент видит договор до брони,
-// даже если правила = default (короткий срок, мгновенно, без штрафа).
+// даже если правила = default. BookingMode: 4 варианта, CancelPolicy:
+// 4 варианта (`hold_after_days` — с параметрами; остальные — plain text).
 export function hotelRulesHtml(h) {
   const minStay = h.min_stay_nights ?? 1;
   const mode = h.booking_mode ?? "instant";
@@ -261,12 +262,13 @@ export function hotelRulesHtml(h) {
   const minStayLine = escapeHtml(t("hotel.rules.min_stay", { n: minStay }));
   const modeLine = escapeHtml(t("hotel.rules.booking_mode." + mode));
   let cancelLine;
-  if (policy === "free") {
-    cancelLine = escapeHtml(t("hotel.rules.cancel.free"));
-  } else {
+  if (policy === "hold_after_days") {
     const days = h.cancel_days_threshold ?? 0;
     const pct = h.cancel_penalty_pct ?? 0;
-    cancelLine = escapeHtml(t("hotel.rules.cancel.hold", { days, pct }));
+    cancelLine = escapeHtml(t("hotel.rules.cancel.hold_after_days", { days, pct }));
+  } else {
+    // free / non_refundable / first_night_only — plain-text локализация.
+    cancelLine = escapeHtml(t("hotel.rules.cancel." + policy));
   }
   return `<div class="amenities-times amenities-times--wide">
     <div class="amenities-section-title">${escapeHtml(t("hotel.rules.title"))}</div>
