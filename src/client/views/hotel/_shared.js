@@ -268,7 +268,7 @@ export function hotelRulesHtml(h) {
     const pct = h.cancel_penalty_pct ?? 0;
     cancelLine = escapeHtml(t("hotel.rules.cancel.hold", { days, pct }));
   }
-  return `<div class="amenities-times">
+  return `<div class="amenities-times amenities-times--wide">
     <div class="amenities-section-title">${escapeHtml(t("hotel.rules.title"))}</div>
     <div><span class="muted">${escapeHtml(t("hotel.rules.min_stay_label"))}</span> ${minStayLine}</div>
     <div><span class="muted">${escapeHtml(t("hotel.rules.booking_mode_label"))}</span> ${modeLine}</div>
