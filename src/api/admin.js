@@ -32,4 +32,14 @@ export const admin = {
     return call("GET", `/admin/bookings${qs.toString() ? "?" + qs : ""}`);
   },
   adminCancelBooking: (code) => call("POST", `/admin/bookings/${code}/cancel`),
+
+  // TBB-65: каталог удобств отеля.
+  adminListAmenityOptions: (section) =>
+    call("GET", `/admin/amenity-options${section ? "?section=" + section : ""}`),
+  adminCreateAmenityOption: (section, name, description) =>
+    call("POST", "/admin/amenity-options", { section, name, description }),
+  adminUpdateAmenityOption: (id, patch) =>
+    call("PATCH", `/admin/amenity-options/${id}`, patch),
+  adminReorderAmenityOptions: (section, order) =>
+    call("POST", "/admin/amenity-options/reorder", { section, order }),
 };

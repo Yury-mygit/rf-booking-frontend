@@ -163,26 +163,41 @@ export function hotelAccentsHtml(h) {
   return chips.length ? `<div class="hotel-accents">${chips.join("")}</div>` : "";
 }
 
-// Hotel-level amenities: чипсы с иконками, сгруппированные по секциям
-// (general/dining). Пустые секции пропускаются; если ни одна секция
-// не заполнена — возвращает "" (detail.js не рисует пустой блок).
+// Hotel-level amenities: чипсы с иконками, сгруппированные по секциям.
+// TBB-65: источник данных — backend enrichment `h.amenities_detail`
+// (только active + описания из каталога). Пустые секции пропускаются.
+// Порядок секций фиксирован через SECTION_ORDER (general → dining).
+const SECTION_ORDER = ["general", "dining"];
+
 export function hotelAmenitiesChipsHtml(h) {
-  const picked = new Set(h.amenities || []);
-  const sections = HOTEL_AMENITIES_BY_SECTION
-    .map((sec) => ({ key: sec.section, kinds: sec.kinds.filter((k) => picked.has(k)) }))
-    .filter((sec) => sec.kinds.length > 0);
-  if (!sections.length) return "";
-  return sections.map((sec) => `
+  const detail = Array.isArray(h.amenities_detail) ? h.amenities_detail : [];
+  if (!detail.length) return "";
+  const bySection = new Map();
+  for (const it of detail) {
+    if (!bySection.has(it.section)) bySection.set(it.section, []);
+    bySection.get(it.section).push(it);
+  }
+  const orderedKeys = [
+    ...SECTION_ORDER.filter((k) => bySection.has(k)),
+    ...[...bySection.keys()].filter((k) => !SECTION_ORDER.includes(k)),
+  ];
+  return orderedKeys
+    .map((secKey) => {
+      const items = bySection.get(secKey);
+      return `
     <div class="amenities-block">
-      <div class="amenities-section-title">${escapeHtml(t("amenity.section." + sec.key))}</div>
+      <div class="amenities-section-title">${escapeHtml(t("amenity.section." + secKey))}</div>
       <div class="amenities-chips">
-        ${sec.kinds.map((k) => {
-          const label = escapeHtml(t("amenity." + k));
-          return `<span class="chip-icon" data-kind="${k}" title="${label}" aria-label="${label}">${amenityIconHtml(k)}<span class="chip-label">${label}</span></span>`;
-        }).join("")}
+        ${items
+          .map((it) => {
+            const label = escapeHtml(it.description);
+            return `<span class="chip-icon" data-kind="${it.slug}" title="${label}" aria-label="${label}">${amenityIconHtml(it.slug)}<span class="chip-label">${label}</span></span>`;
+          })
+          .join("")}
       </div>
-    </div>
-  `).join("");
+    </div>`;
+    })
+    .join("");
 }
 
 // Chip → tap показывает tooltip с полным лейблом (иконка без подписи —

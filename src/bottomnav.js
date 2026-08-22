@@ -1,6 +1,10 @@
-// Generic bottomnav primitive — рендерит элементы в #bottomnav / #subbottomnav.
+// Generic bottomnav primitive — 3 уровня.
+//   Меню первого уровня  → #bottomnav       (setBottomNav)
+//   Меню второго уровня  → #subbottomnav    (setSubBottomNav)      — субменю
+//   Меню третьего уровня → #subsubbottomnav (setSubSubBottomNav)   — подменю
+//                                                                    от 2-го
 // Каждый блок (partner/admin/settings/client) собирает свой набор items и
-// вызывает setBottomNav / setSubBottomNav.
+// вызывает соответствующий setter.
 //
 // Item: { key, label, icon, active?, href?, onClick? }
 //   href → <a href="#<path>">; без href → <button type="button">.
@@ -111,4 +115,22 @@ export function hideSubBottomNav() {
   nav.innerHTML = "";
   delete nav.dataset.bnShape;
   document.body.classList.remove("has-subnav");
+}
+
+// Меню третьего уровня — подменю от subbottomnav'а. Item-shape тот же
+// ({ key, label, icon, active?, href?, onClick? }), стиль `.bn-item`
+// переиспользуется. View-сторона должна дополнительно ставить
+// `document.body.classList.add("has-subsubnav")` — `main#app` тогда
+// получает увеличенный padding-bottom.
+export function setSubSubBottomNav(items, opts = {}) {
+  setNav(document.getElementById("subsubbottomnav"), items, opts);
+}
+
+export function hideSubSubBottomNav() {
+  const nav = document.getElementById("subsubbottomnav");
+  if (!nav) return;
+  nav.hidden = true;
+  nav.innerHTML = "";
+  delete nav.dataset.bnShape;
+  document.body.classList.remove("has-subsubnav");
 }

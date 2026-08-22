@@ -1,9 +1,17 @@
 // Bottom-nav для admin-блока. setBottomNav вынесена в src/bottomnav.js.
 
 import { t } from "../i18n.js";
-import { setBottomNav } from "../bottomnav.js";
+import {
+  setBottomNav,
+  setSubBottomNav, hideSubBottomNav,
+  setSubSubBottomNav, hideSubSubBottomNav,
+} from "../bottomnav.js";
 
-export { setBottomNav };
+export {
+  setBottomNav,
+  setSubBottomNav, hideSubBottomNav,
+  setSubSubBottomNav, hideSubSubBottomNav,
+};
 
 const SVG_ATTR = 'viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
 
@@ -14,6 +22,8 @@ const ICONS = {
   bookings: `<svg ${SVG_ATTR}><rect x="3" y="4" width="18" height="17" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18"></path></svg>`,
   // life-buoy
   support: `<svg ${SVG_ATTR}><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="4"></circle><line x1="4.93" y1="4.93" x2="9.17" y2="9.17"></line><line x1="14.83" y1="14.83" x2="19.07" y2="19.07"></line><line x1="14.83" y1="9.17" x2="19.07" y2="4.93"></line><line x1="4.93" y1="19.07" x2="9.17" y2="14.83"></line></svg>`,
+  // gear
+  settings: `<svg ${SVG_ATTR}><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>`,
 };
 
 const MAIN_ITEMS = [
@@ -22,6 +32,7 @@ const MAIN_ITEMS = [
   { key: "hotels", labelKey: "partner.nav.hotels", icon: ICONS.hotels, href: "/admin/hotels" },
   { key: "bookings", labelKey: "nav.bookings", icon: ICONS.bookings, href: "/admin/bookings" },
   { key: "support", labelKey: "nav.support", icon: ICONS.support, href: "/admin/support" },
+  { key: "settings", labelKey: "nav.settings", icon: ICONS.settings, href: "/admin/settings" },
 ];
 
 export function renderMainNav(activeKey) {
@@ -40,5 +51,6 @@ export function activeNavKey(rest) {
   if (rest === "/hotels") return "hotels";
   if (rest === "/bookings") return "bookings";
   if (rest.startsWith("/support")) return "support";
+  if (rest.startsWith("/settings")) return "settings";
   return null;
 }

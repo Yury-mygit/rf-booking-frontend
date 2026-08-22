@@ -14,6 +14,9 @@ export const client = {
     }
     return call("GET", `/public/hotels/${id}${qs.toString() ? "?" + qs : ""}`);
   },
+  // TBB-65: динамический каталог удобств отеля.
+  publicAmenityOptions: (section) =>
+    call("GET", `/public/amenity-options?section=${encodeURIComponent(section)}`),
   publicHotels: (params = {}) => {
     const qs = new URLSearchParams();
     for (const [k, v] of Object.entries(params)) {

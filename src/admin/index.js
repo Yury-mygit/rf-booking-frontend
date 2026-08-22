@@ -9,7 +9,7 @@ import { t } from "../i18n.js";
 import { navigate } from "../router.js";
 import { setTitle, showBack } from "../topbar.js";
 import { inTelegram, tg } from "../tg.js";
-import { renderMainNav, activeNavKey } from "./nav.js";
+import { renderMainNav, activeNavKey, hideSubBottomNav, hideSubSubBottomNav } from "./nav.js";
 
 import { renderMetrics } from "./views/metrics.js";
 import { renderUsers } from "./views/users.js";
@@ -18,6 +18,13 @@ import { renderBookings } from "./views/bookings.js";
 import { renderAdminLogin } from "./views/login.js";
 import { renderAdminSupportList } from "./views/support/list.js";
 import { renderAdminSupportThread } from "./views/support/thread.js";
+import {
+  redirectSettings,
+  renderSettingsGeneral,
+  renderSettingsDining,
+  renderSettingsPlacement,
+  renderSettingsRules,
+} from "./views/settings.js";
 
 const ROUTES = [
   { re: /^\/?$/, h: () => renderMetrics(), titleKey: "pageTitle.adminMetrics" },
@@ -27,12 +34,24 @@ const ROUTES = [
   { re: /^\/bookings$/, h: () => renderBookings(), titleKey: "pageTitle.adminBookings" },
   { re: /^\/support$/, h: () => renderAdminSupportList(), titleKey: "pageTitle.adminSupport" },
   { re: /^\/support\/(\d+)$/, h: (m) => renderAdminSupportThread(m[1]), titleKey: "pageTitle.adminSupport" },
+  { re: /^\/settings$/, h: () => redirectSettings() },
+  { re: /^\/settings\/amenities$/, h: () => redirectSettings() },
+  { re: /^\/settings\/amenities\/general$/,   h: () => renderSettingsGeneral(),   titleKey: "pageTitle.adminSettings" },
+  { re: /^\/settings\/amenities\/dining$/,    h: () => renderSettingsDining(),    titleKey: "pageTitle.adminSettings" },
+  { re: /^\/settings\/amenities\/placement$/, h: () => renderSettingsPlacement(), titleKey: "pageTitle.adminSettings" },
+  { re: /^\/settings\/amenities\/rules$/,     h: () => renderSettingsRules(),     titleKey: "pageTitle.adminSettings" },
   { re: /^\/login$/, h: () => renderAdminLogin(), titleKey: "pageTitle.adminLogin" },
 ];
 
 function syncTopChrome(rest) {
   renderMainNav(activeNavKey(rest));
   showBack(() => navigate("#/"));
+  // Default: subnav и subsubnav скрыты. Views (settings) сами поднимают
+  // через setSubBottomNav / setSubSubBottomNav + body.classList.add.
+  if (!rest.startsWith("/settings")) {
+    hideSubBottomNav();
+    hideSubSubBottomNav();
+  }
 }
 
 export async function render(params) {

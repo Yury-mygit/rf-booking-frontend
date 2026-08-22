@@ -26,37 +26,102 @@ async function savePartial(id, payload, rollback) {
   }
 }
 
-function renderCheckboxSubform(body, id, sectionKey) {
+// TBB-65: каталог удобств fetch'ится с backend'а (section-scoped, только
+// active). Cache инвалидируется по SSE-refresh при admin-мутации; активная
+// монтированная subform re-renders'ится сразу — без reload у партнёра.
+const _catalogCache = new Map(); // section → Promise<AmenityDetail[]>
+let _activeMount = null; // { body, sectionKey, id } — последний renderCheckboxSubform.
+let _sseSubscribed = false;
+
+async function fetchCatalog(section) {
+  if (!_catalogCache.has(section)) {
+    _catalogCache.set(section, api.publicAmenityOptions(section));
+  }
+  try {
+    return await _catalogCache.get(section);
+  } catch (e) {
+    _catalogCache.delete(section);
+    throw e;
+  }
+}
+
+function ensureCatalogSse() {
+  if (_sseSubscribed) return;
+  _sseSubscribed = true;
+  const es = new EventSource("/api/v1/public/amenity-options/events");
+  es.onmessage = (ev) => {
+    try {
+      const msg = JSON.parse(ev.data);
+      if (msg?.type !== "refresh") return;
+    } catch {
+      return;
+    }
+    _catalogCache.clear();
+    const m = _activeMount;
+    if (m && m.body && m.body.isConnected) {
+      renderCheckboxSubform(m.body, m.id, m.sectionKey);
+    }
+  };
+  // errors — EventSource re-connects automatically (retry: 5000).
+}
+
+// Fallback из hardcoded spec: сработает если backend недоступен.
+function fallbackCatalog(sectionKey) {
   const spec = HOTEL_AMENITIES_BY_SECTION.find((s) => s.section === sectionKey);
+  return (spec?.kinds || []).map((kind) => ({
+    slug: kind,
+    description: t("amenity." + kind),
+  }));
+}
+
+async function renderCheckboxSubform(body, id, sectionKey) {
+  ensureCatalogSse();
+  _activeMount = { body, sectionKey, id };
   const h = state.hotel;
   const canEdit = api.canDo("manage_hotel", h?.owner_user_id);
-  const selected = new Set(h?.amenities || []);
   const disabled = canEdit ? "" : "disabled";
+  body.innerHTML = `<p class="muted">${t("app.loading")}</p>`;
+
+  let catalog;
+  try {
+    catalog = await fetchCatalog(sectionKey);
+  } catch {
+    catalog = fallbackCatalog(sectionKey);
+  }
+
+  const sectionSlugs = new Set(catalog.map((o) => o.slug));
+  const selected = new Set(h?.amenities || []);
 
   body.innerHTML = `
     <fieldset class="amenities-section">
       <div class="amenities-grid">
-        ${spec.kinds.map((kind) => {
-          const checked = selected.has(kind) ? "checked" : "";
-          return `<label class="amenity-row">
-            <input type="checkbox" name="am-${kind}" data-kind="${kind}" ${checked} ${disabled} />
-            <span>${escapeHtml(t("amenity." + kind))}</span>
-          </label>`;
-        }).join("")}
+        ${catalog
+          .map((o) => {
+            const checked = selected.has(o.slug) ? "checked" : "";
+            return `<label class="amenity-row">
+              <input type="checkbox" name="am-${o.slug}" data-kind="${o.slug}" ${checked} ${disabled} />
+              <span>${escapeHtml(o.description)}</span>
+            </label>`;
+          })
+          .join("")}
       </div>
     </fieldset>`;
 
   if (!canEdit) return;
 
-  const sectionKinds = new Set(spec.kinds);
   body.querySelectorAll('input[type="checkbox"]').forEach((cb) => {
     cb.onchange = () => {
-      const kind = cb.dataset.kind;
       const prevChecked = !cb.checked;
-      // Merged: kinds чужих секций из state.hotel + актуальный набор в этой секции по DOM.
-      const otherKinds = (state.hotel?.amenities || []).filter((k) => !sectionKinds.has(k));
-      const localSelected = [...body.querySelectorAll('input[type="checkbox"]:checked')]
-        .map((el) => el.dataset.kind);
+      // Merged: slug'и чужих секций из state.hotel + актуальный набор в
+      // этой секции по DOM. `sectionSlugs` — snapshot каталога на момент
+      // рендера; slug'и из БД, которых больше нет в каталоге (админ
+      // deactivate'нул), попадают в "чужие" и сохраняются как есть.
+      const otherKinds = (state.hotel?.amenities || []).filter(
+        (k) => !sectionSlugs.has(k),
+      );
+      const localSelected = [
+        ...body.querySelectorAll('input[type="checkbox"]:checked'),
+      ].map((el) => el.dataset.kind);
       const merged = [...otherKinds, ...localSelected];
       savePartial(id, { amenities: merged }, () => {
         cb.checked = prevChecked;
@@ -65,12 +130,12 @@ function renderCheckboxSubform(body, id, sectionKey) {
   });
 }
 
-export function renderGeneralSubform(body, id) {
-  renderCheckboxSubform(body, id, "general");
+export async function renderGeneralSubform(body, id) {
+  await renderCheckboxSubform(body, id, "general");
 }
 
-export function renderDiningSubform(body, id) {
-  renderCheckboxSubform(body, id, "dining");
+export async function renderDiningSubform(body, id) {
+  await renderCheckboxSubform(body, id, "dining");
 }
 
 // Стандартные времена для отелей — заезд 14:00, выезд 12:00. Если у отеля

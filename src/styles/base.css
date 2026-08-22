@@ -139,6 +139,10 @@ body[data-block="partner"] #settings-btn {
    чтобы fixed-bars / padding-bottom использовали `var(--sn-h, 0px)`
    как 0 на роутах без субпанели. */
 body.has-subnav { --sn-h: 42px; }
+/* Меню третьего уровня — подменю от subbottomnav'а (второго уровня).
+   --ssn-h задаётся только когда третий уровень поднят, чтобы
+   зависимые вычисления `var(--ssn-h, 0px)` были 0 по умолчанию. */
+body.has-subsubnav { --ssn-h: 42px; }
 #bottomnav:not([hidden]) {
   display: flex;
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
@@ -175,7 +179,24 @@ main#app {
   transform: translateZ(0);
 }
 body.has-subnav main#app {
-  padding-bottom: calc(var(--bn-h) + var(--sn-h, 0px) + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
+  padding-bottom: calc(var(--bn-h) + var(--sn-h, 0px) + var(--ssn-h, 0px) + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
+}
+
+/* Меню третьего уровня — подменю от subbottomnav'а. Располагается над
+   #subbottomnav. Заполняется через setSubSubBottomNav; body.has-subsubnav
+   поднимает --ssn-h и расширяет padding-bottom у main#app. */
+#subsubbottomnav:not([hidden]) {
+  display: flex;
+  position: fixed; left: 0; right: 0;
+  bottom: calc(var(--bn-h) + var(--sn-h, 0px) + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
+  z-index: 18;
+  justify-content: space-around; align-items: stretch;
+  height: var(--ssn-h, 42px);
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  box-sizing: border-box;
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 /* TBB-16 (2026-07-02) — резерв под subnav для hotel-hub'а живёт на
@@ -193,7 +214,8 @@ body.has-subnav main#app {
    располагает 1/2/3 кнопок симметрично (1 → центр; 2 → симметрично
    от центра; 3 → равномерно). */
 #bottomnav[data-bn-mode="centered"] .bn-item,
-#subbottomnav[data-bn-mode="centered"] .bn-item {
+#subbottomnav[data-bn-mode="centered"] .bn-item,
+#subsubbottomnav[data-bn-mode="centered"] .bn-item {
   flex: 0 0 33.333%;
 }
 
