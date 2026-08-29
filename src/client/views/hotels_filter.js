@@ -44,26 +44,74 @@ export async function preloadDestinations() {
   return _destinationsCache;
 }
 
-export function renderHotelsHeader(container, state, onChange) {
+// Открывает главный filter-drawer (все фильтры сгруппированы внутри
+// шторки). `getState` — функция-геттер актуального state (не snapshot,
+// чтобы после apply в sub-drawer'е перерисовать чипы filter-drawer'а).
+export function openFilterDrawer(getState, onChange) {
+  openTopDrawer({
+    title: t("hotels.filter.open"),
+    render: (body, close) => {
+      const rerender = () => {
+        const state = getState();
+        renderFilterPanel(body, state, (patch) => {
+          onChange(patch);
+          rerender();
+        });
+        body.insertAdjacentHTML(
+          "beforeend",
+          `
+          <div class="hfh-close-wrap">
+            <button type="button" class="hfh-close-info" data-close>
+              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="m15 9-6 6"/>
+                <path d="m9 9 6 6"/>
+              </svg>
+              <span>${escapeHtml(t("hotels.filter.close"))}</span>
+            </button>
+          </div>
+        `,
+        );
+        body.querySelector("[data-close]").addEventListener("click", close);
+      };
+      rerender();
+    },
+  });
+}
+
+function renderFilterPanel(container, state, onChange) {
   const hasFilters = Object.keys(state).length > 0;
   container.innerHTML = `
-    <div class="hfh-row hfh-row--chips">
-      ${chipHtml("destination", chipDestinationLabel(state))}
-      ${chipHtml("check_in", chipDateLabel(state.check_in, "check_in"))}
-      ${chipHtml("check_out", chipDateLabel(state.check_out, "check_out"))}
-      ${chipHtml("guests", chipGuestsLabel(state))}
-      ${hasFilters ? `<button type="button" class="hfh-reset" data-reset>${escapeHtml(t("filter.clear"))}</button>` : ""}
-    </div>
-    <div class="hfh-row hfh-row--search">
-      <div class="hfh-search" data-search-mode="${state.q ? "expanded" : "collapsed"}">
-        <button type="button" class="hfh-search-btn" aria-label="${escapeHtml(t("hotels.filter.search_placeholder"))}">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="11" cy="11" r="7"></circle>
-            <path d="m20 20-3.5-3.5"></path>
-          </svg>
-        </button>
-        <input type="search" class="hfh-search-input" value="${escapeHtml(state.q || "")}" placeholder="${escapeHtml(t("hotels.filter.search_placeholder"))}" />
-        <button type="button" class="hfh-search-clear" aria-label="Clear">×</button>
+    <div class="hfp">
+      <div class="hfh-row hfh-row--pair">
+        ${chipHtml("destination", chipDestinationLabel(state))}
+        ${chipHtml("guests", chipGuestsLabel(state))}
+      </div>
+      <div class="hfh-row hfh-row--pair">
+        ${chipHtml("check_in", chipDateLabel(state.check_in, "check_in"))}
+        ${chipHtml("check_out", chipDateLabel(state.check_out, "check_out"))}
+      </div>
+      <div class="hfh-row hfh-row--tools">
+        ${chipHtml("sort", chipSortLabel(state))}
+        <div class="hfh-search" data-search-mode="${state.q ? "expanded" : "collapsed"}">
+          <button type="button" class="hfh-search-btn" aria-label="${escapeHtml(t("hotels.filter.search_placeholder"))}">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="11" cy="11" r="7"></circle>
+              <path d="m20 20-3.5-3.5"></path>
+            </svg>
+          </button>
+          <input type="search" class="hfh-search-input" value="${escapeHtml(state.q || "")}" placeholder="${escapeHtml(t("hotels.filter.search_placeholder"))}" />
+          <button type="button" class="hfh-search-clear" aria-label="Clear">×</button>
+        </div>
+        ${hasFilters ? `
+          <button type="button" class="hfh-reset" data-reset aria-label="${escapeHtml(t("filter.clear"))}" title="${escapeHtml(t("filter.clear"))}">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="m15 9-6 6"/>
+              <path d="m9 9 6 6"/>
+            </svg>
+          </button>
+        ` : ""}
       </div>
     </div>
   `;
@@ -80,6 +128,7 @@ export function renderHotelsHeader(container, state, onChange) {
         children: null,
         infants: null,
         q: null,
+        sort: null,
       });
     });
   }
@@ -109,6 +158,12 @@ function chipDateLabel(iso, kind) {
     : t("hotels.filter.check_out");
 }
 
+function chipSortLabel(state) {
+  if (state.sort === "price_asc") return t("hotels.filter.sort_price_asc");
+  if (state.sort === "price_desc") return t("hotels.filter.sort_price_desc");
+  return t("hotels.filter.sort");
+}
+
 function chipGuestsLabel(state) {
   const parts = [];
   if (state.adults) parts.push(`${state.adults} взр.`);
@@ -125,7 +180,45 @@ function wireChips(container, state, onChange) {
       else if (key === "check_in") openDateDrawer("check_in", state, onChange);
       else if (key === "check_out") openDateDrawer("check_out", state, onChange);
       else if (key === "guests") openGuestsDrawer(state, onChange);
+      else if (key === "sort") openSortDrawer(state, onChange);
     });
+  });
+}
+
+// ─── Sort drawer ─────────────────────────────────────────────────────
+
+function openSortDrawer(state, onChange) {
+  const options = [
+    { value: null, label: t("hotels.filter.sort_off") },
+    { value: "price_asc", label: t("hotels.filter.sort_price_asc") },
+    { value: "price_desc", label: t("hotels.filter.sort_price_desc") },
+  ];
+  openTopDrawer({
+    title: t("hotels.filter.sort"),
+    render: (body, close) => {
+      const current = state.sort || null;
+      body.innerHTML = `
+        <div class="hfh-dest-list">
+          ${options
+            .map(
+              (o) => `
+            <button type="button" class="hfh-dest-row${current === o.value ? " active" : ""}" data-val="${o.value ?? ""}">
+              <span class="hfh-dest-name">${escapeHtml(o.label)}</span>
+              ${current === o.value ? '<span class="hfh-dest-check">✓</span>' : ""}
+            </button>
+          `,
+            )
+            .join("")}
+        </div>
+      `;
+      body.querySelectorAll(".hfh-dest-row").forEach((row) => {
+        row.addEventListener("click", () => {
+          const val = row.dataset.val || null;
+          onChange({ sort: val });
+          close();
+        });
+      });
+    },
   });
 }
 

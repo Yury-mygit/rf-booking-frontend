@@ -1,26 +1,36 @@
-// Top-drawer widget — modal-like шторка, спускающаяся из-под топбара.
-// TBB-70: используется в шапке клиентского списка отелей для фильтров
-// «Направление / Заезд / Выезд / Гости».
+// Top-drawer widget — floating шторка над формой, БЕЗ backdrop'а.
+// Стакается: второй вызов openTopDrawer не закрывает предыдущий, а
+// накладывается сверху. Sub-drawer наследует минимальную высоту от
+// parent'а (Yury: «шторка блока не может быть меньше шторки фильтров»).
 //
 // API:
-//   openTopDrawer({ title, render, onClose? }) — mount shell + backdrop,
-//     вызвать `render(bodyEl, close)` для наполнения. `close()` закрывает.
-//   closeTopDrawer() — программное закрытие (последнего открытого).
+//   openTopDrawer({ title, render, onClose? }) → close()
+//   closeTopDrawer() — закрывает топовый.
 //
-// Один активный drawer одновременно (второй вызов openTopDrawer сначала
-// закрывает предыдущий). Клик по backdrop или Esc — close + onClose.
+// Закрытие каждого — Esc (только топовый), `.td-close` (×), или явный
+// close-элемент из body. Форма под drawer'ами (непокрытая часть)
+// остаётся видимой и интерактивной.
 
-let _current = null;
+let _stack = [];
+
+function _onEsc(e) {
+  if (e.key === "Escape" && _stack.length) {
+    _stack[_stack.length - 1].close();
+  }
+}
 
 export function openTopDrawer({ title = "", render, onClose }) {
-  closeTopDrawer();
+  const parentShell = _stack.length ? _stack[_stack.length - 1].shell : null;
+  const parentHeight = parentShell
+    ? parentShell.getBoundingClientRect().height
+    : null;
+  const zIndex = 41 + _stack.length * 2;
 
-  const backdrop = document.createElement("div");
-  backdrop.className = "td-backdrop";
   const shell = document.createElement("div");
   shell.className = "td-shell";
   shell.setAttribute("role", "dialog");
-  shell.setAttribute("aria-modal", "true");
+  shell.style.zIndex = String(zIndex);
+  if (parentHeight) shell.style.minHeight = `${parentHeight}px`;
   shell.innerHTML = `
     <div class="td-head">
       <div class="td-title">${escape(title)}</div>
@@ -28,38 +38,34 @@ export function openTopDrawer({ title = "", render, onClose }) {
     </div>
     <div class="td-body"></div>
   `;
-  document.body.appendChild(backdrop);
+  if (_stack.length === 0) document.addEventListener("keydown", _onEsc);
   document.body.appendChild(shell);
   document.body.classList.add("td-open");
 
   const body = shell.querySelector(".td-body");
+  const entry = { shell };
   const close = () => {
-    if (_current !== state) return;
-    document.body.classList.remove("td-open");
-    backdrop.remove();
+    const idx = _stack.indexOf(entry);
+    if (idx === -1) return;
+    _stack.splice(idx, 1);
     shell.remove();
-    document.removeEventListener("keydown", onKeyDown);
-    _current = null;
+    if (_stack.length === 0) {
+      document.body.classList.remove("td-open");
+      document.removeEventListener("keydown", _onEsc);
+    }
     if (onClose) onClose();
   };
+  entry.close = close;
+  _stack.push(entry);
 
-  const onKeyDown = (e) => {
-    if (e.key === "Escape") close();
-  };
-
-  backdrop.addEventListener("click", close);
   shell.querySelector(".td-close").addEventListener("click", close);
-  document.addEventListener("keydown", onKeyDown);
-
-  const state = { close };
-  _current = state;
 
   if (render) render(body, close);
   return close;
 }
 
 export function closeTopDrawer() {
-  if (_current) _current.close();
+  if (_stack.length) _stack[_stack.length - 1].close();
 }
 
 function escape(s) {

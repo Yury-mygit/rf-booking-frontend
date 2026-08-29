@@ -933,20 +933,71 @@ body.has-rooms-controls #rooms-list {
   z-index: 3;
   background: var(--bg);
   padding: 8px 12px 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
   border-bottom: 1px solid var(--border-soft);
 }
+
+.hotels-filter-open {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.hotels-filter-open:hover { border-color: var(--accent); }
+.hfo-badge {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Filter panel inside drawer -------------------------------------- */
+.hfp { display: flex; flex-direction: column; gap: 8px; }
+
+.hfh-close-wrap {
+  padding: 16px 0 8px;
+  display: flex;
+  justify-content: center;
+}
+.hfh-close-info {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 8px 16px;
+}
+.hfh-close-info svg { color: var(--muted); }
+.hfh-close-info:hover { color: var(--text); }
+.hfh-close-info:hover svg { color: var(--accent); }
 .hfh-row {
   display: flex;
   gap: 8px;
+  align-items: center;
 }
-.hfh-row--chips {
-  flex-wrap: wrap;
-}
+.hfh-row--pair > .hfh-chip { flex: 1 1 0; }
 .hfh-chip {
-  padding: 6px 12px;
+  padding: 8px 14px;
   border: 1px solid var(--border);
   border-radius: 999px;
   background: var(--surface);
@@ -955,20 +1006,23 @@ body.has-rooms-controls #rooms-list {
   font-size: 13px;
   line-height: 1.2;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   cursor: pointer;
+  min-width: 0;
 }
 .hfh-chip:hover { border-color: var(--accent); }
 
-.hfh-row--search { align-items: center; }
+.hfh-row--tools > .hfh-chip { flex: 0 0 auto; }
 .hfh-search {
   position: relative;
   display: flex;
   align-items: center;
+  flex: 0 0 40px;
   margin-left: auto;
-  width: 40px;
-  transition: width .2s ease;
+  transition: none;
 }
-.hfh-search[data-search-mode="expanded"] { width: 100%; }
+.hfh-search[data-search-mode="expanded"] { flex: 1 1 auto; }
 .hfh-search-btn {
   width: 40px;
   height: 40px;
@@ -1015,12 +1069,6 @@ body.has-rooms-controls #rooms-list {
 
 /* Top-drawer ---------------------------------------------------------- */
 
-.td-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, .35);
-  z-index: 40;
-}
 .td-shell {
   position: fixed;
   left: 0;
@@ -1030,9 +1078,10 @@ body.has-rooms-controls #rooms-list {
   background: var(--bg);
   border-bottom-left-radius: 12px;
   border-bottom-right-radius: 12px;
-  max-height: calc(100dvh - var(--top-h) - 32px);
+  max-height: min(70dvh, calc(100dvh - var(--top-h) - 32px));
   overflow: auto;
   box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
+  border-bottom: 1px solid var(--border);
 }
 .td-head {
   display: flex;
@@ -1181,14 +1230,18 @@ body.has-rooms-controls #rooms-list {
 }
 
 .hfh-reset {
-  padding: 6px 12px;
-  border: 1px dashed var(--border);
+  width: 32px;
+  height: 32px;
+  border: none;
   border-radius: 999px;
   background: transparent;
   color: var(--muted);
-  font: inherit;
-  font-size: 13px;
-  line-height: 1.2;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  align-self: center;
+  flex-shrink: 0;
 }
-.hfh-reset:hover { color: var(--text); border-color: var(--accent); }
+.hfh-reset:hover { color: var(--text); background: var(--surface); }

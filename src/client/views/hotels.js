@@ -9,10 +9,10 @@ import { setTitle, showBack } from "../../topbar.js";
 import { setBottomNav } from "../../bottomnav.js";
 import { clientNavItems } from "../nav.js";
 import { PIN_SVG } from "./hotel/_shared.js";
-import { preloadDestinations, renderHotelsHeader } from "./hotels_filter.js";
+import { preloadDestinations, openFilterDrawer } from "./hotels_filter.js";
 
 const FILTER_KEYS_INT = ["destination_id", "adults", "children", "infants"];
-const FILTER_KEYS_STR = ["check_in", "check_out", "q"];
+const FILTER_KEYS_STR = ["check_in", "check_out", "q", "sort"];
 
 let _state = null;
 let _headerEl = null;
@@ -88,7 +88,19 @@ function applyPatch(patch) {
 // ─── Header ───────────────────────────────────────────────────────────
 
 function renderHeader() {
-  renderHotelsHeader(_headerEl, _state, applyPatch);
+  const activeCount = Object.keys(_state).length;
+  _headerEl.innerHTML = `
+    <button type="button" class="hotels-filter-open" data-open-filters>
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+      </svg>
+      <span>${escape(t("hotels.filter.open"))}</span>
+      ${activeCount ? `<span class="hfo-badge">${activeCount}</span>` : ""}
+    </button>
+  `;
+  _headerEl
+    .querySelector("[data-open-filters]")
+    .addEventListener("click", () => openFilterDrawer(() => _state, applyPatch));
 }
 
 // ─── Fetch + list ─────────────────────────────────────────────────────
