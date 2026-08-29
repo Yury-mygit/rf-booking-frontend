@@ -10,9 +10,20 @@ import { showFloatingToast } from "../../../widgets/toast.js";
 
 import { state } from "./index.js";
 
+// TBB-72: destinations загружаются один раз при первом render'е формы.
+// Хранятся в модуле — при переоткрытии не долбим backend.
+let _destinationsCache = null;
+
+async function loadDestinations() {
+  if (_destinationsCache) return _destinationsCache;
+  _destinationsCache = await api.publicDestinations();
+  return _destinationsCache;
+}
+
 const FIELDS = [
   ["name_ru", "hotel.name_ru", "input", null, true],
   ["description_ru", "hotel.description_ru", "textarea"],
+  ["destination_id", "hotel.destination", "select-destinations", null, true],
   ["city", "hotel.city", "input", null, true],
   ["address", "hotel.address", "input"],
   ["lat", "hotel.lat", "input-number"],
@@ -41,6 +52,16 @@ function descriptionFormHtml(hotel, canEdit = true) {
             <select name="${k}" ${disabled}>
               ${opts.map((o) => `<option value="${o}" ${o === cur ? "selected" : ""}>${t(`${key}_${o}`)}</option>`).join("")}
             </select></div>`;
+        }
+        if (kind === "select-destinations") {
+          const cur = hotel?.[k] ?? "";
+          const disabled = canEdit ? "" : "disabled";
+          const placeholder = `<option value="" ${cur === "" ? "selected" : ""} disabled>—</option>`;
+          const opts = (_destinationsCache || [])
+            .map((d) => `<option value="${d.id}" ${Number(cur) === d.id ? "selected" : ""}>${escapeHtml(d.name_ru)}</option>`)
+            .join("");
+          return `<div class="form-row"><label>${label}</label>
+            <select name="${k}" ${requiredAttr} ${disabled}>${placeholder}${opts}</select></div>`;
         }
         const v = hotel?.[k] ?? "";
         if (kind === "textarea") {
@@ -91,14 +112,16 @@ function hotelValidationMessage(error) {
   return t("app.error", { msg: error.message });
 }
 
-export function renderDescriptionTab(body, id) {
+export async function renderDescriptionTab(body, id) {
+  await loadDestinations();
   const canEdit = api.canDo("manage_hotel", state.hotel?.owner_user_id);
   body.innerHTML = descriptionFormHtml(state.hotel, canEdit);
   initDescriptionAutoGrow(body);
   if (canEdit) wireSaveHandler(false, id);
 }
 
-export function renderNewHotelForm(app) {
+export async function renderNewHotelForm(app) {
+  await loadDestinations();
   app.innerHTML = descriptionFormHtml(null);
   initDescriptionAutoGrow(app);
   wireSaveHandler(true, null);
@@ -128,6 +151,11 @@ function wireSaveHandler(isNew, id) {
       }
       if (kind === "select") {
         payload[k] = form[k].value;
+        continue;
+      }
+      if (kind === "select-destinations") {
+        const raw = form[k].value;
+        payload[k] = raw ? Number(raw) : (isNew ? undefined : null);
         continue;
       }
       const raw = form[k].value.trim();

@@ -182,6 +182,7 @@
   "hotel.enter_dates": "Введите даты",
   "hotel.booked_ok": "Бронь создана: {code}",
   "hotel.city": "Город",
+  "hotel.destination": "Направление",
   "hotel.delete_confirm": "Удалить объект? (только если нет броней)",
   "hotel.description_ru": "Описание",
   "hotel.double_beds_few": "{n} двуспальные кровати",
