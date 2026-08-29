@@ -918,3 +918,277 @@ body.has-rooms-controls #rooms-list {
   margin-top: 12px;
 }
 .cancel-actions button { flex: 1; margin-top: 0; }
+
+/* ─── TBB-70: hotels list — sticky filter header + drawers ────────── */
+
+.hotels-view {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.hotels-header {
+  position: sticky;
+  top: var(--top-h);
+  z-index: 3;
+  background: var(--bg);
+  padding: 8px 12px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.hfh-row {
+  display: flex;
+  gap: 8px;
+}
+.hfh-row--chips {
+  flex-wrap: wrap;
+}
+.hfh-chip {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.hfh-chip:hover { border-color: var(--accent); }
+
+.hfh-row--search { align-items: center; }
+.hfh-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  width: 40px;
+  transition: width .2s ease;
+}
+.hfh-search[data-search-mode="expanded"] { width: 100%; }
+.hfh-search-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.hfh-search[data-search-mode="expanded"] .hfh-search-btn { display: none; }
+.hfh-search-input {
+  width: 100%;
+  padding: 8px 32px 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  display: none;
+}
+.hfh-search[data-search-mode="expanded"] .hfh-search-input { display: block; }
+.hfh-search-clear {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  display: none;
+}
+.hfh-search[data-search-mode="expanded"] .hfh-search-clear { display: block; }
+
+.hotels-list { padding: 8px 12px 16px; display: flex; flex-direction: column; gap: 8px; }
+
+/* Top-drawer ---------------------------------------------------------- */
+
+.td-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, .35);
+  z-index: 40;
+}
+.td-shell {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: var(--top-h);
+  z-index: 41;
+  background: var(--bg);
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+  max-height: calc(100dvh - var(--top-h) - 32px);
+  overflow: auto;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
+}
+.td-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-soft);
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 1;
+}
+.td-title { font-weight: 600; font-size: 16px; }
+.td-close {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 6px;
+}
+.td-body { padding: 12px 16px; }
+
+/* Destination drawer content ------------------------------------------ */
+
+.hfh-dest-list { display: flex; flex-direction: column; }
+.hfh-dest-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 8px;
+  border: none;
+  border-bottom: 1px solid var(--border-soft);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.hfh-dest-row:last-child { border-bottom: none; }
+.hfh-dest-row.active .hfh-dest-name { font-weight: 600; }
+.hfh-dest-check { color: var(--accent); font-weight: 700; }
+
+/* Calendar drawer content -------------------------------------------- */
+
+.hfh-cal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 8px;
+}
+.hfh-cal-title { font-weight: 600; }
+.hfh-cal-prev, .hfh-cal-next {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 18px;
+  cursor: pointer;
+}
+.hfh-cal-weekdays,
+.hfh-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+.hfh-cal-wd {
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+  padding: 4px 0;
+}
+.hfh-cal-day {
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  padding: 8px 0;
+  text-align: center;
+  cursor: pointer;
+  border-radius: 6px;
+}
+.hfh-cal-day:hover:not(.disabled) { background: var(--surface); }
+.hfh-cal-day.muted { color: var(--muted); }
+.hfh-cal-day.disabled {
+  color: color-mix(in oklab, var(--muted) 50%, transparent);
+  cursor: not-allowed;
+}
+.hfh-cal-day.selected {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Guests drawer content ---------------------------------------------- */
+
+.hfh-guests { display: flex; flex-direction: column; gap: 8px; }
+.hfh-guests-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 8px;
+  border-bottom: 1px solid var(--border-soft);
+}
+.hfh-guests-title { font-weight: 500; }
+.hfh-guests-counter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.hfh-guests-counter button {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 18px;
+  cursor: pointer;
+}
+.hfh-guests-counter button:disabled {
+  opacity: .4;
+  cursor: not-allowed;
+}
+.hfh-guests-value {
+  min-width: 24px;
+  text-align: center;
+  font-weight: 600;
+}
+.hfh-guests-apply {
+  padding-top: 12px;
+}
+.hfh-guests-apply .primary {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.hfh-reset {
+  padding: 6px 12px;
+  border: 1px dashed var(--border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.2;
+  cursor: pointer;
+}
+.hfh-reset:hover { color: var(--text); border-color: var(--accent); }

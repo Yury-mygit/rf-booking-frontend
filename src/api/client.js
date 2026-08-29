@@ -24,6 +24,8 @@ export const client = {
     }
     return call("GET", "/public/hotels" + (qs.toString() ? "?" + qs : ""));
   },
+  // TBB-68: направления (регионы) для клиентского фильтра списка отелей.
+  publicDestinations: () => call("GET", "/public/destinations"),
   createBooking: (payload) => call("POST", "/c/bookings", payload),
   myBookingsAtHotel: (hid) => call("GET", `/c/bookings?hotel_id=${hid}`),
   myBookings: () => call("GET", "/c/bookings"),
