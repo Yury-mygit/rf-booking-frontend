@@ -255,7 +255,7 @@ body.nav-hidden main#app {
   padding-bottom: max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px));
 }
 body.nav-hidden.has-hotel-actions main#app {
-  padding-bottom: calc(64px + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
+  padding-bottom: calc(var(--bn-h) + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
 }
 
 /* Quick-actions панель над bottom-nav на view «Отель» (комнаты).
@@ -268,15 +268,18 @@ body.nav-hidden.has-hotel-actions main#app {
   z-index: 19;
   display: flex;
   padding: 0;
+  background: var(--bg);
 }
 body.nav-hidden .hotel-quick-actions {
-  bottom: max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px));
+  bottom: 0;
+  padding-bottom: max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px));
+  height: calc(var(--bn-h) + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
 }
 .hotel-quick-actions .qa-btn {
   flex: 1;
   margin: 0;
   border-radius: 0;
-  padding: 12px 16px;
+  padding: 0 16px;
 }
 
 /* Общие стили элементов bottom-nav (partner/admin/client/settings/entry).

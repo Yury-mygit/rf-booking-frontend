@@ -112,6 +112,7 @@
   "client.first_name": "Имя",
   "client.history": "История броней (в моих отелях)",
   "client.history.empty": "Броней пока нет",
+  "client.hotel_book_btn": "Забронировать номер",
   "client.hotel_title": "Отель «{name}»",
   "client.last_name": "Фамилия",
   "client.nav.book": "Забронировать",

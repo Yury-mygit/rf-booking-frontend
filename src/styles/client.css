@@ -718,11 +718,14 @@ body.has-rooms-controls #rooms-list {
 .room.unavailable { opacity: 0.5; }
 .room-photo {
   flex: 0 0 96px;
-  align-self: stretch;
-  background-size: cover;
-  background-position: center;
+  align-self: flex-start;
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  object-position: center;
   background-color: var(--border-soft);
   border-radius: 4px;
+  display: block;
 }
 .room-body {
   flex: 1;

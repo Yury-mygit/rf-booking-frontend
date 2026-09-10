@@ -171,7 +171,13 @@ function navigateToBook(h, roomId) {
 function roomCardHtml(r, hasDates) {
   const chatBtn = `<button class="chat-icon-btn" type="button" data-chat-room="${r.id}" aria-label="${escapeHtml(t("chat.write_about_room"))}" title="${escapeHtml(t("chat.write_about_room"))}">${CHAT_ICON_SVG}</button>`;
   const photo = (r.photos && r.photos[0]) || "";
-  const photoStyle = photo ? ` style="background-image:url('${escapeHtml(photo)}')"` : "";
+  // Thumb-endpoint media-сервиса — 256×256 WebP, поколачивает full-original
+  // (~100 KB - 2.6 MB) до ~5-20 KB на карточку. Слот `.room-photo` = 96 CSS px,
+  // 256 хватает даже при 3x DPR. loading=lazy + decoding=async — карточки ниже
+  // fold'а не тянутся, декод не блокирует main thread.
+  const photoImg = photo
+    ? `<img class="room-photo" src="${escapeHtml(photo)}/thumb" loading="lazy" decoding="async" alt="">`
+    : `<div class="room-photo"></div>`;
   const metaParts = [tn("hotel.guests", r.capacity)];
   if (r.single_beds > 0) metaParts.push(tn("hotel.single_beds", r.single_beds));
   if (r.double_beds > 0) metaParts.push(tn("hotel.double_beds", r.double_beds));
@@ -181,7 +187,7 @@ function roomCardHtml(r, hasDates) {
     : `<button class="secondary" data-need-dates="1">${t("hotel.enter_dates")}</button>`;
   return `
     <div class="room">
-      <div class="room-photo"${photoStyle}></div>
+      ${photoImg}
       <div class="room-body">
         <div class="room-titlerow">
           <h3>${escapeHtml(r.name_ru)}</h3>
