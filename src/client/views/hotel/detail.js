@@ -24,16 +24,23 @@ export async function renderHotelDetail({ id }) {
   showBack(() => navigate("#/client/hotels"));
   hideBottomNav();
   document.body.classList.add("has-hotel-actions");
-  const photo = (h.photos && h.photos[0]) || "";
+  const photos = Array.isArray(h.photos) ? h.photos.filter(Boolean) : [];
   const addressText = [h.city, h.address].filter(Boolean).map(escapeHtml).join(" · ");
-  // photo-frame рендерится всегда (сохраняет 180px разметку). При наличии
-  // URL — вложенный <img> с shimmer-плейсхолдером до onload/onerror;
-  // без URL — просто плоский surface-soft фон, без анимации.
-  const photoFrame = photo
-    ? `<div class="hotel-head-photo is-loading">
-         <img class="hotel-head-photo-img" src="${escapeHtml(photo)}" alt=""
-           onload="this.classList.add('is-loaded');this.parentElement.classList.remove('is-loading')"
-           onerror="this.parentElement.classList.remove('is-loading')">
+  // Photo-frame рендерится всегда (сохраняет 1:1 разметку). Один-N фото →
+  // горизонтальная карусель со scroll-snap; 0 фото — плоский плейсхолдер.
+  // Shimmer на каждом слайде до onload/onerror; onerror снимает shimmer
+  // и оставляет surface-soft фон (без alt-битой иконки).
+  const photoFrame = photos.length
+    ? `<div class="hotel-photos-carousel">
+         ${photos
+           .map(
+             (src) => `<div class="hotel-photo-slide is-loading">
+             <img class="hotel-photo-slide-img" src="${escapeHtml(src)}" alt=""
+               onload="this.classList.add('is-loaded');this.parentElement.classList.remove('is-loading')"
+               onerror="this.parentElement.classList.remove('is-loading')">
+           </div>`,
+           )
+           .join("")}
        </div>`
     : `<div class="hotel-head-photo"></div>`;
   app.innerHTML = `
