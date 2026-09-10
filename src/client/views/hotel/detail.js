@@ -26,9 +26,19 @@ export async function renderHotelDetail({ id }) {
   document.body.classList.add("has-hotel-actions");
   const photo = (h.photos && h.photos[0]) || "";
   const addressText = [h.city, h.address].filter(Boolean).map(escapeHtml).join(" · ");
+  // photo-frame рендерится всегда (сохраняет 180px разметку). При наличии
+  // URL — вложенный <img> с shimmer-плейсхолдером до onload/onerror;
+  // без URL — просто плоский surface-soft фон, без анимации.
+  const photoFrame = photo
+    ? `<div class="hotel-head-photo is-loading">
+         <img class="hotel-head-photo-img" src="${escapeHtml(photo)}" alt=""
+           onload="this.classList.add('is-loaded');this.parentElement.classList.remove('is-loading')"
+           onerror="this.parentElement.classList.remove('is-loading')">
+       </div>`
+    : `<div class="hotel-head-photo"></div>`;
   app.innerHTML = `
     <div class="hotel-head-card">
-      ${photo ? `<div class="hotel-head-photo" style="background-image:url('${escapeHtml(photo)}')"></div>` : ""}
+      ${photoFrame}
       <div class="hotel-head-body">
         <div class="hotel-head-titlerow">
           <h1>${escapeHtml(titled)}</h1>

@@ -178,10 +178,40 @@
   margin-bottom: 14px;
 }
 .hotel-head-photo {
+  position: relative;
   height: 180px;
-  background-size: cover;
-  background-position: center;
+  overflow: hidden;
   background-color: var(--surface-soft);
+}
+.hotel-head-photo-img {
+  display: block;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.2s ease-out;
+}
+.hotel-head-photo-img.is-loaded { opacity: 1; }
+/* Shimmer-волна: 50%-ширины блик едет слева направо, период 1s.
+   Активен пока не пришёл onload/onerror (класс .is-loading на
+   контейнере). Для отеля без фото — контейнер сохраняет высоту,
+   волна не крутится. */
+.hotel-head-photo.is-loading::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0;
+  width: 50%; height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.12) 50%,
+    transparent 100%
+  );
+  animation: hotel-head-photo-shimmer 1s linear infinite;
+  pointer-events: none;
+}
+@keyframes hotel-head-photo-shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(300%); }
 }
 .hotel-head-body { padding: 14px; }
 .hotel-head-body p { margin: 8px 0 0; font-size: 14px; color: var(--text); white-space: pre-line; }
