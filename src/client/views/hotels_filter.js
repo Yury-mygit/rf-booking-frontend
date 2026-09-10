@@ -47,16 +47,28 @@ export async function preloadDestinations() {
 // Открывает главный filter-drawer (все фильтры сгруппированы внутри
 // шторки). `getState` — функция-геттер актуального state (не snapshot,
 // чтобы после apply в sub-drawer'е перерисовать чипы filter-drawer'а).
-export function openFilterDrawer(getState, onChange) {
+//
+// `options` (все опциональны):
+//   - showDestination — включать ли chip «Направление» (default true; на
+//     /rooms передаём false — мы уже внутри отеля).
+//   - searchPlaceholderKey — i18n-ключ placeholder'а поиска (default —
+//     `hotels.filter.search_placeholder`).
+//   - titleKey — i18n-ключ заголовка drawer'а (default `hotels.filter.open`).
+export function openFilterDrawer(getState, onChange, options = {}) {
+  const opts = {
+    showDestination: options.showDestination !== false,
+    searchPlaceholderKey: options.searchPlaceholderKey || "hotels.filter.search_placeholder",
+    titleKey: options.titleKey || "hotels.filter.open",
+  };
   openTopDrawer({
-    title: t("hotels.filter.open"),
+    title: t(opts.titleKey),
     render: (body, close) => {
       const rerender = () => {
         const state = getState();
         renderFilterPanel(body, state, (patch) => {
           onChange(patch);
           rerender();
-        });
+        }, opts);
         body.insertAdjacentHTML(
           "beforeend",
           `
@@ -79,14 +91,18 @@ export function openFilterDrawer(getState, onChange) {
   });
 }
 
-function renderFilterPanel(container, state, onChange) {
+function renderFilterPanel(container, state, onChange, opts = { showDestination: true, searchPlaceholderKey: "hotels.filter.search_placeholder" }) {
   const hasFilters = Object.keys(state).length > 0;
-  container.innerHTML = `
-    <div class="hfp">
-      <div class="hfh-row hfh-row--pair">
+  const searchPlaceholder = t(opts.searchPlaceholderKey);
+  const topRow = opts.showDestination
+    ? `<div class="hfh-row hfh-row--pair">
         ${chipHtml("destination", chipDestinationLabel(state))}
         ${chipHtml("guests", chipGuestsLabel(state))}
-      </div>
+      </div>`
+    : `<div class="hfh-row">${chipHtml("guests", chipGuestsLabel(state))}</div>`;
+  container.innerHTML = `
+    <div class="hfp">
+      ${topRow}
       <div class="hfh-row hfh-row--pair">
         ${chipHtml("check_in", chipDateLabel(state.check_in, "check_in"))}
         ${chipHtml("check_out", chipDateLabel(state.check_out, "check_out"))}
@@ -94,13 +110,13 @@ function renderFilterPanel(container, state, onChange) {
       <div class="hfh-row hfh-row--tools">
         ${chipHtml("sort", chipSortLabel(state))}
         <div class="hfh-search" data-search-mode="${state.q ? "expanded" : "collapsed"}">
-          <button type="button" class="hfh-search-btn" aria-label="${escapeHtml(t("hotels.filter.search_placeholder"))}">
+          <button type="button" class="hfh-search-btn" aria-label="${escapeHtml(searchPlaceholder)}">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <circle cx="11" cy="11" r="7"></circle>
               <path d="m20 20-3.5-3.5"></path>
             </svg>
           </button>
-          <input type="search" class="hfh-search-input" value="${escapeHtml(state.q || "")}" placeholder="${escapeHtml(t("hotels.filter.search_placeholder"))}" />
+          <input type="search" class="hfh-search-input" value="${escapeHtml(state.q || "")}" placeholder="${escapeHtml(searchPlaceholder)}" />
           <button type="button" class="hfh-search-clear" aria-label="Clear">×</button>
         </div>
         ${hasFilters ? `

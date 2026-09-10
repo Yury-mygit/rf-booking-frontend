@@ -433,6 +433,7 @@
   "rooms.guests.infants_short": "{n} мл.",
   "rooms.empty": "Номеров пока нет",
   "rooms.empty_filter": "Нет номеров с такой вместимостью",
+  "rooms.filter.search_placeholder": "Название номера",
   "rooms.modal_dates": "Даты: {ci} → {co}",
   "rooms.modal_title": "Бронирование: {room}",
   "rooms.no_dates": "Укажите даты, чтобы увидеть доступность и итог",

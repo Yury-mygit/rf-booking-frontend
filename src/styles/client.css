@@ -711,8 +711,8 @@ body.has-rooms-controls #rooms-list {
   background: var(--surface-soft);
   border: 1px solid var(--border-soft);
   border-radius: 6px;
-  padding: 12px;
-  margin-bottom: 10px;
+  padding: 6px 12px;
+  margin-bottom: 5px;
   color: var(--text);
 }
 .room.unavailable { opacity: 0.5; }
@@ -770,8 +770,10 @@ body.has-rooms-controls #rooms-list {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
+.room .room-body > button.primary { padding: 7px 16px; }
+.room .room-body > button.secondary { padding: 6px 14px; }
 .room-titlerow h3 { margin: 0; flex: 1; }
 
 .chat-icon-btn {

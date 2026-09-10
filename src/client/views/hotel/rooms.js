@@ -1,34 +1,36 @@
-// Rooms screen — список комнат + filters (даты/гости) + SSE-refresh при
+// Rooms screen — список комнат отеля + фильтр-шапка (Даты/Гости/Sort/
+// Search) через drawer, паттерн из /hotels (TBB-70). SSE-refresh при
 // серверных push'ах. Кнопка «Забронировать» уводит на /book/<roomId>.
 
-import { getLang, t, tn } from "../../../i18n.js";
-import { navigate, getQuery } from "../../../router.js";
+import { api } from "../../../api.js";
+import { t, tn } from "../../../i18n.js";
+import { navigate, getQuery, currentPath } from "../../../router.js";
 import { setTitle, showBack } from "../../../topbar.js";
 import { hideBottomNav } from "../../../bottomnav.js";
-import { fmtShort } from "../../../widgets/calendar_utils.js";
 
 import {
   _state,
-  ensureHotel,
   ensureEventSource,
   escapeHtml,
-  formatGuestsLabel,
   hotelHash,
-  preserveGuestsQuery,
-  readGuestsFromQuery,
-  setGuestsQuery,
 } from "./_shared.js";
 import { CHAT_ICON_SVG, openChatWithHotel } from "../chat/open.js";
+import { openFilterDrawer } from "../hotels_filter.js";
+
+const FILTER_KEYS_INT = ["adults", "children", "infants"];
+const FILTER_KEYS_STR = ["check_in", "check_out", "q", "sort", "beds"];
+
+let _filterState = null;
+let _headerEl = null;
+let _listEl = null;
+let _hotelId = null;
 
 export async function renderHotelRooms({ id }) {
   const app = document.getElementById("app");
   app.innerHTML = `<p>${t("common.loading")}</p>`;
-  let q = getQuery();
 
-  // Back-compat (Q9): old `?guests=single|double|family|N` → structural.
-  // single (1+1) и double исторически означали 2 гостей, потому adults=2;
-  // beds preserved отдельно (Q11). Реалистично trip-конверсия: pre-#125
-  // ссылки больше не генерим, но кэш WebView/закладки.
+  const q = getQuery();
+  // Back-compat: старые ссылки `?guests=single|double|family|N` → structural.
   if (q.guests && !q.adults) {
     const mapped = mapLegacyGuests(q.guests);
     const qs = new URLSearchParams();
@@ -42,128 +44,165 @@ export async function renderHotelRooms({ id }) {
     return;
   }
 
-  _state.query = q;
-  _state.guests = readGuestsFromQuery(q);
-  _state.bedsFilter = q.beds === "single" || q.beds === "double" ? q.beds : null;
-  let h;
-  try {
-    h = await ensureHotel(id, q);
-  } catch (e) {
-    app.innerHTML = `<div class="error">${t("common.error", { msg: e.message })}</div>`;
-    return;
-  }
+  _hotelId = id;
+  _filterState = readState();
+  syncSharedState();
+
   setTitle(t("client.nav.rooms"));
-  showBack(() => navigate(hotelHash(h)));
-  // /rooms — exception из TBB-26 D1: собственный sticky filter-bar внизу,
-  // пустой bottomnav под ним избыточен и добавляет 42px+safe пустоты (TBB-32).
+  showBack(() => navigate(hotelHash({ slug: id, id })));
   hideBottomNav();
-  document.body.classList.add("has-rooms-controls");
-  app.innerHTML = `<div id="rooms-section"></div>`;
-  renderRoomsList(document.getElementById("rooms-section"));
+  document.body.classList.add("has-hotel-actions");
+
+  app.innerHTML = `
+    <div class="hotels-view">
+      <div class="hotels-header" id="rooms-filter-header"></div>
+      <div class="hotels-list" id="rooms-list"><p>${t("common.loading")}</p></div>
+    </div>
+    <div class="hotel-quick-actions"></div>
+  `;
+  _headerEl = document.getElementById("rooms-filter-header");
+  _listEl = document.getElementById("rooms-list");
+  renderHeader();
+  await fetchAndRender();
 }
 
-function renderRoomsList(body) {
-  const h = _state.hotel;
-  const q = _state.query;
-  const guests = _state.guests;
-  // Backend уже отфильтровал по beds/гостям/датам (см. card #95, #125).
-  const rooms = h.rooms || [];
-  const lang = getLang();
-  const hasDates = q.check_in && q.check_out;
-  const ciLabel = q.check_in ? fmtShort(q.check_in, lang) : t("rooms.check_in");
-  const coLabel = q.check_out ? fmtShort(q.check_out, lang) : t("rooms.check_out");
-  const guestsLabel = formatGuestsLabel(guests);
-  body.innerHTML = `
-    <div id="rooms-list">
-      ${rooms.length === 0
-        ? `<p class="muted">${t("rooms.empty_filter")}</p>`
-        : rooms.map((r) => roomCardHtml(r, hasDates)).join("")}
-    </div>
-    <div class="rooms-controls">
-      <div class="filters-row">
-        <div class="filter-cell filter-cell--dates">
-          <button type="button" class="dates-field ${q.check_in ? "filled" : ""}" id="f-checkin-btn">
-            <span class="dates-field-value">${escapeHtml(ciLabel)}</span>
-            ${q.check_in ? `<span class="dates-field-clear" id="f-checkin-clear" role="button" aria-label="${escapeHtml(t("app.clear"))}">×</span>` : ""}
-          </button>
-          <button type="button" class="dates-field ${q.check_out ? "filled" : ""}" id="f-checkout-btn">
-            <span class="dates-field-value">${escapeHtml(coLabel)}</span>
-            ${q.check_out ? `<span class="dates-field-clear" id="f-checkout-clear" role="button" aria-label="${escapeHtml(t("app.clear"))}">×</span>` : ""}
-          </button>
-        </div>
-        <div class="filter-cell filter-cell--guests">
-          <button type="button" class="dates-field filled" id="f-guests-btn" aria-label="${escapeHtml(t("rooms.guests.title"))}">
-            <span class="dates-field-value">${escapeHtml(guestsLabel)}</span>
-          </button>
-        </div>
-      </div>
-    </div>
+// ─── State ────────────────────────────────────────────────────────────
+
+function readState() {
+  const q = getQuery();
+  const s = {};
+  for (const k of FILTER_KEYS_INT) {
+    const v = q[k];
+    if (v !== undefined && v !== "") {
+      const n = Number(v);
+      if (Number.isFinite(n) && n >= 0) s[k] = n;
+    }
+  }
+  for (const k of FILTER_KEYS_STR) {
+    if (q[k]) s[k] = String(q[k]);
+  }
+  return s;
+}
+
+function writeState(state) {
+  const qs = new URLSearchParams();
+  for (const k of [...FILTER_KEYS_INT, ...FILTER_KEYS_STR]) {
+    const v = state[k];
+    if (v == null || v === "") continue;
+    qs.set(k, String(v));
+  }
+  const path = currentPath();
+  const hash = "#" + path + (qs.toString() ? "?" + qs : "");
+  history.replaceState(null, "", hash);
+}
+
+// SSE refresh и navigateToBook читают из _shared._state — держим синк.
+function syncSharedState() {
+  _state.query = { ..._filterState };
+  _state.guests = {
+    adults: _filterState.adults || 1,
+    children: _filterState.children || 0,
+    infants: _filterState.infants || 0,
+    child_ages: [],
+  };
+  _state.bedsFilter = _filterState.beds === "single" || _filterState.beds === "double" ? _filterState.beds : null;
+}
+
+function applyPatch(patch) {
+  const next = { ..._filterState };
+  for (const [k, v] of Object.entries(patch)) {
+    if (v == null || v === "") delete next[k];
+    else next[k] = v;
+  }
+  _filterState = next;
+  writeState(_filterState);
+  syncSharedState();
+  renderHeader();
+  fetchAndRender();
+}
+
+// ─── Header ───────────────────────────────────────────────────────────
+
+function renderHeader() {
+  const activeCount = Object.keys(_filterState).filter((k) => k !== "beds").length;
+  _headerEl.innerHTML = `
+    <button type="button" class="hotels-filter-open" data-open-filters>
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+      </svg>
+      <span>${escapeHtml(t("hotels.filter.open"))}</span>
+      ${activeCount ? `<span class="hfo-badge">${activeCount}</span>` : ""}
+    </button>
   `;
-  const openDates = (field, clearId) => (e) => {
-    if (e.target.id === clearId) return;
-    const qs = new URLSearchParams();
-    qs.set("field", field);
-    if (q.check_in) qs.set("check_in", q.check_in);
-    if (q.check_out) qs.set("check_out", q.check_out);
-    preserveGuestsQuery(qs, q);
-    if (q.beds) qs.set("beds", q.beds);
-    navigate(hotelHash(h, `/dates?${qs.toString()}`));
-  };
-  document.getElementById("f-checkin-btn").onclick = openDates("checkin", "f-checkin-clear");
-  document.getElementById("f-checkout-btn").onclick = openDates("checkout", "f-checkout-clear");
-  const clearField = (keepKey) => (e) => {
-    e.stopPropagation();
-    const qs = new URLSearchParams();
-    if (q[keepKey]) qs.set(keepKey, q[keepKey]);
-    preserveGuestsQuery(qs, q);
-    if (q.beds) qs.set("beds", q.beds);
-    const tail = qs.toString() ? `/rooms?${qs.toString()}` : "/rooms";
-    navigate(hotelHash(h, tail));
-  };
-  const ciClear = document.getElementById("f-checkin-clear");
-  if (ciClear) ciClear.onclick = clearField("check_out");
-  const coClear = document.getElementById("f-checkout-clear");
-  if (coClear) coClear.onclick = clearField("check_in");
-  document.getElementById("f-guests-btn").onclick = () => {
-    const qs = new URLSearchParams();
-    if (q.check_in) qs.set("check_in", q.check_in);
-    if (q.check_out) qs.set("check_out", q.check_out);
-    if (q.beds) qs.set("beds", q.beds);
-    preserveGuestsQuery(qs, q);
-    navigate(hotelHash(h, "/guests?" + qs.toString()));
-  };
-  body.querySelectorAll("button[data-book-room]").forEach((b) => {
-    b.onclick = () => navigateToBook(h, Number(b.dataset.bookRoom));
+  _headerEl
+    .querySelector("[data-open-filters]")
+    .addEventListener("click", () =>
+      openFilterDrawer(() => _filterState, applyPatch, {
+        showDestination: false,
+        searchPlaceholderKey: "rooms.filter.search_placeholder",
+      }),
+    );
+}
+
+// ─── Fetch + list ─────────────────────────────────────────────────────
+
+async function fetchAndRender() {
+  _listEl.innerHTML = `<p>${t("common.loading")}</p>`;
+  let hotel;
+  try {
+    hotel = await api.hotelDetails(_hotelId, _filterState);
+  } catch (e) {
+    _listEl.innerHTML = `<div class="error">${t("common.error", { msg: e.message })}</div>`;
+    return;
+  }
+  _state.hotel = hotel;
+  const rooms = hotel.rooms || [];
+  const hasDates = _filterState.check_in && _filterState.check_out;
+  if (rooms.length === 0) {
+    const anyFilter = Object.keys(_filterState).length > 0;
+    _listEl.innerHTML = `<p class="muted">${anyFilter ? t("rooms.empty_filter") : t("rooms.empty")}</p>`;
+  } else {
+    _listEl.innerHTML = rooms.map((r) => roomCardHtml(r, hasDates)).join("");
+    wireRoomCards(hotel);
+  }
+  ensureEventSource(hotel.slug || hotel.id, () => fetchAndRender());
+}
+
+function wireRoomCards(hotel) {
+  _listEl.querySelectorAll("button[data-book-room]").forEach((b) => {
+    b.onclick = () => navigateToBook(hotel, Number(b.dataset.bookRoom));
   });
-  body.querySelectorAll("button[data-need-dates]").forEach((b) => {
-    b.onclick = () => openDates("checkin", "f-checkin-clear")({ target: b });
+  _listEl.querySelectorAll("button[data-need-dates]").forEach((b) => {
+    b.onclick = () =>
+      openFilterDrawer(() => _filterState, applyPatch, {
+        showDestination: false,
+        searchPlaceholderKey: "rooms.filter.search_placeholder",
+      });
   });
-  body.querySelectorAll("button[data-chat-room]").forEach((b) => {
+  _listEl.querySelectorAll("button[data-chat-room]").forEach((b) => {
     b.onclick = () => {
       const roomId = Number(b.dataset.chatRoom);
-      const r = (h.rooms || []).find((x) => x.id === roomId);
-      openChatWithHotel(h.id, {
+      const r = (hotel.rooms || []).find((x) => x.id === roomId);
+      openChatWithHotel(hotel.id, {
         type: "room",
         id: roomId,
         name: r?.name_ru,
         photo: r?.photos?.[0],
         extra: r ? t("hotel.price_per_night", { price: r.price_kgs }) : undefined,
-        hotel_slug: h.slug,
+        hotel_slug: hotel.slug,
       });
     };
   });
-  ensureEventSource(h.slug || h.id, () => renderRoomsList(body));
 }
 
 function navigateToBook(h, roomId) {
-  const q = _state.query;
   const qs = new URLSearchParams();
-  if (q.check_in) qs.set("check_in", q.check_in);
-  if (q.check_out) qs.set("check_out", q.check_out);
-  setGuestsQuery(qs, _state.guests);
-  // Beds сохраняем для back-навигации с /book → /rooms (фильтры не
-  // сбрасываются). На /book hotelDetails сам не передаёт guests/beds.
-  if (_state.bedsFilter) qs.set("beds", _state.bedsFilter);
+  if (_filterState.check_in) qs.set("check_in", _filterState.check_in);
+  if (_filterState.check_out) qs.set("check_out", _filterState.check_out);
+  if (_filterState.adults) qs.set("adults", String(_filterState.adults));
+  if (_filterState.children) qs.set("children", String(_filterState.children));
+  if (_filterState.infants) qs.set("infants", String(_filterState.infants));
+  if (_filterState.beds) qs.set("beds", _filterState.beds);
   const tail = `/book/${roomId}?${qs.toString()}`;
   navigate(hotelHash(h, tail));
 }
@@ -171,10 +210,6 @@ function navigateToBook(h, roomId) {
 function roomCardHtml(r, hasDates) {
   const chatBtn = `<button class="chat-icon-btn" type="button" data-chat-room="${r.id}" aria-label="${escapeHtml(t("chat.write_about_room"))}" title="${escapeHtml(t("chat.write_about_room"))}">${CHAT_ICON_SVG}</button>`;
   const photo = (r.photos && r.photos[0]) || "";
-  // Thumb-endpoint media-сервиса — 256×256 WebP, поколачивает full-original
-  // (~100 KB - 2.6 MB) до ~5-20 KB на карточку. Слот `.room-photo` = 96 CSS px,
-  // 256 хватает даже при 3x DPR. loading=lazy + decoding=async — карточки ниже
-  // fold'а не тянутся, декод не блокирует main thread.
   const photoImg = photo
     ? `<img class="room-photo" src="${escapeHtml(photo)}/thumb" loading="lazy" decoding="async" alt="">`
     : `<div class="room-photo"></div>`;
