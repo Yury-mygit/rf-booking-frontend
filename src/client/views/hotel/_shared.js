@@ -185,7 +185,7 @@ export function hotelAmenitiesChipsHtml(h) {
     .map((secKey) => {
       const items = bySection.get(secKey);
       return `
-    <div class="amenities-block">
+    <div class="info-card amenities-block">
       <div class="amenities-section-title">${escapeHtml(t("amenity.section." + secKey))}</div>
       <div class="amenities-chips">
         ${items
@@ -259,7 +259,7 @@ export function hotelCheckinCheckoutHtml(h) {
   const parts = [];
   if (ci) parts.push(`<div><span class="muted">${escapeHtml(t("amenity.section.checkin_label"))}</span> ${escapeHtml(t("amenity.checkin_from", { time: ci }))}</div>`);
   if (co) parts.push(`<div><span class="muted">${escapeHtml(t("amenity.section.checkout_label"))}</span> ${escapeHtml(t("amenity.checkout_until", { time: co }))}</div>`);
-  return `<div class="amenities-times">
+  return `<div class="info-card amenities-times">
     <div class="amenities-section-title">${escapeHtml(t("amenity.section.checkin_checkout"))}</div>
     ${parts.join("")}
   </div>`;
@@ -285,7 +285,7 @@ export function hotelRulesHtml(h) {
     // free / non_refundable / first_night_only — plain-text локализация.
     cancelLine = escapeHtml(t("hotel.rules.cancel." + policy));
   }
-  return `<div class="amenities-times amenities-times--wide">
+  return `<div class="info-card amenities-times amenities-times--wide">
     <div class="amenities-section-title">${escapeHtml(t("hotel.rules.title"))}</div>
     <div><span class="muted">${escapeHtml(t("hotel.rules.min_stay_label"))}</span><span class="rule-value">${minStayLine}</span></div>
     <div><span class="muted">${escapeHtml(t("hotel.rules.booking_mode_label"))}</span><span class="rule-value">${modeLine}</span></div>
@@ -305,7 +305,7 @@ export function hotelLocationHtml(h) {
   const dgisHref = `https://2gis.kg/?m=${lng}%2C${lat}%2F17&pt=${lng},${lat}`;
   const addressLine = [h.city, h.address].filter(Boolean).map(escapeHtml).join(" · ");
   return `
-    <div class="hotel-location-block">
+    <div class="info-card info-card--flush hotel-location-block">
       <div class="amenities-section-title">${escapeHtml(t("hotel.location_title"))}</div>
       ${addressLine ? `<div class="meta map-address">${addressLine}</div>` : ""}
       <iframe class="map-frame" src="${osmSrc}" loading="lazy"

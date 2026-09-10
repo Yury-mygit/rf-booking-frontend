@@ -158,6 +158,18 @@
 .pay-submit { width: 100%; padding: 12px; font-size: 15px; margin-top: 8px; }
 .pay-submit:disabled { opacity: 0.6; cursor: not-allowed; }
 
+/* Общий примитив-контейнер для секций клиентской формы отеля.
+   .hotel-head-card ниже — специализация с фото под края (padding=0
+   + overflow:hidden), .info-card--flush то же самое для карты. */
+.info-card {
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: 8px;
+  padding: 14px;
+  margin: 14px 0;
+}
+.info-card--flush { padding: 0; overflow: hidden; }
+
 .hotel-head-card {
   background: var(--surface);
   border: 1px solid var(--border-soft);
@@ -270,21 +282,16 @@
 .room-card-body .meta { font-size: 12px; }
 .room-card-body .price { margin-top: 4px; }
 
-/* Amenities sections + chips on book.js */
-.amenities-block { margin: 14px 0; }
+/* Amenities sections + chips on book.js.
+   .amenities-block/.amenities-times не задают фон/бордер/padding —
+   каркас идёт от .info-card (см. hotel/_shared.js). Здесь только
+   типографика и специфика выравнивания подписей. */
 .amenities-section-title {
   font-size: 13px; font-weight: 600; color: var(--text-muted);
   margin-bottom: 6px;
 }
 .amenities-chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.amenities-times {
-  margin: 14px 0;
-  background: var(--surface-soft);
-  border: 1px solid var(--border-soft);
-  border-radius: 6px;
-  padding: 10px 12px;
-  font-size: 13px;
-}
+.amenities-times { font-size: 13px; }
 .amenities-times .amenities-section-title { margin-bottom: 4px; }
 .amenities-times > div + div { margin-top: 2px; }
 /* Выравниваем «С 14:00» / «До 12:00» друг под другом за счёт
@@ -601,13 +608,21 @@ body.has-rooms-controls #rooms-list {
 .back-btn:hover { background: var(--border-soft); }
 #topbar-title .topbar-text { vertical-align: middle; }
 
-/* Блок «Местоположение» на detail.js: заголовок + адрес + iframe + 2GIS. */
-.hotel-location-block { display: flex; flex-direction: column; gap: 8px; margin: 14px 0; }
+/* Блок «Местоположение» на detail.js: заголовок + адрес + iframe + 2GIS.
+   Каркас — .info-card.info-card--flush (padding=0), внутренние
+   элементы получают горизонтальный padding сами, iframe идёт под края. */
+.hotel-location-block { display: flex; flex-direction: column; gap: 8px; }
+.hotel-location-block > .amenities-section-title,
+.hotel-location-block > .map-address,
+.hotel-location-block > .map-actions { padding: 0 14px; }
+.hotel-location-block > .amenities-section-title { padding-top: 14px; }
+.hotel-location-block > .map-actions { padding-bottom: 14px; }
 .map-address { margin: 0; }
 .map-frame {
   width: 100%; height: 40vh; min-height: 240px;
-  border: 1px solid var(--border-soft); border-radius: 6px;
+  border: 0;
   background: var(--surface-soft);
+  display: block;
 }
 .map-actions a.primary {
   text-decoration: none; display: inline-block; text-align: center;
