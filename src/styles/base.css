@@ -1,6 +1,14 @@
 /* Reset + theme vars + базовые компоненты. Блоки могут добавлять свои
    стили через свои CSS-файлы (импортируются динамически). */
 
+/* Brand accent — цветовая гамма приложения. НЕ переопределяется TG
+   WebApp theme (см. theme.js — button_color/button_text_color
+   игнорируются). Одинаковый оттенок в light и dark темах. */
+:root {
+  --brand-accent: #4caf50;
+  --brand-accent-text: #ffffff;
+}
+
 :root {
   --bg: #f5f5f5;
   --surface: #ffffff;
@@ -11,8 +19,8 @@
   --text-faint: #888888;
   --border: #dddddd;
   --border-soft: #eeeeee;
-  --accent: #1a73e8;
-  --accent-text: #ffffff;
+  --accent: var(--brand-accent);
+  --accent-text: var(--brand-accent-text);
   --success: #2e7d32;
   --danger: #d32f2f;
   --error: #d32f2f;
@@ -29,8 +37,8 @@
   --text-faint: #6c7a89;
   --border: #2d3a48;
   --border-soft: #283441;
-  --accent: #5eb5f7;
-  --accent-text: #0d1620;
+  --accent: var(--brand-accent);
+  --accent-text: var(--brand-accent-text);
   --success: #6abf69;
   --danger: #ef5350;
   --error: #ef5350;

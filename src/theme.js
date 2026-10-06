@@ -10,8 +10,8 @@ function applyVars() {
   if (p.secondary_bg_color) root.setProperty("--surface", p.secondary_bg_color);
   if (p.text_color) root.setProperty("--text", p.text_color);
   if (p.hint_color) root.setProperty("--muted", p.hint_color);
-  if (p.button_color) root.setProperty("--accent", p.button_color);
-  if (p.button_text_color) root.setProperty("--accent-text", p.button_text_color);
+  // --accent / --accent-text — brand-гамма, не подхватываем из TG
+  // (TG button_color у многих пользователей фиолетовый).
   if (p.section_separator_color) root.setProperty("--border", p.section_separator_color);
   if (p.destructive_text_color) root.setProperty("--danger", p.destructive_text_color);
 }
