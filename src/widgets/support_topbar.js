@@ -29,7 +29,7 @@ async function refreshBadge() {
     return;
   }
   const block = blockOf();
-  if (block !== "client" && block !== "partner") {
+  if (block !== "partner") {
     b.classList.remove("has-unread");
     return;
   }
@@ -58,7 +58,7 @@ function sync() {
   const b = btn();
   if (!b) return;
   const block = blockOf();
-  const visible = block === "client" || block === "partner";
+  const visible = block === "partner";
   b.hidden = !visible;
   if (visible && _lastBlock !== block) {
     _lastBlock = block;
@@ -76,8 +76,7 @@ export function installSupportTopbar() {
 
   b.addEventListener("click", () => {
     const block = blockOf();
-    if (block === "client") navigate("#/client/support");
-    else if (block === "partner") navigate("#/partner/support");
+    if (block === "partner") navigate("#/partner/support");
   });
 
   sync();

@@ -14,6 +14,7 @@ import { initTopbar } from "./topbar.js";
 import { renderEntry } from "./entry/index.js";
 import { openSettingsDispatch } from "./settings_shared.js";
 import { installSupportTopbar } from "./widgets/support_topbar.js";
+import { installSupportFab } from "./widgets/support_fab.js";
 
 applyTheme();
 watchTheme();
@@ -23,6 +24,7 @@ applyStaticI18n();
 
 document.getElementById("settings-btn").addEventListener("click", openSettingsDispatch);
 installSupportTopbar();
+installSupportFab();
 
 // Маршруты. Блоки регистрируются через dynamic import — код блока скачивается
 // только при первом входе. Bundle entry остаётся компактным.
