@@ -30,17 +30,24 @@ export async function renderHotelDetail({ id }) {
   // горизонтальная карусель со scroll-snap; 0 фото — плоский плейсхолдер.
   // Shimmer на каждом слайде до onload/onerror; onerror снимает shimmer
   // и оставляет surface-soft фон (без alt-битой иконки).
+  const navArrows = photos.length > 1
+    ? `<button class="hpc-nav hpc-nav-prev" type="button" aria-label="${escapeHtml(t("common.prev") || "Назад")}" data-hpc-dir="-1"><svg viewBox="0 0 24 24" width="56" height="56" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="8.6,2.3 6,12 8.6,21.7"/></svg></button>
+       <button class="hpc-nav hpc-nav-next" type="button" aria-label="${escapeHtml(t("common.next") || "Дальше")}" data-hpc-dir="1"><svg viewBox="0 0 24 24" width="56" height="56" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15.4,2.3 18,12 15.4,21.7"/></svg></button>`
+    : "";
   const photoFrame = photos.length
-    ? `<div class="hotel-photos-carousel">
-         ${photos
-           .map(
-             (src) => `<div class="hotel-photo-slide is-loading">
-             <img class="hotel-photo-slide-img" src="${escapeHtml(src)}" alt=""
-               onload="this.classList.add('is-loaded');this.parentElement.classList.remove('is-loading')"
-               onerror="this.parentElement.classList.remove('is-loading')">
-           </div>`,
-           )
-           .join("")}
+    ? `<div class="hotel-photos-wrap">
+         <div class="hotel-photos-carousel">
+           ${photos
+             .map(
+               (src) => `<div class="hotel-photo-slide is-loading">
+               <img class="hotel-photo-slide-img" src="${escapeHtml(src)}" alt=""
+                 onload="this.classList.add('is-loaded');this.parentElement.classList.remove('is-loading')"
+                 onerror="this.parentElement.classList.remove('is-loading')">
+             </div>`,
+             )
+             .join("")}
+         </div>
+         ${navArrows}
        </div>`
     : `<div class="hotel-head-photo"></div>`;
   app.innerHTML = `
@@ -69,6 +76,16 @@ export async function renderHotelDetail({ id }) {
   const chatBtn = document.getElementById("hotel-chat-btn");
   if (chatBtn) chatBtn.onclick = () => openChatWithHotel(h.id, null);
   document.getElementById("hotel-rooms-btn").onclick = () => navigate(hotelHash(h, "/rooms"));
+  const carousel = app.querySelector(".hotel-photos-carousel");
+  if (carousel) {
+    app.querySelectorAll(".hpc-nav").forEach((btn) => {
+      btn.onclick = () => {
+        const dir = Number(btn.dataset.hpcDir) || 1;
+        const w = carousel.clientWidth;
+        carousel.scrollBy({ left: dir * w, behavior: "smooth" });
+      };
+    });
+  }
   bindChipTooltips(app);
   ensureEventSource(h.slug || h.id, () => renderHotelDetail({ id }));
 }

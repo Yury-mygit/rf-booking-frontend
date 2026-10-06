@@ -192,6 +192,32 @@
   transition: opacity 0.2s ease-out;
 }
 .hotel-head-photo-img.is-loaded { opacity: 1; }
+/* Обёртка карусели + overlay-стрелок навигации. Position:relative —
+   чтобы `.hpc-nav` могли висеть над изображениями. */
+.hotel-photos-wrap {
+  position: relative;
+}
+.hpc-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  width: 88px;
+  height: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  color: #ffffff;
+  cursor: pointer;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+}
+.hpc-nav-prev { left: 4px; }
+.hpc-nav-next { right: 4px; }
+.hpc-nav:hover { opacity: 0.85; }
+
 /* Горизонтальная карусель фото отеля: свайп со snap'ом, каждый слайд
    = целиком видимая квадратная img. Совпадает по паттерну с
    .room-photos-carousel (см. book.js). Скроллбар скрыт. */
