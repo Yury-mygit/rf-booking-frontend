@@ -218,6 +218,32 @@
 .hpc-nav-next { right: 4px; }
 .hpc-nav:hover { opacity: 0.85; }
 
+/* Pagination dots внизу карусели. В стиле стрелок — белые с drop-
+   shadow, без фоновых кругов. Активная точка в 1.5 раза крупнее. */
+.hpc-dots {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  z-index: 2;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  pointer-events: none;
+}
+.hpc-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ffffff;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+  transition: width 0.15s ease, height 0.15s ease;
+}
+.hpc-dot.active {
+  width: 12px;
+  height: 12px;
+}
+
 /* Горизонтальная карусель фото отеля: свайп со snap'ом, каждый слайд
    = целиком видимая квадратная img. Совпадает по паттерну с
    .room-photos-carousel (см. book.js). Скроллбар скрыт. */

@@ -34,6 +34,9 @@ export async function renderHotelDetail({ id }) {
     ? `<button class="hpc-nav hpc-nav-prev" type="button" aria-label="${escapeHtml(t("common.prev") || "Назад")}" data-hpc-dir="-1"><svg viewBox="0 0 24 24" width="56" height="56" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="8.6,2.3 6,12 8.6,21.7"/></svg></button>
        <button class="hpc-nav hpc-nav-next" type="button" aria-label="${escapeHtml(t("common.next") || "Дальше")}" data-hpc-dir="1"><svg viewBox="0 0 24 24" width="56" height="56" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15.4,2.3 18,12 15.4,21.7"/></svg></button>`
     : "";
+  const dots = photos.length > 1
+    ? `<div class="hpc-dots">${photos.map((_, i) => `<span class="hpc-dot${i === 0 ? " active" : ""}"></span>`).join("")}</div>`
+    : "";
   const photoFrame = photos.length
     ? `<div class="hotel-photos-wrap">
          <div class="hotel-photos-carousel">
@@ -48,6 +51,7 @@ export async function renderHotelDetail({ id }) {
              .join("")}
          </div>
          ${navArrows}
+         ${dots}
        </div>`
     : `<div class="hotel-head-photo"></div>`;
   app.innerHTML = `
@@ -85,6 +89,24 @@ export async function renderHotelDetail({ id }) {
         carousel.scrollBy({ left: dir * w, behavior: "smooth" });
       };
     });
+    const slides = Array.from(carousel.querySelectorAll(".hotel-photo-slide"));
+    const dotsEls = Array.from(app.querySelectorAll(".hpc-dot"));
+    if (slides.length > 1 && dotsEls.length === slides.length) {
+      const io = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting && e.intersectionRatio >= 0.5) {
+              const i = slides.indexOf(e.target);
+              if (i >= 0) {
+                dotsEls.forEach((d, j) => d.classList.toggle("active", j === i));
+              }
+            }
+          });
+        },
+        { root: carousel, threshold: 0.6 },
+      );
+      slides.forEach((s) => io.observe(s));
+    }
   }
   bindChipTooltips(app);
   ensureEventSource(h.slug || h.id, () => renderHotelDetail({ id }));
