@@ -1,34 +1,51 @@
-/* Entry view (selector блоков) — icon-only, TBB-66. */
+/* Entry view (selector блоков) — иконка+title слева, описание справа. */
 
 .entry-greeting { font-size: 22px; font-weight: 700; margin: 8px 0 2px; }
 .entry-subtitle { font-size: 14px; margin: 0 0 24px; }
 
 .entry-blocks {
   display: flex;
-  flex-direction: row;
-  justify-content: center;
-  gap: 5vw;
+  flex-direction: column;
+  gap: 12px;
   padding: 16px 0;
 }
 .entry-block {
-  flex: 0 0 24vw;
-  max-width: 260px;
-  aspect-ratio: 1;
-  padding: 0;
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
   background: transparent;
   border: none;
   border-radius: 20px;
   cursor: pointer;
   font: inherit;
   color: inherit;
-  overflow: hidden;
+  text-align: left;
+}
+.eb-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
 }
 .eb-icon {
-  width: 100%;
-  height: 100%;
+  width: 72px;
+  height: 72px;
   object-fit: contain;
   display: block;
   transition: transform .15s ease;
+}
+.eb-title {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+}
+.eb-sub {
+  font-size: 15px;
+  line-height: 1.3;
+  color: var(--muted, #777);
 }
 .entry-block:active .eb-icon,
 .entry-block:hover .eb-icon { transform: scale(1.04); }

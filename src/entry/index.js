@@ -130,10 +130,15 @@ function renderSelector(me, roles, dl) {
     .map((role) => {
       const target = defaultRouteForRole(role, dl);
       const label = t(`entry.role_${role}_title`);
+      const sub = t(`entry.role_${role}_sub`);
       const src = icons[role] || "";
       return `
         <button class="entry-block" data-role="${role}" data-target="${escapeHtml(target)}" type="button" aria-label="${escapeHtml(label)}">
-          <img class="eb-icon" src="${escapeHtml(src)}" alt="">
+          <span class="eb-left">
+            <img class="eb-icon" src="${escapeHtml(src)}" alt="">
+            <span class="eb-title">${escapeHtml(label)}</span>
+          </span>
+          <span class="eb-sub">${escapeHtml(sub)}</span>
         </button>
       `;
     })
