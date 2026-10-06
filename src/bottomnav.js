@@ -99,6 +99,20 @@ export function hideBottomNav() {
   document.body.classList.add("nav-hidden");
 }
 
+// Пустое, но видимое меню первого уровня: полоса-резерв без items.
+// Отличается от setBottomNav([]) — тот прячет панель и снимает
+// padding-bottom у #app. Нужно, например, на entry-screen, где блок
+// (client/partner/admin) ещё не выбран, но layout хочется держать.
+export function showEmptyBottomNav() {
+  const nav = document.getElementById("bottomnav");
+  if (!nav) return;
+  nav.hidden = false;
+  nav.innerHTML = "";
+  delete nav.dataset.bnShape;
+  delete nav.dataset.bnMode;
+  document.body.classList.remove("nav-hidden");
+}
+
 // Sub-bottomnav — секционная панель табов, рендерится над главным #bottomnav.
 // Item-shape тот же ({ key, label, icon, active?, href?, onClick? }), стиль
 // `.bn-item` переиспользуется. View-сторона должна дополнительно ставить

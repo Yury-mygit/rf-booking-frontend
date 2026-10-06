@@ -9,7 +9,7 @@ import { api } from "../api.js";
 import { t } from "../i18n.js";
 import { navigate } from "../router.js";
 import { setTitle, hideBack } from "../topbar.js";
-import { hideBottomNav, hideSubBottomNav, hideSubSubBottomNav } from "../bottomnav.js";
+import { showEmptyBottomNav, hideSubBottomNav, hideSubSubBottomNav } from "../bottomnav.js";
 import { tg, inTelegram } from "../tg.js";
 
 const BOT_USERNAME = "rforge_stay_bot";
@@ -55,7 +55,7 @@ let _autoNavigatedFromEntry = false;
 export async function renderEntry() {
   setTitle(t("app.title"));
   hideBack();
-  hideBottomNav();
+  showEmptyBottomNav();
   hideSubBottomNav();
   hideSubSubBottomNav();
 
