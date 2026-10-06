@@ -429,11 +429,12 @@ body.nav-hidden.has-book-confirm-bar main#app {
 .amenities-grid .amenity-row label { display: inline-flex; align-items: center; gap: 6px; }
 .amenities-grid .amenity-paid { font-size: 12px; color: var(--text-muted); }
 
-/* Карточка отеля в списке /client/hotels: квадратное фото слева (15vh),
-   справа 3 строки — название / PIN + город·адрес / «от N KGS за сутки». */
+/* Карточка отеля в списке /client/hotels: квадратное фото слева (102px),
+   справа 3 строки — название / PIN + город·адрес / «от N KGS за сутки».
+   Высота фиксированная (не vh) — ориентир Samsung A73 (CSS viewport 915px). */
 .hotel-card-row {
   display: flex;
-  min-height: 15vh;
+  min-height: 102px;
   margin-bottom: 8px;
   background: var(--surface);
   border: 1px solid var(--border-soft);
@@ -443,8 +444,8 @@ body.nav-hidden.has-book-confirm-bar main#app {
   color: inherit;
 }
 .hotel-card-row .hcr-photo {
-  flex: 0 0 15vh;
-  width: 15vh;
+  flex: 0 0 102px;
+  width: 102px;
   align-self: stretch;
   background-size: cover;
   background-position: center;
