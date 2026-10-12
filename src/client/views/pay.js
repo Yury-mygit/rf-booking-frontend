@@ -1,6 +1,6 @@
 import { api } from "../../api.js";
 import { t, tn } from "../../i18n.js";
-import { navigate, getQuery } from "../../router.js";
+import { navigate, getQuery, currentPath } from "../../router.js";
 import { setTitle, showBack } from "../../topbar.js";
 import { setBottomNav } from "../../bottomnav.js";
 import { inTelegram, tg } from "../../tg.js";
@@ -11,6 +11,46 @@ function backTargetFor(booking, from) {
   if (from === "bookings") return "#/client/bookings";
   if (from === "booking_details") return `#/client/bookings/${booking.code}/details`;
   return `#/client/hotel/${booking.hotel_id}`;
+}
+
+// PSP принял оплату, но бронь ещё pending: факт оплаты фиксирует webhook
+// DevPay → backend, он приходит позже (сотни мс — секунды). Ждём
+// `booking.status`, а не перерисовываем экран сразу — иначе pay/init
+// снова покажет форму оплаты. Источники: `devpay:paid` из iframe (это лишь
+// сигнал «нажал оплатить») и 409 `payment_processing` от pay/init.
+const CONFIRM_POLL_MS = 1000;
+const CONFIRM_POLL_ATTEMPTS = 30;
+
+async function awaitPaymentConfirmation(code, container) {
+  const payPath = currentPath();
+  container.innerHTML = `
+    <div class="devpay-failure">
+      <div class="devpay-failure-msg">${t("pay.processing")}</div>
+    </div>`;
+  for (let i = 0; i < CONFIRM_POLL_ATTEMPTS; i++) {
+    await new Promise((r) => setTimeout(r, CONFIRM_POLL_MS));
+    if (currentPath() !== payPath) return; // пользователь ушёл с экрана
+    let fresh;
+    try {
+      fresh = await api.getBooking(code);
+    } catch {
+      continue; // сетевой сбой — пробуем на следующем тике
+    }
+    if (fresh.status !== "pending") {
+      // just_paid — экран оплаченной брони говорит «успешно оплачена», а не
+      // «уже оплачена» (то читается как оплата когда-то раньше).
+      const suffix = fresh.status === "paid" ? "?just_paid=1" : "";
+      navigate(`#/client/pay/${encodeURIComponent(code)}${suffix}`);
+      return;
+    }
+  }
+  container.innerHTML = `
+    <div class="devpay-failure">
+      <div class="devpay-failure-msg">${t("pay.processing_timeout")}</div>
+      <button type="button" class="primary" id="devpay-recheck">${t("pay.recheck")}</button>
+    </div>`;
+  document.getElementById("devpay-recheck").onclick = () =>
+    awaitPaymentConfirmation(code, container);
 }
 
 export async function renderPay({ code }) {
@@ -52,14 +92,20 @@ export async function renderPay({ code }) {
         <button type="button" class="pay-close-btn" id="pay-cancel-x" aria-label="${t("cancel_req.action")}" title="${t("cancel_req.action")}">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
-        <div class="success">${t("pay.already_paid")}</div>
+        <div class="success">${t(q.just_paid ? "pay.success" : "pay.already_paid")}</div>
         <div class="meta">${t("my.code", { code })}</div>
         <div class="meta">${t("my.dates", { ci: booking.check_in, co: booking.check_out })} · ${tn("my.guests", booking.guests)}</div>
         <div class="price">${t("my.total", { total: booking.total_kgs })}</div>
+        <div class="pay-actions">
+          <button type="button" class="primary" id="pay-to-hotels">${t("pay.to_hotels")}</button>
+          <button type="button" class="secondary" id="pay-to-bookings">${t("pay.to_bookings")}</button>
+        </div>
       </div>`;
     document.getElementById("pay-cancel-x").onclick = () => {
       navigate(`#/client/bookings/${encodeURIComponent(code)}/cancel`);
     };
+    document.getElementById("pay-to-hotels").onclick = () => navigate("#/client/hotels");
+    document.getElementById("pay-to-bookings").onclick = () => navigate("#/client/bookings");
     return;
   }
   if (booking.status !== "pending") {
@@ -71,6 +117,16 @@ export async function renderPay({ code }) {
   try {
     initData = await api.payInit(code);
   } catch (e) {
+    if (e.code === "payment_processing") {
+      app.innerHTML = `
+        <div class="card pay-card">
+          <div class="meta">${t("pay.for_booking", { code: booking.code })}</div>
+          <div class="price pay-amount">${t("pay.amount", { total: booking.total_kgs })}</div>
+          <div id="method-panel" class="pay-method-panel"></div>
+        </div>`;
+      awaitPaymentConfirmation(code, document.getElementById("method-panel"));
+      return;
+    }
     app.innerHTML = `<div class="error">${t("common.error", { msg: e.message })}</div>`;
     return;
   }
@@ -120,6 +176,11 @@ export async function renderPay({ code }) {
       devpayMethod.checkout_url = nextMethod.checkout_url;
       renderDevpay();
     } catch (e) {
+      if (e.code === "payment_processing") {
+        detachListener();
+        awaitPaymentConfirmation(code, panel);
+        return;
+      }
       errBox.textContent = t("common.error", { msg: e.message });
     }
   }
@@ -152,7 +213,7 @@ export async function renderPay({ code }) {
       if (!data || typeof data !== "object") return;
       if (data.event === "devpay:paid") {
         detachListener();
-        navigate(`#/client/pay/${encodeURIComponent(code)}`);
+        awaitPaymentConfirmation(code, panel);
       } else if (data.event === "devpay:declined") {
         showDevpayFailure("declined", data.reason);
       } else if (data.event === "devpay:cancelled") {
