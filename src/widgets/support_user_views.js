@@ -7,6 +7,8 @@ import "../styles/support.css";
 
 import { api } from "../api.js";
 import { t } from "../i18n.js";
+import { getQuery, navigate } from "../router.js";
+import { showBack } from "../topbar.js";
 import { mountSupportChat } from "./support_chat.js";
 
 const $app = () => document.getElementById("app");
@@ -22,7 +24,22 @@ function makeEventSource(url) {
 }
 
 
+// Форма, с которой открыт чат: `?from=<hash>` ставят FAB и topbar-кнопка.
+// Принимаем только внутренний hash и не сам чат; иначе null — остаётся
+// «назад» блочного роутера (client → #/, partner → /partner/).
+function returnTarget() {
+  const from = getQuery().from;
+  if (!from || !from.startsWith("#/")) return null;
+  if (/^#\/(client|partner)\/support(\?|$)/.test(from)) return null;
+  return from;
+}
+
 export async function renderUserSupportChat({ block }) {
+  // До первого await: блочный роутер уже показал свой back, перекрываем его
+  // сразу, иначе tap по back в окне загрузки уйдёт не туда.
+  const from = returnTarget();
+  if (from) showBack(() => navigate(from));
+
   setHTML(`
     <div class="support-chat-screen" style="display:flex;flex-direction:column;height:calc(100dvh - var(--top-h) - var(--bn-h));">
       <div class="support-chat-head" style="padding:8px 12px;border-bottom:1px solid var(--border);font-weight:600;">

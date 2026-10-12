@@ -76,7 +76,10 @@ export function installSupportTopbar() {
 
   b.addEventListener("click", () => {
     const block = blockOf();
-    if (block === "partner") navigate("#/partner/support");
+    // ?from — форма, с которой открыт чат: туда ведёт «назад» (support_user_views).
+    if (block === "partner") {
+      navigate(`#/partner/support?from=${encodeURIComponent(location.hash || "#/")}`);
+    }
   });
 
   sync();

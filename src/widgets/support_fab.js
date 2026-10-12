@@ -78,7 +78,10 @@ export function installSupportFab() {
   const f = fab();
   if (!f) return;
 
-  f.addEventListener("click", () => navigate("#/client/support"));
+  // ?from — форма, с которой открыт чат: туда ведёт «назад» (support_user_views).
+  f.addEventListener("click", () =>
+    navigate(`#/client/support?from=${encodeURIComponent(location.hash || "#/")}`),
+  );
 
   sync();
   new MutationObserver(sync).observe(document.body, {
