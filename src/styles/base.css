@@ -57,7 +57,8 @@ body { -webkit-font-smoothing: antialiased; }
    На desktop/web/старом TG скрыта (display:none). */
 /* Совокупная высота шапок (topnav + topbar) — используется внутри
    chat-screen и других full-height view, чтобы корректно подставить
-   `calc(100dvh - var(--top-h))`. В fullscreen + #topnav обновляем. */
+   `calc(100dvh - var(--top-h))`. В fullscreen + #topnav обновляем.
+   41px — fallback: topbar.js ставит на body фактическую высоту #topbar. */
 :root { --top-h: 41px; --topnav-h: 0px; }
 #topnav {
   display: none;
@@ -318,6 +319,19 @@ body.nav-hidden .hotel-quick-actions {
   bottom: 0;
   padding-bottom: max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px));
   height: calc(var(--bn-h) + max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px)));
+}
+/* Непрозрачная подложка ровно под системные кнопки Android (без 42px
+   панели) — для экранов без bottom-nav и без quick-actions, чтобы
+   контент не уезжал под кнопки. main#app под nav-hidden уже даёт
+   такой же padding-bottom. */
+.sys-inset-bar {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 19;
+  height: max(env(safe-area-inset-bottom), var(--sys-bottom-inset, 0px));
+  background: var(--bg);
+  /* Симметрично линии под #topbar. */
+  border-top: 1px solid var(--text);
 }
 .hotel-quick-actions .qa-btn {
   flex: 1;

@@ -29,6 +29,7 @@ const DATE_FMT_FULL = new Intl.DateTimeFormat(LANG, {
   month: "long",
   year: "numeric",
 });
+const DATE_FMT_SHORT = new Intl.DateTimeFormat(LANG, { day: "numeric", month: "short" });
 const GUEST_LIMITS = {
   adults: { min: 1, max: 8 },
   children: { min: 0, max: 6 },
@@ -44,9 +45,22 @@ export async function preloadDestinations() {
   return _destinationsCache;
 }
 
+// Ключи, которые сбрасывает «Очистить» (beds на /rooms не трогаем).
+const RESET_KEYS = [
+  "destination_id",
+  "check_in",
+  "check_out",
+  "adults",
+  "children",
+  "infants",
+  "q",
+  "sort",
+];
+
 // Открывает главный filter-drawer (все фильтры сгруппированы внутри
-// шторки). `getState` — функция-геттер актуального state (не snapshot,
-// чтобы после apply в sub-drawer'е перерисовать чипы filter-drawer'а).
+// шторки). Фильтры правятся в черновике: sub-drawer'ы и поиск меняют
+// только его, `onChange(patch)` зовётся один раз по «Применить» — с
+// изменившимися ключами (null = снять). × в заголовке — закрыть без apply.
 //
 // `options` (все опциональны):
 //   - showDestination — включать ли chip «Направление» (default true; на
@@ -60,53 +74,89 @@ export function openFilterDrawer(getState, onChange, options = {}) {
     searchPlaceholderKey: options.searchPlaceholderKey || "hotels.filter.search_placeholder",
     titleKey: options.titleKey || "hotels.filter.open",
   };
+  const initial = { ...getState() };
+  // Мутируется на месте: sub-drawer'ы читают его при открытии.
+  const draft = { ...initial };
+
   openTopDrawer({
     title: t(opts.titleKey),
     render: (body, close) => {
+      const syncClear = () => {
+        body.querySelector("[data-clear]").disabled = !hasResettable(draft);
+      };
+      // silent — без перерисовки (поиск: blur не должен пересоздать кнопку
+      // «Применить» между mousedown и click).
+      const patchDraft = (patch, { silent = false } = {}) => {
+        mergePatch(draft, patch);
+        if (silent) syncClear();
+        else rerender();
+      };
       const rerender = () => {
-        const state = getState();
-        renderFilterPanel(body, state, (patch) => {
-          onChange(patch);
-          rerender();
-        }, opts);
+        renderFilterPanel(body, draft, patchDraft, opts);
         body.insertAdjacentHTML(
           "beforeend",
           `
-          <div class="hfh-close-wrap">
-            <button type="button" class="hfh-close-info" data-close>
-              <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="10"/>
-                <path d="m15 9-6 6"/>
-                <path d="m9 9 6 6"/>
-              </svg>
-              <span>${escapeHtml(t("hotels.filter.close"))}</span>
-            </button>
+          <div class="hfh-actions">
+            <button type="button" class="secondary" data-clear>${escapeHtml(t("hotels.filter.clear"))}</button>
+            <button type="button" class="primary" data-apply>${escapeHtml(t("hotels.filter.apply"))}</button>
           </div>
         `,
         );
-        body.querySelector("[data-close]").addEventListener("click", close);
+        syncClear();
+        body.querySelector("[data-clear]").addEventListener("click", () => {
+          patchDraft(Object.fromEntries(RESET_KEYS.map((k) => [k, null])));
+        });
+        body.querySelector("[data-apply]").addEventListener("click", () => {
+          const patch = diffPatch(initial, draft);
+          close();
+          if (Object.keys(patch).length) onChange(patch);
+        });
       };
       rerender();
     },
   });
 }
 
+function hasResettable(state) {
+  return RESET_KEYS.some((k) => state[k] != null && state[k] !== "");
+}
+
+function mergePatch(target, patch) {
+  for (const [k, v] of Object.entries(patch)) {
+    if (v == null || v === "") delete target[k];
+    else target[k] = v;
+  }
+}
+
+// Только изменившиеся ключи; снятые → null (как ждут applyPatch страниц).
+function diffPatch(from, to) {
+  const patch = {};
+  for (const k of new Set([...Object.keys(from), ...Object.keys(to)])) {
+    if (from[k] !== to[k]) patch[k] = to[k] ?? null;
+  }
+  return patch;
+}
+
 function renderFilterPanel(container, state, onChange, opts = { showDestination: true, searchPlaceholderKey: "hotels.filter.search_placeholder" }) {
-  const hasFilters = Object.keys(state).length > 0;
   const searchPlaceholder = t(opts.searchPlaceholderKey);
-  const topRow = opts.showDestination
+  // Без направления (/rooms) гости и даты — одной строкой, даты короткие.
+  const topRows = opts.showDestination
     ? `<div class="hfh-row hfh-row--pair">
         ${chipHtml("destination", chipDestinationLabel(state))}
         ${chipHtml("guests", chipGuestsLabel(state))}
-      </div>`
-    : `<div class="hfh-row">${chipHtml("guests", chipGuestsLabel(state))}</div>`;
-  container.innerHTML = `
-    <div class="hfp">
-      ${topRow}
+      </div>
       <div class="hfh-row hfh-row--pair">
         ${chipHtml("check_in", chipDateLabel(state.check_in, "check_in"))}
         ${chipHtml("check_out", chipDateLabel(state.check_out, "check_out"))}
-      </div>
+      </div>`
+    : `<div class="hfh-row hfh-row--trio">
+        ${chipHtml("guests", chipGuestsLabel(state))}
+        ${chipHtml("check_in", chipDateLabel(state.check_in, "check_in", DATE_FMT_SHORT))}
+        ${chipHtml("check_out", chipDateLabel(state.check_out, "check_out", DATE_FMT_SHORT))}
+      </div>`;
+  container.innerHTML = `
+    <div class="hfp">
+      ${topRows}
       <div class="hfh-row hfh-row--tools">
         ${chipHtml("sort", chipSortLabel(state))}
         <div class="hfh-search" data-search-mode="${state.q ? "expanded" : "collapsed"}">
@@ -119,35 +169,11 @@ function renderFilterPanel(container, state, onChange, opts = { showDestination:
           <input type="search" class="hfh-search-input" value="${escapeHtml(state.q || "")}" placeholder="${escapeHtml(searchPlaceholder)}" />
           <button type="button" class="hfh-search-clear" aria-label="Clear">×</button>
         </div>
-        ${hasFilters ? `
-          <button type="button" class="hfh-reset" data-reset aria-label="${escapeHtml(t("filter.clear"))}" title="${escapeHtml(t("filter.clear"))}">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <circle cx="12" cy="12" r="10"/>
-              <path d="m15 9-6 6"/>
-              <path d="m9 9 6 6"/>
-            </svg>
-          </button>
-        ` : ""}
       </div>
     </div>
   `;
   wireChips(container, state, onChange);
-  wireSearch(container, state, onChange);
-  const resetBtn = container.querySelector("[data-reset]");
-  if (resetBtn) {
-    resetBtn.addEventListener("click", () => {
-      onChange({
-        destination_id: null,
-        check_in: null,
-        check_out: null,
-        adults: null,
-        children: null,
-        infants: null,
-        q: null,
-        sort: null,
-      });
-    });
-  }
+  wireSearch(container, onChange);
 }
 
 // ─── Chips ────────────────────────────────────────────────────────────
@@ -164,10 +190,10 @@ function chipDestinationLabel(state) {
   return found ? found.name_ru : t("hotels.filter.destination");
 }
 
-function chipDateLabel(iso, kind) {
+function chipDateLabel(iso, kind, fmt = DATE_FMT_FULL) {
   if (iso) {
     const d = fromISO(iso);
-    if (d) return DATE_FMT_FULL.format(d);
+    if (d) return fmt.format(d);
   }
   return kind === "check_in"
     ? t("hotels.filter.check_in")
@@ -240,7 +266,7 @@ function openSortDrawer(state, onChange) {
 
 // ─── Search (expand-in-place) ────────────────────────────────────────
 
-function wireSearch(container, state, onChange) {
+function wireSearch(container, onChange) {
   const wrap = container.querySelector(".hfh-search");
   const btn = wrap.querySelector(".hfh-search-btn");
   const input = wrap.querySelector(".hfh-search-input");
@@ -251,28 +277,31 @@ function wireSearch(container, state, onChange) {
     if (mode === "expanded") setTimeout(() => input.focus(), 0);
   };
 
+  // Пишем в черновик silent'ом — панель не перерисовывается под пальцем.
+  const commit = () => onChange({ q: input.value.trim() || null }, { silent: true });
+
   btn.addEventListener("click", () => setMode("expanded"));
+
+  input.addEventListener("input", commit);
 
   input.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      const q = input.value.trim();
-      onChange({ q: q || null });
+      input.blur();
     } else if (e.key === "Escape") {
-      if (state.q) { onChange({ q: null }); }
+      e.stopPropagation();
+      if (input.value) { input.value = ""; commit(); }
       else { setMode("collapsed"); }
     }
   });
 
   input.addEventListener("blur", () => {
-    const q = input.value.trim();
-    if (q !== (state.q || "")) onChange({ q: q || null });
-    if (!q) setMode("collapsed");
+    if (!input.value.trim()) setMode("collapsed");
   });
 
   clear.addEventListener("click", () => {
     input.value = "";
-    onChange({ q: null });
+    commit();
     setMode("collapsed");
   });
 }
@@ -441,7 +470,7 @@ function openGuestsDrawer(state, onChange) {
             ${guestRowHtml("children", draft.children, t("rooms.guests.children.title"))}
             ${guestRowHtml("infants", draft.infants, t("rooms.guests.infants.title"))}
             <div class="hfh-guests-apply">
-              <button type="button" class="primary" data-apply>${escapeHtml(t("hotels.filter.apply"))}</button>
+              <button type="button" class="primary" data-done>${escapeHtml(t("hotels.filter.done"))}</button>
             </div>
           </div>
         `;
@@ -450,7 +479,7 @@ function openGuestsDrawer(state, onChange) {
           row.querySelector('[data-act="dec"]').addEventListener("click", () => updateGuest(key, -1));
           row.querySelector('[data-act="inc"]').addEventListener("click", () => updateGuest(key, +1));
         });
-        body.querySelector("[data-apply]").addEventListener("click", () => {
+        body.querySelector("[data-done]").addEventListener("click", () => {
           onChange({ ...draft });
           close();
         });

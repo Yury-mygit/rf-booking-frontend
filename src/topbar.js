@@ -37,5 +37,20 @@ export function hideBack() {
 }
 
 export function initTopbar() {
-  // Резерв под future-фичи (например, кнопка-меню).
+  syncTopHeight();
+}
+
+// --top-h = фактическая высота #topbar (она разная: с кнопками справа и без,
+// fullscreen с padding под TG overlay). Константа 41px из base.css — только
+// fallback до первого замера; иначе шторки/sticky-шапки отстают от линии.
+// Пишем в body.style: body.tg-fullscreen переопределяет --top-h на body.
+function syncTopHeight() {
+  const bar = document.getElementById("topbar");
+  if (!bar || typeof ResizeObserver === "undefined") return;
+  const apply = () => {
+    document.body.style.setProperty("--top-h", `${bar.getBoundingClientRect().height}px`);
+  };
+  // border-box: fullscreen растит padding-top, content-box при этом не меняется.
+  new ResizeObserver(apply).observe(bar, { box: "border-box" });
+  apply();
 }

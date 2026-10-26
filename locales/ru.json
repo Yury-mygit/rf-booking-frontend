@@ -177,6 +177,8 @@
   "hotels.filter.sort_off": "Без сортировки",
   "hotels.filter.open": "Фильтры",
   "hotels.filter.close": "Закрыть",
+  "hotels.filter.clear": "Очистить",
+  "hotels.filter.done": "Готово",
   "hotel.add_room": "+ Добавить номер",
   "hotel.address": "Адрес",
   "hotel.book": "Забронировать",

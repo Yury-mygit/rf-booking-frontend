@@ -760,22 +760,26 @@ body.has-rooms-controls #rooms-list {
   width: 100%; margin: 0;
 }
 
+/* Поля карточки равные со всех сторон; фото — квадрат во всю высоту
+   текстовой колонки (≈118px), чтобы сверху/слева/снизу отступ совпадал. */
 .room {
+  --room-pad: 8px;
+  --room-photo: 118px;
   display: flex;
-  gap: 12px;
+  gap: 10px;
   background: var(--surface-soft);
-  border: 1px solid var(--border-soft);
+  border: 1px solid #000;
   border-radius: 6px;
-  padding: 6px 12px;
+  padding: var(--room-pad);
   margin-bottom: 5px;
   color: var(--text);
 }
 .room.unavailable { opacity: 0.5; }
 .room-photo {
-  flex: 0 0 96px;
+  flex: 0 0 var(--room-photo);
   align-self: flex-start;
-  width: 96px;
-  height: 96px;
+  width: var(--room-photo);
+  height: var(--room-photo);
   object-fit: cover;
   object-position: center;
   background-color: var(--border-soft);
@@ -788,7 +792,16 @@ body.has-rooms-controls #rooms-list {
   display: flex;
   flex-direction: column;
 }
-.room-body > .price { margin-top: auto; }
+/* Цена за ночь и «Итого» — одной строкой; не влезают — «Итого» уходит вниз. */
+.room-price-row {
+  margin-top: auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  column-gap: 10px;
+}
+.room-price-row > * { white-space: nowrap; }
 
 .modal-bg {
   position: fixed; inset: 0;
@@ -1083,7 +1096,7 @@ body.has-rooms-controls #rooms-list {
   top: var(--top-h);
   z-index: 3;
   background: var(--bg);
-  padding: 8px 12px 8px;
+  padding: 8px 0;
   border-bottom: 1px solid var(--border-soft);
 }
 
@@ -1120,33 +1133,38 @@ body.has-rooms-controls #rooms-list {
 /* Filter panel inside drawer -------------------------------------- */
 .hfp { display: flex; flex-direction: column; gap: 8px; }
 
-.hfh-close-wrap {
-  padding: 16px 0 8px;
+/* Низ шторки: «Очистить» слева, «Применить» справа. */
+.hfh-actions {
   display: flex;
-  justify-content: center;
-}
-.hfh-close-info {
-  display: inline-flex;
-  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
-  gap: 6px;
-  background: transparent;
-  border: none;
-  color: var(--muted);
-  font: inherit;
-  font-size: 13px;
-  cursor: pointer;
-  padding: 8px 16px;
+  gap: 12px;
+  padding: 16px 0 4px;
 }
-.hfh-close-info svg { color: var(--muted); }
-.hfh-close-info:hover { color: var(--text); }
-.hfh-close-info:hover svg { color: var(--accent); }
+.hfh-actions > button {
+  width: auto;
+  margin: 0;
+  min-width: 120px;
+  padding: 10px 16px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+}
+.hfh-actions > button.secondary:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
 .hfh-row {
   display: flex;
   gap: 8px;
   align-items: center;
 }
 .hfh-row--pair > .hfh-chip { flex: 1 1 0; }
+/* Гости по ширине текста (не режем «2 взр. 2 реб. 1 мл.»), даты делят остаток. */
+.hfh-row--trio > .hfh-chip { flex: 1 1 0; padding-inline: 10px; }
+.hfh-row--trio > .hfh-chip[data-chip="guests"] { flex: 0 0 auto; min-width: 25%; }
 .hfh-chip {
   padding: 8px 14px;
   border: 1px solid var(--border);
@@ -1216,7 +1234,8 @@ body.has-rooms-controls #rooms-list {
 }
 .hfh-search[data-search-mode="expanded"] .hfh-search-clear { display: block; }
 
-.hotels-list { padding: 8px 12px 16px; display: flex; flex-direction: column; gap: 8px; }
+/* Боковых полей нет: края задаёт padding main#app, как на карточке отеля. */
+.hotels-list { padding: 8px 0 16px; display: flex; flex-direction: column; gap: 8px; }
 
 /* Top-drawer ---------------------------------------------------------- */
 
@@ -1232,7 +1251,10 @@ body.has-rooms-controls #rooms-list {
   max-height: min(70dvh, calc(100dvh - var(--top-h) - 32px));
   overflow: auto;
   box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
-  border-bottom: 1px solid var(--border);
+  /* Контур цветом текста — как линия под #topbar (светлая в тёмной теме,
+     тёмная в светлой). Сверху не рисуем: там уже линия topbar'а. */
+  border: 1px solid var(--text);
+  border-top: none;
 }
 .td-head {
   display: flex;
@@ -1379,20 +1401,3 @@ body.has-rooms-controls #rooms-list {
   font-weight: 600;
   cursor: pointer;
 }
-
-.hfh-reset {
-  width: 32px;
-  height: 32px;
-  border: none;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--muted);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  align-self: center;
-  flex-shrink: 0;
-}
-.hfh-reset:hover { color: var(--text); background: var(--surface); }
