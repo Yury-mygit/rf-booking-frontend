@@ -6,7 +6,7 @@
 // Успешное создание → /client/pay/<code>.
 
 import { api } from "../../../api.js";
-import { getLang, t } from "../../../i18n.js";
+import { getLang, t, tn } from "../../../i18n.js";
 import { navigate, getQuery } from "../../../router.js";
 import { setTitle, showBack } from "../../../topbar.js";
 import { hideBottomNav } from "../../../bottomnav.js";
@@ -18,6 +18,7 @@ import {
   ROOM_PAID_ALLOWED,
 } from "../../../widgets/amenities_spec.js";
 import { amenityIconHtml } from "../../../widgets/amenities_icons.js";
+import { openStayDatesPicker } from "../hotels_filter.js";
 
 import {
   bindChipTooltips,
@@ -54,8 +55,16 @@ export async function renderHotelBookConfirm({ id, roomId }) {
   if (q.check_in) detailsQ.check_in = q.check_in;
   if (q.check_out) detailsQ.check_out = q.check_out;
   let h;
+  // Номер занят на выбранные даты → бэк выкидывает его из rooms. Тогда
+  // показываем номер без дат и просим выбрать другие.
+  let roomBusy = false;
   try {
     h = await ensureHotel(id, detailsQ);
+    if (detailsQ.check_in && !(h.rooms || []).some((x) => x.id === Number(roomId))) {
+      // мимо ensureHotel: её кэш — как раз ответ с датами, без номера
+      h = await api.hotelDetails(id, {});
+      roomBusy = true;
+    }
   } catch (e) {
     app.innerHTML = `<div class="error">${t("common.error", { msg: e.message })}</div>`;
     return;
@@ -94,34 +103,63 @@ export async function renderHotelBookConfirm({ id, roomId }) {
     ? Math.round((Date.parse(q.check_out) - Date.parse(q.check_in)) / 86400000)
     : 0;
   const stayTooShort = datesPicked && stayNights < minStay;
-  const canSubmit = datesPicked && !stayTooShort;
+  const canSubmit = datesPicked && !stayTooShort && !roomBusy;
   const lang = getLang();
   const datesLine = datesPicked
     ? `${fmtShort(q.check_in, lang)} → ${fmtShort(q.check_out, lang)}`
     : t("rooms.dates_required");
+  const errText = roomBusy
+    ? t("book.room_busy")
+    : stayTooShort
+      ? t("book.stay_too_short_error", { n: minStay })
+      : "";
   app.innerHTML = `
     <div class="card room-card">
       ${roomPhotosHtml(r)}
       <div class="room-card-body">
         <h2>${escapeHtml(r.name_ru)}</h2>
-        <div class="meta">${t("hotel.capacity", { n: r.capacity })}${r.beds != null ? ` · ${t("hotel.beds", { n: r.beds })}` : ""}</div>
+        <ul class="meta room-card-specs">${roomSpecs(r).map((s) => `<li>${escapeHtml(s)}</li>`).join("")}</ul>
         <div class="price">${t("hotel.price_per_night", { price: r.price_kgs })}</div>
       </div>
     </div>
-    <div class="modal-summary ${datesPicked ? "" : "muted"}">
-      <div>${escapeHtml(datesLine)}</div>
+    <div class="modal-summary">
+      <div class="${datesPicked && !roomBusy ? "" : "muted"}">${escapeHtml(datesLine)}</div>
       <div>${escapeHtml(formatGuestsLabel(guests))}</div>
+      ${canSubmit ? "" : `<button type="button" class="primary book-pick-dates" id="m-dates">${t("book.pick_dates")}</button>`}
     </div>
     ${hotelCheckinCheckoutHtml(h)}
     ${amenitiesSectionsHtml(h, r)}
-    <div id="m-err" class="error">${stayTooShort ? escapeHtml(t("book.stay_too_short_error", { n: minStay })) : ""}</div>
+    <div id="m-err" class="error">${escapeHtml(errText)}</div>
     <div class="book-confirm-bar">
-      <button class="primary full ${canSubmit ? "" : "is-disabled"}" id="m-ok">${t("rooms.confirm")}</button>
+      <button class="primary full ${canSubmit ? "" : "is-disabled"}" id="m-ok" ${canSubmit ? "" : "disabled"}>${t("rooms.confirm")}</button>
     </div>
   `;
   document.getElementById("m-ok").onclick = () =>
     submitBookConfirm(h, r, q, guests, canSubmit);
+  const datesBtn = document.getElementById("m-dates");
+  if (datesBtn) {
+    datesBtn.onclick = () =>
+      openStayDatesPicker(
+        { check_in: q.check_in, check_out: q.check_out },
+        ({ check_in, check_out }) => {
+          const qs = new URLSearchParams(q);
+          qs.set("check_in", check_in);
+          qs.set("check_out", check_out);
+          navigate(hotelHash(h, `/book/${r.id}?${qs}`));
+        },
+        { minNights: minStay },
+      );
+  }
   bindChipTooltips(app);
+}
+
+// Столбиком: гости, затем каждый вид кроватей своей строкой
+// (на /rooms то же самое сжато в одну строку с «…»).
+function roomSpecs(r) {
+  const parts = [tn("hotel.guests", r.capacity)];
+  if (r.single_beds > 0) parts.push(tn("hotel.single_beds", r.single_beds));
+  if (r.double_beds > 0) parts.push(tn("hotel.double_beds", r.double_beds));
+  return parts;
 }
 
 function roomPhotosHtml(r) {

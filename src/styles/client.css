@@ -379,9 +379,11 @@
    фото-окно (20vh × 20vh) — нативный horizontal-scroll карусель по photos
    со snap, справа текстовый блок (название / meta / цена). Если фото нет,
    карусель скрыта и тело растягивается на всю ширину. */
+/* min-height, не height: список гостей/кроватей (до 3 строк) + название
+   в 2 строки не должны обрезаться на низких экранах — карточка растёт. */
 .room-card {
   display: flex;
-  height: 20vh;
+  min-height: 20vh;
   padding: 0;
   overflow: hidden;
   margin-top: 10px;
@@ -389,28 +391,31 @@
 .room-photos-carousel {
   display: flex;
   flex: 0 0 20vh;
-  height: 100%;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
 }
 .room-photos-carousel::-webkit-scrollbar { display: none; }
+/* height 0 + min-height 100%: картинка не задаёт высоту карточки своими
+   пропорциями, а растягивается на высоту, которую дал текстовый блок. */
 .room-photo-slide {
   flex: 0 0 100%;
-  width: 100%; height: 100%;
+  width: 100%; height: 0; min-height: 100%;
   scroll-snap-align: start;
   object-fit: cover;
   background: var(--surface-soft);
 }
+/* Название — сверху, гости/кровати — списком под ним, цена — внизу. */
 .room-card-body {
   flex: 1; min-width: 0;
   padding: 10px 14px;
-  display: flex; flex-direction: column; justify-content: center;
+  display: flex; flex-direction: column;
 }
 .room-card-body h2 { margin: 0 0 4px; font-size: 16px; }
 .room-card-body .meta { font-size: 12px; }
-.room-card-body .price { margin-top: 4px; }
+.room-card-specs { list-style: none; margin: 0; padding: 0; line-height: 1.35; }
+.room-card-body .price { margin-top: auto; padding-top: 4px; }
 
 /* Amenities sections + chips on book.js.
    .amenities-block/.amenities-times не задают фон/бордер/padding —
@@ -761,10 +766,10 @@ body.has-rooms-controls #rooms-list {
 }
 
 /* Поля карточки равные со всех сторон; фото — квадрат во всю высоту
-   текстовой колонки (≈118px), чтобы сверху/слева/снизу отступ совпадал. */
+   текстовой колонки (≈105px), чтобы сверху/слева/снизу отступ совпадал. */
 .room {
-  --room-pad: 8px;
-  --room-photo: 118px;
+  --room-pad: 6px;
+  --room-photo: 105px;
   display: flex;
   gap: 10px;
   background: var(--surface-soft);
@@ -786,15 +791,18 @@ body.has-rooms-controls #rooms-list {
   border-radius: 4px;
   display: block;
 }
+/* Название сверху, кнопка снизу; строки гостей и цены — с равными
+   зазорами между ними (space-between). gap — минимум, когда тесно. */
 .room-body {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
+  gap: 4px;
 }
 /* Цена за ночь и «Итого» — одной строкой; не влезают — «Итого» уходит вниз. */
 .room-price-row {
-  margin-top: auto;
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
@@ -820,6 +828,7 @@ body.has-rooms-controls #rooms-list {
   padding: 8px 10px; border-radius: 4px; font-size: 13px;
   color: var(--text); margin-bottom: 10px;
 }
+.modal-summary .book-pick-dates { margin: 8px 0 0; padding: 8px 16px; }
 .dates-row { display: flex; gap: 8px; }
 .dates-row > div { flex: 1; }
 
@@ -833,16 +842,17 @@ body.has-rooms-controls #rooms-list {
 }
 .hotel-head-titlerow h1 { margin: 0; flex: 1; }
 
-.room-titlerow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 3px;
+.room-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
 }
-.room .room-body > button.primary { padding: 7px 16px; }
-.room .room-body > button.secondary { padding: 6px 14px; }
-.room-titlerow h3 { margin: 0; flex: 1; }
+/* Строка гостей/кроватей — всегда одна; на узком экране режется «…». */
+.room-meta { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.room .room-body > button { margin-top: 0; }
+.room .room-body > button.primary { padding: 6px 16px; }
+.room .room-body > button.secondary { padding: 5px 14px; }
 
 .chat-icon-btn {
   background: transparent;

@@ -14,7 +14,6 @@ import {
   escapeHtml,
   hotelHash,
 } from "./_shared.js";
-import { CHAT_ICON_SVG, openChatWithHotel } from "../chat/open.js";
 import { openFilterDrawer } from "../hotels_filter.js";
 
 const FILTER_KEYS_INT = ["adults", "children", "infants"];
@@ -171,27 +170,6 @@ function wireRoomCards(hotel) {
   _listEl.querySelectorAll("button[data-book-room]").forEach((b) => {
     b.onclick = () => navigateToBook(hotel, Number(b.dataset.bookRoom));
   });
-  _listEl.querySelectorAll("button[data-need-dates]").forEach((b) => {
-    b.onclick = () =>
-      openFilterDrawer(() => _filterState, applyPatch, {
-        showDestination: false,
-        searchPlaceholderKey: "rooms.filter.search_placeholder",
-      });
-  });
-  _listEl.querySelectorAll("button[data-chat-room]").forEach((b) => {
-    b.onclick = () => {
-      const roomId = Number(b.dataset.chatRoom);
-      const r = (hotel.rooms || []).find((x) => x.id === roomId);
-      openChatWithHotel(hotel.id, {
-        type: "room",
-        id: roomId,
-        name: r?.name_ru,
-        photo: r?.photos?.[0],
-        extra: r ? t("hotel.price_per_night", { price: r.price_kgs }) : undefined,
-        hotel_slug: hotel.slug,
-      });
-    };
-  });
 }
 
 function navigateToBook(h, roomId) {
@@ -202,31 +180,30 @@ function navigateToBook(h, roomId) {
   if (_filterState.children) qs.set("children", String(_filterState.children));
   if (_filterState.infants) qs.set("infants", String(_filterState.infants));
   if (_filterState.beds) qs.set("beds", _filterState.beds);
-  const tail = `/book/${roomId}?${qs.toString()}`;
+  const tail = qs.toString() ? `/book/${roomId}?${qs}` : `/book/${roomId}`;
   navigate(hotelHash(h, tail));
 }
 
 function roomCardHtml(r, hasDates) {
-  const chatBtn = `<button class="chat-icon-btn" type="button" data-chat-room="${r.id}" aria-label="${escapeHtml(t("chat.write_about_room"))}" title="${escapeHtml(t("chat.write_about_room"))}">${CHAT_ICON_SVG}</button>`;
   const photo = (r.photos && r.photos[0]) || "";
   const photoImg = photo
     ? `<img class="room-photo" src="${escapeHtml(photo)}/thumb" loading="lazy" decoding="async" alt="">`
     : `<div class="room-photo"></div>`;
+  // На карточке — гости и только первый вид кроватей, остальное «…»;
+  // полный состав кроватей — на /book.
+  const beds = [];
+  if (r.single_beds > 0) beds.push(tn("hotel.single_beds", r.single_beds));
+  if (r.double_beds > 0) beds.push(tn("hotel.double_beds", r.double_beds));
   const metaParts = [tn("hotel.guests", r.capacity)];
-  if (r.single_beds > 0) metaParts.push(tn("hotel.single_beds", r.single_beds));
-  if (r.double_beds > 0) metaParts.push(tn("hotel.double_beds", r.double_beds));
-  const cta = hasDates
-    ? `<button class="primary" data-book-room="${r.id}">${t("hotel.book")}</button>`
-    : `<button class="secondary" data-need-dates="1">${t("hotel.enter_dates")}</button>`;
+  if (beds.length) metaParts.push(beds[0] + (beds.length > 1 ? "…" : ""));
+  // Без дат тоже ведём на /book: там номер подробно + выбор дат.
+  const cta = `<button class="primary" data-book-room="${r.id}">${t("hotel.book")}</button>`;
   return `
     <div class="room">
       ${photoImg}
       <div class="room-body">
-        <div class="room-titlerow">
-          <h3>${escapeHtml(r.name_ru)}</h3>
-          ${chatBtn}
-        </div>
-        <div class="meta">${metaParts.join(", ")}</div>
+        <h3 class="room-title">${escapeHtml(r.name_ru)}</h3>
+        <div class="meta room-meta">${metaParts.join(", ")}</div>
         <div class="room-price-row">
           <div class="price">${t("hotel.price_per_night", { price: r.price_kgs })}</div>
           ${hasDates && r.total_kgs_for_dates != null ? `<div class="meta">${t("hotel.total", { total: r.total_kgs_for_dates })}</div>` : ""}

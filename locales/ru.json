@@ -55,6 +55,8 @@
   "book.open_in_telegram": "Открыть в Telegram",
   "book.room_not_found": "Номер не найден",
   "book.stay_too_short_error": "Минимальный срок — {n} ноч.",
+  "book.pick_dates": "Выбрать даты",
+  "book.room_busy": "Номер занят на эти даты — выберите другие",
   "bookings.btn_cancel": "Отменить",
   "bookings.cancel": "Отменить",
   "bookings.cancel_confirm": "Отменить бронь {code}?",

@@ -352,13 +352,28 @@ function openDestinationDrawer(state, onChange) {
 
 // ─── Date drawer (single-month calendar) ─────────────────────────────
 
-function openDateDrawer(field, state, onChange) {
+// Выбор пары дат подряд: календарь заезда, затем выезда (не раньше
+// check_in + minNights). onDone({ check_in, check_out }) — только когда
+// выбраны обе; × на любом шаге — ничего не меняется. Используется /book.
+export function openStayDatesPicker(state, onDone, { minNights = 1 } = {}) {
+  openDateDrawer("check_in", state, (patch) => {
+    const next = { ...state, ...patch };
+    openDateDrawer(
+      "check_out",
+      next,
+      (p) => onDone({ check_in: next.check_in, check_out: p.check_out }),
+      { minNights },
+    );
+  }, { minNights });
+}
+
+function openDateDrawer(field, state, onChange, { minNights = 1 } = {}) {
   const initialIso = state[field] || null;
   const anchor = initialIso ? startOfMonth(fromISO(initialIso)) : startOfMonth(new Date());
   const today = todayISO();
   const minIso =
     field === "check_out" && state.check_in
-      ? shiftIso(state.check_in, 1)
+      ? shiftIso(state.check_in, minNights)
       : today;
   const maxIso =
     field === "check_in" && state.check_out
@@ -392,14 +407,16 @@ function openDateDrawer(field, state, onChange) {
             //   check_in выбран → check_out = check_in + 1 (если пусто
             //     или уже ≤ check_in);
             //   check_out выбран → check_in = check_out - 1 (если пусто).
-            if (field === "check_in" && (!state.check_out || state.check_out <= iso)) {
-              patch.check_out = shiftIso(iso, 1);
+            if (field === "check_in" && (!state.check_out || state.check_out < shiftIso(iso, minNights))) {
+              patch.check_out = shiftIso(iso, minNights);
             }
             if (field === "check_out" && !state.check_in) {
               patch.check_in = shiftIso(iso, -1);
             }
-            onChange(patch);
+            // Сначала закрыть: onChange может открыть следующую шторку
+            // (openStayDatesPicker), она не должна наследовать высоту этой.
             close();
+            onChange(patch);
           });
         });
       };
