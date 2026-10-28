@@ -1,6 +1,7 @@
 import { api } from "../../api.js";
 import { t } from "../../i18n.js";
 import { navigate } from "../../router.js";
+import { setTitle } from "../../topbar.js";
 import { escapeHtml } from "../../util.js";
 import { showToast } from "../../widgets/toast.js";
 import { setSubBottomNav, setSubSubBottomNav } from "../nav.js";
@@ -27,6 +28,7 @@ const DEFAULT_LEAF = "#/admin/settings/amenities/general";
 export function mountSettingsShell(activeSubsub) {
   document.body.classList.add("has-subnav");
   document.body.classList.add("has-subsubnav");
+  setTitle(`${t("nav.settings")} / ${t("nav.amenities")} / ${t("amenity.subforms." + activeSubsub)}`);
   setSubBottomNav([
     {
       key: "amenities",
@@ -51,13 +53,14 @@ export function redirectSettings() {
   navigate(DEFAULT_LEAF);
 }
 
-// ─── Общие: реальный CRUD-view ───────────────────────────────────────
-// TBB-65: динамический каталог, section=general.
+// ─── Секция-agnostic CRUD-view ────────────────────────────────────────
+// TBB-65: динамический каталог, section передаётся в renderOptions.
 
-const SECTION = "general";
+let _section = null;
 
-async function renderGeneralOptions() {
-  mountSettingsShell("general");
+async function renderOptions(section) {
+  _section = section;
+  mountSettingsShell(section);
   const app = document.getElementById("app");
   app.innerHTML = `
     <div class="ao-form">
@@ -74,7 +77,7 @@ async function renderGeneralOptions() {
 async function refresh() {
   const list = document.getElementById("ao-list");
   try {
-    const items = await api.adminListAmenityOptions(SECTION);
+    const items = await api.adminListAmenityOptions(_section);
     renderList(items);
   } catch (e) {
     list.innerHTML = `<div class="error">${t("app.error", { msg: e.message })}</div>`;
@@ -164,7 +167,7 @@ async function saveOrder() {
   const list = document.getElementById("ao-list");
   const order = [...list.querySelectorAll(".ao-item")].map((r) => Number(r.dataset.id));
   try {
-    await api.adminReorderAmenityOptions(SECTION, order);
+    await api.adminReorderAmenityOptions(_section, order);
   } catch (e) {
     showToast(t("app.error", { msg: e.message }));
     await refresh();
@@ -179,7 +182,7 @@ async function onCreate() {
     return;
   }
   try {
-    await api.adminCreateAmenityOption(SECTION, name, desc);
+    await api.adminCreateAmenityOption(_section, name, desc);
     document.getElementById("ao-name").value = "";
     document.getElementById("ao-desc").value = "";
     await refresh();
@@ -188,7 +191,7 @@ async function onCreate() {
   }
 }
 
-// ─── Placeholder-leaf для 3 остальных subsub-табов ───────────────────
+// ─── Placeholder-leaf для structural-полей (не catalog) ──────────────
 
 function renderPlaceholder(key) {
   mountSettingsShell(key);
@@ -196,7 +199,7 @@ function renderPlaceholder(key) {
     `<p class="muted">${t("amenity.subforms." + key)}</p>`;
 }
 
-export const renderSettingsGeneral   = () => renderGeneralOptions();
-export const renderSettingsDining    = () => renderPlaceholder("dining");
+export const renderSettingsGeneral   = () => renderOptions("general");
+export const renderSettingsDining    = () => renderOptions("dining");
 export const renderSettingsPlacement = () => renderPlaceholder("placement");
 export const renderSettingsRules     = () => renderPlaceholder("rules");

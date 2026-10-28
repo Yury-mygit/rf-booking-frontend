@@ -10,7 +10,7 @@ import { navigate } from "../router.js";
 import { setTitle, showBack } from "../topbar.js";
 import { inTelegram, tg } from "../tg.js";
 import { mountOwnerSelector } from "./owner_selector.js";
-import { renderMainNav, activeNavKey, setBottomNav, hideSubBottomNav } from "./nav.js";
+import { renderMainNav, activeNavKey, setBottomNav, hideSubBottomNav, hideSubSubBottomNav } from "./nav.js";
 
 import { renderPending } from "./views/pending.js";
 import { renderPartnerLogin } from "./views/login.js";
@@ -149,10 +149,11 @@ function syncTopChrome(rest) {
   if (parent === null) showBack(() => navigate("#/"));
   else showBack(() => navigate("#" + parent));
   if (isHotelHubPath(rest) || isClientHubPath(rest)) return;
-  // Default state: субпанель скрыта. View сам поднимает через
+  // Default state: субпанели скрыты. View сам поднимает через
   // setSubBottomNav (staff_list / audit). Так не дублируем teardown
   // в каждом view.
   hideSubBottomNav();
+  hideSubSubBottomNav();
   renderMainNav(activeNavKey(rest));
 }
 
